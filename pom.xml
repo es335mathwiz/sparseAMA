@@ -1,0 +1,117 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>gov.frb.ma.msu</groupId>
+  <artifactId>sparseAMA</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <name>sparseAMA</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+
+  <packaging>nar</packaging>
+
+<build>
+ <defaultGoal>install</defaultGoal>
+ <pluginManagement>
+  <plugins>
+   <plugin>
+     <groupId>org.apache.maven.plugins</groupId>
+     <artifactId>maven-nar-plugin</artifactId>
+     <version>2.1-SNAPSHOT</version>
+   </plugin>
+  </plugins>
+ </pluginManagement>
+ <plugins>
+  <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-nar-plugin</artifactId>
+    <version>2.1-SNAPSHOT</version>
+    <extensions>true</extensions>
+
+<configuration>
+<c>
+<name>gcc</name>
+  <options>
+<option>-m64</option>
+<option>-c</option>
+    </options>
+<includePaths>
+<includePath>
+src/main/include/
+</includePath>
+</includePaths>
+<includes>
+<include>
+**/*.c
+</include>
+</includes>
+</c>
+<linker>
+<name>g++</name>
+  <options>
+  <option>-lgfortran</option>
+  <option>-shared</option>
+  <option>-m64</option>
+  <option>-L/opt/atlas/lib</option>
+  <option>-llapack</option>
+  <option>-lcblas</option>
+  <option>-lf77blas</option>
+  <option>-latlas</option>
+  </options>
+</linker>
+          <libraries>
+            <library>
+              <type>shared</type>
+<linkFortran>true</linkFortran>
+            </library>
+          </libraries>
+
+  <tests>
+    <test>
+      <name>simpSparseAMAExample</name>
+      <link>-lgfortran ./target/test-nar/obj/amd64-Linux-g++/simpleSparseAMAExample.o -L./target/nar/sparseAMA-1.0-SNAPSHOT-amd64-Linux-g++-shared/lib/amd64-Linux-g++/shared/ -lsparseAMA-1.0-SNAPSHOT -L/opt/atlas/lib/ -lcblas  -lf77blas  -latlas  -llapack </link>
+      <run/>
+      <args>
+        <arg/>
+      </args>
+    </test>
+  </tests>
+
+</configuration>
+
+  </plugin>
+ </plugins>
+</build>
+
+
+  <pluginRepositories>
+        <pluginRepository>
+          <id>duns-maven-snapshots</id>
+          <name>Duns' Maven Snapshots</name>
+          <releases>
+            <enabled>false</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+          <url>http://duns.github.com/maven-snapshots</url>
+        </pluginRepository>
+      </pluginRepositories>
+
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.4</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+</project>
