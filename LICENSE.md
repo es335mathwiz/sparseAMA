@@ -24,9 +24,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 For more information, please refer to <http://unlicense.org/>
 
 
-sparskit.c is covered under the GNU Lesser General Public License
+The pgoram sparskit.c is covered under the GNU Lesser General Public License
 
-ma50.f harwell
+ma50.f is published by harwell
 
 This software utilizes the following libraries covered under
 under 3 clause BSD as printed below: lapack, blas, atlas 
