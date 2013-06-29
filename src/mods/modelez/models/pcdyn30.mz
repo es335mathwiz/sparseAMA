@@ -1,0 +1,328 @@
+MODEL > PCDYN30
+
+ENDOG >   
+	lk	_NOTD
+	lx	_NOTD
+	lh	_NOTD
+	lw	_NOTD
+	ll	_NOTD
+	ly	_NOTD
+	lc	_NOTD
+	li	_NOTD
+	lcap	_NOTD
+	lsolow	_NOTD
+	lp	_NOTD
+	luc	_NOTD
+	theta	_DATA
+	la	_DATA
+	lcoc	_DATA
+	lcol	_DATA
+	one	_DTRM
+	theta_  _NOTD
+	la_	_NOTD
+	coc_	_NOTD
+	col_	_NOTD
+
+EQUATION >  capital
+EQTYPE >    IMPOSED
+EQ >	    lcap  = (1/(gss*nss))*((1-delta)*LAG(lcap,1) 
+		+ (hm*km/capss)*(LAG(lk,1)+LAG(lh,1)))
+
+EQUATION >  solow
+EQTYPE >    IMPOSED
+EQ >	    lsolow  = ly - alpha*lcap - (1-alpha)*ll
+
+EQUATION >  consum
+EQTYPE >    IMPOSED
+EQ >	    lc	=  (1/cm)*(ym*ly-km*hm*(lk + lh))
+
+EQUATION >  invest
+EQTYPE >    IMPOSED
+EQ >	    li  = lk + lh
+
+EQUATION >  lp
+EQTYPE >    IMPOSED
+EQ >	    lp  = ly - ll
+
+EQUATION >  x
+EQTYPE >    IMPOSED
+EQ >	    lx  =  alpha*lk + theta
+
+EQUATION >  labor
+EQTYPE >    IMPOSED
+EQ >	    ll	=  (hm/lm)*(
+		    d1*(cdf1*LAG(lh,1) - pdf1*(lw - la - LAG(lx,1))/sigma)
+		+   d2*(cdf2*LAG(lh,2) - pdf2*(lw - la - LAG(lx,2))/sigma)
+		+   d3*(cdf3*LAG(lh,3) - pdf3*(lw - la - LAG(lx,3))/sigma)
+		+   d4*(cdf4*LAG(lh,4) - pdf4*(lw - la - LAG(lx,4))/sigma)
+		+   d5*(cdf5*LAG(lh,5) - pdf5*(lw - la - LAG(lx,5))/sigma)
+		+   d6*(cdf6*LAG(lh,6) - pdf6*(lw - la - LAG(lx,6))/sigma)
+		+   d7*(cdf7*LAG(lh,7) - pdf7*(lw - la - LAG(lx,7))/sigma)
+		+   d8*(cdf8*LAG(lh,8) - pdf8*(lw - la - LAG(lx,8))/sigma)
+		+   d9*(cdf9*LAG(lh,9) - pdf9*(lw - la - LAG(lx,9))/sigma)
+		+   d10*(cdf10*LAG(lh,10) - pdf10*(lw - la - LAG(lx,10))/sigma)
+		+   d11*(cdf11*LAG(lh,11) - pdf11*(lw - la - LAG(lx,11))/sigma)
+		+   d12*(cdf12*LAG(lh,12) - pdf12*(lw - la - LAG(lx,12))/sigma)
+		+   d13*(cdf13*LAG(lh,13) - pdf13*(lw - la - LAG(lx,13))/sigma)
+		+   d14*(cdf14*LAG(lh,14) - pdf14*(lw - la - LAG(lx,14))/sigma)
+		+   d15*(cdf15*LAG(lh,15) - pdf15*(lw - la - LAG(lx,15))/sigma)
+		+   d16*(cdf16*LAG(lh,16) - pdf16*(lw - la - LAG(lx,16))/sigma)
+		+   d17*(cdf17*LAG(lh,17) - pdf17*(lw - la - LAG(lx,17))/sigma)
+		+   d18*(cdf18*LAG(lh,18) - pdf18*(lw - la - LAG(lx,18))/sigma)
+		+   d19*(cdf19*LAG(lh,19) - pdf19*(lw - la - LAG(lx,19))/sigma)
+		+   d20*(cdf20*LAG(lh,20) - pdf20*(lw - la - LAG(lx,20))/sigma)
+		+   d21*(cdf21*LAG(lh,21) - pdf21*(lw - la - LAG(lx,21))/sigma)
+		+   d22*(cdf22*LAG(lh,22) - pdf22*(lw - la - LAG(lx,22))/sigma)
+		+   d23*(cdf23*LAG(lh,23) - pdf23*(lw - la - LAG(lx,23))/sigma)
+		+   d24*(cdf24*LAG(lh,24) - pdf24*(lw - la - LAG(lx,24))/sigma)
+		+   d25*(cdf25*LAG(lh,25) - pdf25*(lw - la - LAG(lx,25))/sigma)
+		+   d26*(cdf26*LAG(lh,26) - pdf26*(lw - la - LAG(lx,26))/sigma)
+		+   d27*(cdf27*LAG(lh,27) - pdf27*(lw - la - LAG(lx,27))/sigma)
+		+   d28*(cdf28*LAG(lh,28) - pdf28*(lw - la - LAG(lx,28))/sigma)
+		+   d29*(cdf29*LAG(lh,29) - pdf29*(lw - la - LAG(lx,29))/sigma)
+		+   d30*(cdf30*LAG(lh,30) - pdf30*(lw - la - LAG(lx,30))/sigma)
+		)
+
+EQUATION >  output
+EQTYPE >    IMPOSED
+EQ >	    ly	= la + (hm*xm/ym)*(
+		   g1*d1*(cdfs1*(LAG(lh,1) + LAG(lx,1)) 
+		-    pdfs1*(lw - la - LAG(lx,1))/sigma)
+		+  g2*d2*(cdfs2*(LAG(lh,2) + LAG(lx,2)) 
+		-    pdfs2*(lw - la - LAG(lx,2))/sigma)
+		+  g3*d3*(cdfs3*(LAG(lh,3) + LAG(lx,3))
+		-    pdfs3*(lw - la - LAG(lx,3))/sigma)
+		+  g4*d4*(cdfs4*(LAG(lh,4) + LAG(lx,4))
+		-    pdfs4*(lw - la - LAG(lx,4))/sigma)
+		+  g5*d5*(cdfs5*(LAG(lh,5) + LAG(lx,5))
+		-    pdfs5*(lw - la - LAG(lx,5))/sigma)
+		+  g6*d6*(cdfs6*(LAG(lh,6) + LAG(lx,6))
+		-    pdfs6*(lw - la - LAG(lx,6))/sigma)
+		+  g7*d7*(cdfs7*(LAG(lh,7) + LAG(lx,7))
+		-    pdfs7*(lw - la - LAG(lx,7))/sigma)
+		+  g8*d8*(cdfs8*(LAG(lh,8) + LAG(lx,8))
+		-    pdfs8*(lw - la - LAG(lx,8))/sigma)
+		+  g9*d9*(cdfs9*(LAG(lh,9) + LAG(lx,9))
+		-    pdfs9*(lw - la - LAG(lx,9))/sigma)
+		+  g10*d10*(cdfs10*(LAG(lh,10) + LAG(lx,10)) 
+		-    pdfs10*(lw - la - LAG(lx,10))/sigma)
+		+  g11*d11*(cdfs11*(LAG(lh,11) + LAG(lx,11)) 
+		-    pdfs11*(lw - la - LAG(lx,11))/sigma)
+		+  g12*d12*(cdfs12*(LAG(lh,12) + LAG(lx,12)) 
+		-    pdfs12*(lw - la - LAG(lx,12))/sigma)
+		+  g13*d13*(cdfs13*(LAG(lh,13) + LAG(lx,13)) 
+		-    pdfs13*(lw - la - LAG(lx,13))/sigma)
+		+  g14*d14*(cdfs14*(LAG(lh,14) + LAG(lx,14)) 
+		-    pdfs14*(lw - la - LAG(lx,14))/sigma)
+		+  g15*d15*(cdfs15*(LAG(lh,15) + LAG(lx,15)) 
+		-    pdfs15*(lw - la - LAG(lx,15))/sigma)
+		+  g16*d16*(cdfs16*(LAG(lh,16) + LAG(lx,16)) 
+		-    pdfs16*(lw - la - LAG(lx,16))/sigma)
+		+  g17*d17*(cdfs17*(LAG(lh,17) + LAG(lx,17)) 
+		-    pdfs17*(lw - la - LAG(lx,17))/sigma)
+		+  g18*d18*(cdfs18*(LAG(lh,18) + LAG(lx,18)) 
+		-    pdfs18*(lw - la - LAG(lx,18))/sigma)
+		+  g19*d19*(cdfs19*(LAG(lh,19) + LAG(lx,19)) 
+		-    pdfs19*(lw - la - LAG(lx,19))/sigma)
+		+  g20*d20*(cdfs20*(LAG(lh,20) + LAG(lx,20)) 
+		-    pdfs20*(lw - la - LAG(lx,20))/sigma)
+		+  g21*d21*(cdfs21*(LAG(lh,21) + LAG(lx,21)) 
+		-    pdfs21*(lw - la - LAG(lx,21))/sigma)
+		+  g22*d22*(cdfs22*(LAG(lh,22) + LAG(lx,22)) 
+		-    pdfs22*(lw - la - LAG(lx,22))/sigma)
+		+  g23*d23*(cdfs23*(LAG(lh,23) + LAG(lx,23)) 
+		-    pdfs23*(lw - la - LAG(lx,23))/sigma)
+		+  g24*d24*(cdfs24*(LAG(lh,24) + LAG(lx,24)) 
+		-    pdfs24*(lw - la - LAG(lx,24))/sigma)
+		+  g25*d25*(cdfs25*(LAG(lh,25) + LAG(lx,25)) 
+		-    pdfs25*(lw - la - LAG(lx,25))/sigma)
+		+  g26*d26*(cdfs26*(LAG(lh,26) + LAG(lx,26)) 
+		-    pdfs26*(lw - la - LAG(lx,26))/sigma)
+		+  g27*d27*(cdfs27*(LAG(lh,27) + LAG(lx,27)) 
+		-    pdfs27*(lw - la - LAG(lx,27))/sigma)
+		+  g28*d28*(cdfs28*(LAG(lh,28) + LAG(lx,28)) 
+		-    pdfs28*(lw - la - LAG(lx,28))/sigma)
+		+  g29*d29*(cdfs29*(LAG(lh,29) + LAG(lx,29)) 
+		-    pdfs29*(lw - la - LAG(lx,29))/sigma)
+		+  g30*d30*(cdfs30*(LAG(lh,30) + LAG(lx,30)) 
+		-    pdfs30*(lw - la - LAG(lx,30))/sigma)
+		)
+
+EQUATION >  fock
+EQTYPE >    IMPOSED
+EQ >	    luc =  lx - lk - lcoc
+		+  (alpha*xm/(km*cocm))*(
+		   b1*d1*(cdfs1*(LEAD(luc,1) + LEAD(la,1)) 
+		-  pdfs1*(LEAD(lw,1) - LEAD(la,1) - lx)/sigma) 
+
+	        +  b2*d2*(cdfs2*(LEAD(luc,2) + LEAD(la,2))
+		-  pdfs2*(LEAD(lw,2) - LEAD(la,2) - lx)/sigma) 
+
+		+  b3*d3*(cdfs3*(LEAD(luc,3) + LEAD(la,3))
+		-  pdfs3*(LEAD(lw,3) - LEAD(la,3) - lx)/sigma)
+
+	        +  b4*d4*(cdfs4*(LEAD(luc,4) + LEAD(la,4))
+		-  pdfs4*(LEAD(lw,4) - LEAD(la,4) - lx)/sigma)
+
+	        +  b5*d5*(cdfs5*(LEAD(luc,5) + LEAD(la,5))
+		-  pdfs5*(LEAD(lw,5) - LEAD(la,5) - lx)/sigma)
+
+		+  b6*d6*(cdfs6*(LEAD(luc,6) + LEAD(la,6))
+		-  pdfs6*(LEAD(lw,6) - LEAD(la,6) - lx)/sigma)
+
+	        +  b7*d7*(cdfs7*(LEAD(luc,7) + LEAD(la,7))
+		-  pdfs7*(LEAD(lw,7) - LEAD(la,7) - lx)/sigma)
+ 
+		+  b8*d8*(cdfs8*(LEAD(luc,8) + LEAD(la,8))
+		-  pdfs8*(LEAD(lw,8) - LEAD(la,8) - lx)/sigma)
+ 
+	        +  b9*d9*(cdfs9*(LEAD(luc,9) + LEAD(la,9))
+		-  pdfs9*(LEAD(lw,9) - LEAD(la,9) - lx)/sigma)
+
+	        +  b10*d10*(cdfs10*(LEAD(luc,10) + LEAD(la,10))
+		-  pdfs10*(LEAD(lw,10) - LEAD(la,10) - lx)/sigma)
+
+		+  b11*d11*(cdfs11*(LEAD(luc,11) + LEAD(la,11))
+		-  pdfs11*(LEAD(lw,11) - LEAD(la,11) - lx)/sigma)
+
+	        +  b12*d12*(cdfs12*(LEAD(luc,12) + LEAD(la,12))
+		-  pdfs12*(LEAD(lw,12) - LEAD(la,12) - lx)/sigma)
+ 
+		+  b13*d13*(cdfs13*(LEAD(luc,13) + LEAD(la,13))
+		-  pdfs13*(LEAD(lw,13) - LEAD(la,13) - lx)/sigma)
+
+	        +  b14*d14*(cdfs14*(LEAD(luc,14) + LEAD(la,14))
+		-  pdfs14*(LEAD(lw,14) - LEAD(la,14) - lx)/sigma) 
+
+		+  b15*d15*(cdfs15*(LEAD(luc,15) + LEAD(la,15))
+		-  pdfs15*(LEAD(lw,15) - LEAD(la,15) - lx)/sigma)
+
+	        +  b16*d16*(cdfs16*(LEAD(luc,16) + LEAD(la,16))
+		-  pdfs16*(LEAD(lw,16) - LEAD(la,16) - lx)/sigma)
+
+	        +  b17*d17*(cdfs17*(LEAD(luc,17) + LEAD(la,17))
+		-  pdfs17*(LEAD(lw,17) - LEAD(la,17) - lx)/sigma)
+
+		+  b18*d18*(cdfs18*(LEAD(luc,18) + LEAD(la,18))
+		-  pdfs18*(LEAD(lw,18) - LEAD(la,18) - lx)/sigma)
+
+	        +  b19*d19*(cdfs19*(LEAD(luc,19) + LEAD(la,19))
+		-  pdfs19*(LEAD(lw,19) - LEAD(la,19) - lx)/sigma)
+ 
+		+  b20*d20*(cdfs20*(LEAD(luc,20) + LEAD(la,20))
+		-  pdfs20*(LEAD(lw,20) - LEAD(la,20) - lx)/sigma)
+ 
+	        +  b21*d21*(cdfs21*(LEAD(luc,21) + LEAD(la,21))
+		-  pdfs21*(LEAD(lw,21) - LEAD(la,21) - lx)/sigma)
+
+	        +  b22*d22*(cdfs22*(LEAD(luc,22) + LEAD(la,22))
+		-  pdfs22*(LEAD(lw,22) - LEAD(la,22) - lx)/sigma)
+
+	        +  b23*d23*(cdfs23*(LEAD(luc,23) + LEAD(la,23))
+		-  pdfs23*(LEAD(lw,23) - LEAD(la,23) - lx)/sigma)
+
+		+  b24*d24*(cdfs24*(LEAD(luc,24) + LEAD(la,24))
+		-  pdfs24*(LEAD(lw,24) - LEAD(la,24) - lx)/sigma)
+
+	        +  b25*d25*(cdfs25*(LEAD(luc,25) + LEAD(la,25))
+		-  pdfs25*(LEAD(lw,25) - LEAD(la,25) - lx)/sigma)
+
+	        +  b26*d26*(cdfs26*(LEAD(luc,26) + LEAD(la,26))
+		-  pdfs26*(LEAD(lw,26) - LEAD(la,26) - lx)/sigma)
+
+	        +  b27*d27*(cdfs27*(LEAD(luc,27) + LEAD(la,27))
+		-  pdfs27*(LEAD(lw,27) - LEAD(la,27) - lx)/sigma)
+
+	        +  b28*d28*(cdfs28*(LEAD(luc,28) + LEAD(la,28))
+		-  pdfs28*(LEAD(lw,28) - LEAD(la,28) - lx)/sigma)
+
+		+  b29*d29*(cdfs29*(LEAD(luc,29) + LEAD(la,29))
+		-  pdfs29*(LEAD(lw,29) - LEAD(la,29) - lx)/sigma)
+
+	        +  b30*d30*(cdfs30*(LEAD(luc,30) + LEAD(la,30))
+		-  pdfs30*(LEAD(lw,30) - LEAD(la,30) - lx)/sigma)
+		)
+
+EQUATION >  foch
+EQTYPE >    IMPOSED
+EQ >	    lk  =  - luc - lcoc
+		+  (alpha*wm/(km*cocm*(1-alpha)))*(
+		    (b1*d1/g1)*(cdf1*(LEAD(luc,1) + LEAD(lw,1))-pdf1*(LEAD(lw,1) - LEAD(la,1) - lx)/sigma)
+		+   (b2*d2/g2)*(cdf2*(LEAD(luc,2) + LEAD(lw,2))-pdf2*(LEAD(lw,2) - LEAD(la,2) - lx)/sigma)
+		+   (b3*d3/g3)*(cdf3*(LEAD(luc,3) + LEAD(lw,3))-pdf3*(LEAD(lw,3) - LEAD(la,3) - lx)/sigma)
+		+   (b4*d4/g4)*(cdf4*(LEAD(luc,4) + LEAD(lw,4))-pdf4*(LEAD(lw,4) - LEAD(la,4) - lx)/sigma)
+		+   (b5*d5/g5)*(cdf5*(LEAD(luc,5) + LEAD(lw,5))-pdf5*(LEAD(lw,5) - LEAD(la,5) - lx)/sigma)
+		+   (b6*d6/g6)*(cdf6*(LEAD(luc,6) + LEAD(lw,6))-pdf6*(LEAD(lw,6) - LEAD(la,6) - lx)/sigma)
+		+   (b7*d7/g7)*(cdf7*(LEAD(luc,7) + LEAD(lw,7))-pdf7*(LEAD(lw,7) - LEAD(la,7) - lx)/sigma)
+		+   (b8*d8/g8)*(cdf8*(LEAD(luc,8) + LEAD(lw,8))-pdf8*(LEAD(lw,8) - LEAD(la,8) - lx)/sigma)
+		+   (b9*d9/g9)*(cdf9*(LEAD(luc,9) + LEAD(lw,9))-pdf9*(LEAD(lw,9) - LEAD(la,9) - lx)/sigma)
+		+   (b10*d10/g10)*(cdf10*(LEAD(luc,10) + LEAD(lw,10))-pdf10*(LEAD(lw,10) - LEAD(la,10) - lx)/sigma)
+		+   (b11*d11/g11)*(cdf11*(LEAD(luc,11) + LEAD(lw,11))-pdf11*(LEAD(lw,11) - LEAD(la,11) - lx)/sigma)
+		+   (b12*d12/g12)*(cdf12*(LEAD(luc,12) + LEAD(lw,12))-pdf12*(LEAD(lw,12) - LEAD(la,12) - lx)/sigma)
+		+   (b13*d13/g13)*(cdf13*(LEAD(luc,13) + LEAD(lw,13))-pdf13*(LEAD(lw,13) - LEAD(la,13) - lx)/sigma)
+		+   (b14*d14/g14)*(cdf14*(LEAD(luc,14) + LEAD(lw,14))-pdf14*(LEAD(lw,14) - LEAD(la,14) - lx)/sigma)
+		+   (b15*d15/g15)*(cdf15*(LEAD(luc,15) + LEAD(lw,15))-pdf15*(LEAD(lw,15) - LEAD(la,15) - lx)/sigma)
+		+   (b16*d16/g16)*(cdf16*(LEAD(luc,16) + LEAD(lw,16))-pdf16*(LEAD(lw,16) - LEAD(la,16) - lx)/sigma)
+		+   (b17*d17/g17)*(cdf17*(LEAD(luc,17) + LEAD(lw,17))-pdf17*(LEAD(lw,17) - LEAD(la,17) - lx)/sigma)
+		+   (b18*d18/g18)*(cdf18*(LEAD(luc,18) + LEAD(lw,18))-pdf18*(LEAD(lw,18) - LEAD(la,18) - lx)/sigma)
+		+   (b19*d19/g19)*(cdf19*(LEAD(luc,19) + LEAD(lw,19))-pdf19*(LEAD(lw,19) - LEAD(la,19) - lx)/sigma)
+		+   (b20*d20/g20)*(cdf20*(LEAD(luc,20) + LEAD(lw,20))-pdf20*(LEAD(lw,20) - LEAD(la,20) - lx)/sigma)
+		+   (b21*d21/g21)*(cdf21*(LEAD(luc,21) + LEAD(lw,21))-pdf21*(LEAD(lw,21) - LEAD(la,21) - lx)/sigma)
+		+   (b22*d22/g22)*(cdf22*(LEAD(luc,22) + LEAD(lw,22))-pdf22*(LEAD(lw,22) - LEAD(la,22) - lx)/sigma)
+		+   (b23*d23/g23)*(cdf23*(LEAD(luc,23) + LEAD(lw,23))-pdf23*(LEAD(lw,23) - LEAD(la,23) - lx)/sigma)
+		+   (b24*d24/g24)*(cdf24*(LEAD(luc,24) + LEAD(lw,24))-pdf24*(LEAD(lw,24) - LEAD(la,24) - lx)/sigma)
+		+   (b25*d25/g25)*(cdf25*(LEAD(luc,25) + LEAD(lw,25))-pdf25*(LEAD(lw,25) - LEAD(la,25) - lx)/sigma)
+		+   (b26*d26/g26)*(cdf26*(LEAD(luc,26) + LEAD(lw,26))-pdf26*(LEAD(lw,26) - LEAD(la,26) - lx)/sigma)
+		+   (b27*d27/g27)*(cdf27*(LEAD(luc,27) + LEAD(lw,27))-pdf27*(LEAD(lw,27) - LEAD(la,27) - lx)/sigma)
+		+   (b28*d28/g28)*(cdf28*(LEAD(luc,28) + LEAD(lw,28))-pdf28*(LEAD(lw,28) - LEAD(la,28) - lx)/sigma)
+		+   (b29*d29/g29)*(cdf29*(LEAD(luc,29) + LEAD(lw,29))-pdf29*(LEAD(lw,29) - LEAD(la,29) - lx)/sigma)
+		+   (b30*d30/g30)*(cdf30*(LEAD(luc,30) + LEAD(lw,30))-pdf30*(LEAD(lw,30) - LEAD(la,30) - lx)/sigma)
+			)
+
+EQUATION >  focw
+EQTYPE >    IMPOSED
+EQ >	    lw  = (lm/(lmax-lm))*ll +  (1/cm)*(ym*ly-km*hm*(lk + lh))
+		- lcol
+
+EQUATION >  muc
+EQTYPE >    IMPOSED
+EQ >	    luc  =  (1-gama)*((1/cm)*(ym*ly-km*hm*(lk + lh)) 
+		 - (psi*lm/(lmax-lm))*ll) - (1/cm)*(ym*ly-km*hm*(lk + lh))
+
+EQUATION >  theta
+EQTYPE >    IMPOSED
+EQ >	    theta  =  rhotheta*LAG(theta,1) + theta_
+
+EQUATION >  la
+EQTYPE >    IMPOSED
+EQ >	    la  =  rhola*LAG(la,1) + la_
+
+EQUATION >  itc
+EQTYPE >    IMPOSED
+EQ >	    lcoc  =  rhococ*LAG(lcoc,1) + coc_
+
+EQUATION >  lit
+EQTYPE >    IMPOSED
+EQ >	    lcol  =  rhocol*LAG(lcol,1) + col_
+
+EQUATION > one
+EQTYPE >   IMPOSED
+EQ >       one = LAG(one,1)
+
+EQUATION > theta_
+EQTYPE >   STOCH
+EQ >       theta_ = 0*one
+
+EQUATION > la_
+EQTYPE >   STOCH
+EQ >       la_ = 0*one
+
+EQUATION > coc_
+EQTYPE >   STOCH
+EQ >       coc_ = 0*one
+
+EQUATION > col_
+EQTYPE >   STOCH
+EQ >       col_ = 0*one
+
+END

@@ -1,0 +1,11 @@
+MODEL> NEWMOD
+
+ENDOG>                                    
+                     X    _DATA
+
+
+EQUATION> X
+EQTYPE> STOCH
+EQ>     X = MU*(.75*LAG(X,1)-1*LAG(X,2))
+END
+
