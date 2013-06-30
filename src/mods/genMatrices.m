@@ -1,5 +1,5 @@
-SPSolvePath='c:/users/m1gsa00/sp_solve';
-mExchangePath='./matlabFileExchange';
+thePwd=pwd;
+mExchangePath=[thePwd '/matlabFileExchange'];
 addpath(SPSolvePath);
 addpath(mExchangePath);
 'gen firmvalue matrices'
