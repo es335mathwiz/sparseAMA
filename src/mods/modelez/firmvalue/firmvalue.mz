@@ -1,0 +1,22 @@
+MODEL> FIRMVALUE
+
+ENDOG>                                    
+                    V     
+                    DIV   
+                    e_    
+                    one   
+
+
+EQUATION> VALUE
+EQ>     LEAD(V,1) = (1+R)*V - LEAD(DIV,1)
+
+EQUATION> DIVIDEND
+EQ>     DIV = (1-DELTA)*LAG(DIV,1)
+
+EQUATION>  e_
+EQ>        e_ = 0 * one
+
+EQUATION>   ONE
+EQ>         one = LAG(one,1)
+
+END
