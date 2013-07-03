@@ -1,0 +1,155 @@
+MODEL > PRICES
+
+ENDOG > 
+zetaflex _NOTD
+lflex _NOTD
+gdpflex _NOTD
+gdp  _DATA
+gdpgap _NOTD
+labor _NOTD
+zetas _NOTD
+zetad _NOTD
+zeta _NOTD
+pi  _DATA
+dw  _DATA
+realbal _NOTD
+mu _NOTD
+irs _DATA
+ushk _NOTD
+vshk _NOTD
+xshk _NOTD
+zshk _NOTD
+one _DTRM
+price _NOTD
+wage _NOTD
+money _NOTD
+epsu _NOTD
+epsv _NOTD
+epsx _NOTD
+epsz _NOTD
+
+EQUATION > ZETAFLEX
+EQTYPE > IMPOSED
+EQ > zetaflex = chi*ubar3*lscriptl*lflex + chi*ubar3*lscriptz*zshk
+           + sigma*lscriptc*gdpflex - sigma*lscriptu*ushk
+
+EQUATION > LFLEX
+EQTYPE > IMPOSED
+EQ > zetaflex = xshk - alpha*lflex
+
+EQUATION > GDPFLEX
+EQTYPE > IMPOSED
+EQ > gdpflex = (1-alpha)*lflex + xshk 
+
+EQUATION > GDP
+EQTYPE > IMPOSED
+EQ > gdp = LEAD(gdp,1) - (irs - LEAD(pi,1))/(sigma*lscriptc)
+                       + (ushk - LEAD(ushk,1))*lscriptu/lscriptc
+
+EQUATION > GDPGAP
+EQTYPE > IMPOSED
+EQ > gdpgap = gdp - gdpflex
+
+EQUATION > LABOR
+EQTYPE > IMPOSED
+EQ > labor = (gdp - xshk)/(1-alpha)
+
+EQUATION > ZETAS
+EQTYPE > IMPOSED
+EQ > zetas = chi*ubar3*lscriptl*labor + chi*ubar3*lscriptz*zshk
+           + sigma*lscriptc*gdp - sigma*lscriptu*ushk
+
+EQUATION > ZETAD
+EQTYPE > IMPOSED
+EQ > zetad = xshk - alpha*labor
+
+EQUATION > ZETA
+EQTYPE > IMPOSED
+EQ > zeta = zetas
+
+EQUATION > PI
+EQTYPE > IMPOSED
+EQ > pi = beta * LEAD(pi,1) + kappap*kappa1*(gdp-gdpflex) 
+                            + kappap*(zeta-zetaflex)
+
+EQUATION > DW
+EQTYPE > IMPOSED
+EQ > dw = pi + zeta - LAG(zeta,1)
+
+EQUATION > REALBAL
+EQTYPE > IMPOSED
+EQ > realbal =  (-irs + lscriptc*gdp - lscriptv*vshk - lscriptu*ushk)/
+                      (lambda*lscriptm)
+
+EQUATION > MU
+EQTYPE > IMPOSED
+EQ > mu = pi + realbal - LAG(realbal,1)
+
+EQUATION > IRS
+EQTYPE > IMPOSED
+EQ > irs = gampi*pi + gamdw*dw + gamg*(gdp-gdpflex)
+         + gamy*gdp + gammu*mu + gamp*price + gamw*wage 
+         + gamm1*LAG(money,1)  + gamzeta1*LAG(zeta,1) 
+         + gamu1*LAG(ushk,1) + gamv1*LAG(vshk,1)
+         + gamx1*LAG(xshk,1) + gamz1*LAG(zshk,1)
+         + gameu*epsu + gamev*epsv + gamex*epsx + gamez*epsz
+
+EQUATION > USHK
+EQTYPE > IMPOSED
+EQ > ushk  = rhou*LAG(ushk,1) + epsu
+
+EQUATION > VSHK
+EQTYPE > IMPOSED
+EQ > vshk  = rhov*LAG(vshk,1) + epsv
+
+EQUATION > XSHK
+EQTYPE > IMPOSED
+EQ > xshk  = rhox*LAG(xshk,1) + epsx
+
+EQUATION > ZSHK
+EQTYPE > IMPOSED
+EQ > zshk  = rhoz*LAG(zshk,1) + epsz
+
+EQUATION > ONE
+EQTYPE > IMPOSED
+EQ > one = LAG(one,1)
+
+EQUATION > PRICE
+EQTYPE > IMPOSED
+EQ > price = pi + LAG(price,1)
+
+EQUATION > WAGE
+EQTYPE > IMPOSED
+EQ > wage = dw + LAG(wage,1)
+
+EQUATION > MONEY
+EQTYPE > IMPOSED
+EQ > money = mu + LAG(money,1)
+
+EQUATION > EPSU
+EQTYPE > STOCH
+EQ > epsu = 0*one
+
+EQUATION > EPSV
+EQTYPE > STOCH
+EQ > epsv = 0*one
+
+EQUATION > EPSX
+EQTYPE > STOCH
+EQ > epsx = 0*one
+
+EQUATION > EPSZ
+EQTYPE > STOCH
+EQ > epsz = 0*one
+
+END
+
+
+
+
+
+
+
+
+
+

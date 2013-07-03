@@ -1,0 +1,149 @@
+PROGRAM simpleSparseAMAExample
+
+
+! |----------------------------------------------|
+!  This is a version of simpleSparseAMAExample.c
+!                 written for fortran
+! |----------------------------------------------|
+
+!INCLUDE 'sparseAMA.h'
+
+IMPLICIT NONE
+
+INTEGER MAXELEMS
+INTEGER HROWS
+INTEGER HCOLS
+INTEGER LEADS
+INTEGER qrows
+INTEGER qcols
+INTEGER, DIMENSION(381) :: hmatj
+INTEGER, DIMENSION(381) :: hmati
+INTEGER, DIMENSION(20) :: inithmatj
+INTEGER, DIMENSION(4) :: inithmati
+REAL(KIND =8), DIMENSION(381) :: hmat
+REAL(KIND = 8), DIMENSION(20) :: inithmat
+INTEGER maxNumberOfHElements
+!REAL, POINTER :: newHmat, qmat, bmat, rootr, rooti
+!INTEGER, POINTER :: newHmatj, newHmati, qmatj, qmati, bmatj, bmati
+INTEGER :: aux, rowsinQ, essential, retCODE, i
+INTEGER :: maxSize
+!CALLOC bit
+real(KIND = 8), dimension(381) :: newHmat
+integer, dimension(381) :: newHmatj
+integer, dimension(381) :: newHmati
+real(KIND = 8), dimension(381) :: qmat
+integer, dimension(381) :: qmatj
+integer, dimension(381) :: qmati
+real, dimension(381) :: bmat
+integer, dimension(381) :: bmati
+integer, dimension(381) :: bmatj
+real(KIND = 8), dimension(381) :: rootr
+real(KIND = 8), dimension(381) :: rooti
+integer, dimension(:), allocatable :: aPointerToVoid
+integer::DISCRETE_TIME
+
+DO i = 1, 381
+   hmatj(i) = 0
+   hmat(i) = 0.0
+   hmati(i) = 0
+END DO
+
+
+inithmat = (/-0.1167899999999999,&
+ -0.2842153439999999,&
+ 0.098180323, -0.697197378,&
+ -0.1357490219999999, 1.0, -0.024790419, 0.024790419,&
+ -0.024790419, 0.024790419, -0.024790419,&
+ 0.251999689, 0.024790419, -0.024790419, -1.158861192,&
+ 0.024790419, 1.0, -0.32, 1.0, -2.62 /)
+
+inithmatj = (/1, 4, 7, 10, 11, 13, 1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 14, 12, 15, 37/)
+inithmati = (/1, 7, 18,21 /)
+
+DO i = 1,20
+   hmat(i) = inithmat(i)
+   hmatj(i) = inithmatj(i)
+END DO
+
+DO i = 1,4
+   hmati(i) = inithmati(i)
+END DO
+
+
+MAXELEMS = 381
+HROWS = 3
+HCOLS = 39
+LEADS = 8
+DISCRETE_TIME = 1
+qrows = HROWS*LEADS
+qcols = HCOLS-HROWS
+
+! INTEGER function ! obtainSparseReducedForm(maxNumberHelements, qrows, qcols, qmat, qmatj qmati, bmat, bmatj, bmati)
+!  INTEGER maxNumberHElements, qrows, qcols, qmat, qmatj, qmati
+!  REAL :: bmat, bmatj, bmati
+!END !obtainSparseReducedForm
+
+
+
+
+
+
+
+aux = 0
+rowsInQ = aux
+DO i = 1,HROWS
+   newHmati(i) = 1
+END DO
+!WRITE(*) HROWS, hmat, hmatj, hmati
+
+maxSize = MAXELEMS
+
+! calls c function sparseAMA
+call sparseamawrapper(maxSize,&
+DISCRETE_TIME,&
+HROWS, HCOLS, LEADS,&
+hmat, hmatj, hmati,&
+newHmat, newHmatj, newHmati,&
+aux, rowsInQ, qmat, qmatj, qmati,&
+essential, &
+rootr, rooti, retCode, aPointerToVoid)
+
+! Returns the outputs from sparse AMA algorithm
+
+WRITE(*,100) maxsize
+100 FORMAT ('maximum for hElems =', I3)
+WRITE(*,125) retCode
+125 FORMAT('return code = ' , I5)
+
+call cprintsparsewrapper(HROWS, newHmat, newHmatj&
+,newHmati)
+
+
+call cprintsparsewrapper(LEADS*HROWS,&
+qmat, qmatj,qmati)
+!WRITE(*) 'roots', [essential, 1, rootr]
+!WRITE(*) [essential, 1, rooti]
+maxSize = HROWS*LEADS*(HCOLS-HROWS)
+
+call obtainsparsewrapper(maxSize, &
+qrows, qcols, qmat, qmatj, qmati, &
+bmat, bmatj, bmati, MAXELEMS,&
+HROWS, HCOLS,LEADS)
+
+
+call cprintsparsewrapper(LEADS*HROWS,&
+bmat, bmatj, bmati)
+
+
+
+!DEALLOCATE(newHmat)
+!DEALLOCATE(newHmatj)
+
+!DEALLOCATE(bmat)
+!DEALLOCATE(bmati)
+!DEALLOCATE(bmatj)
+!DEALLOCATE(rootr)
+!DEALLOCATE(rooti)
+
+STOP
+END PROGRAM simpleSparseAMAExample

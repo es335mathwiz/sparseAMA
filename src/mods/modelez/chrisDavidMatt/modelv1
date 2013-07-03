@@ -1,0 +1,224 @@
+MODEL > modelv1
+
+ENDOG >
+cc _NOTD
+lamc _NOTD
+if _NOTD
+tobq _NOTD
+kp _NOTD
+util _NOTD
+rentks _NOTD
+dp _NOTD
+mcost _NOTD
+mpl _NOTD
+mrs _NOTD
+dpw _NOTD
+zzw _NOTD
+zeta _NOTD
+le _NOTD
+gdp _NOTD
+rs1 _NOTD
+rs _NOTD
+xhp _NOTD
+xhptilde _NOTD
+gdpp1 _NOTD
+xhpp1 _NOTD
+techlevel _NOTD
+gdpun _NOTD
+ccun _NOTD
+ifun _NOTD
+techshk _NOTD
+gcx _NOTD
+invshk _NOTD
+etashock _NOTD
+mucshkm1 _NOTD 
+mucshk _NOTD
+intshk _NOTD
+markupshk _NOTD
+markupwshk _NOTD
+errtech _NOTD
+errgcx _NOTD
+errinv _NOTD
+erreta _NOTD
+errmuc _NOTD
+errint _NOTD
+errmarkup _NOTD
+errmarkupw _NOTD
+
+EQUATION > CC
+EQTYPE > IMPOSED
+EQ > (1-gamtil)*(1-gamtil*beta*ihabitswitch)*(lamc - mucshk) = -(1+gamtil*gamtil*beta*ihabitswitch)*cc + gamtil*(LAG(cc,1)-techshk) + gamtil*beta*ihabitswitch*(LEAD(cc,1) + LEAD(techshk,1)) + gamtil*beta*ihabitswitch*etashock
+
+EQUATION > LAMC
+EQTYPE > IMPOSED
+EQ > lamc = LEAD(lamc,1) + (rs - LEAD(dp,1)) - etashock - LEAD(techshk,1)
+
+EQUATION > if
+EQTYPE > IMPOSED
+EQ > (1-(1-delta)/Gz)*(if + invshk) = kp - ((1-delta)/Gz)*(LAG(kp,1) - techshk)
+
+EQUATION > tobq
+EQTYPE > IMPOSED
+EQ >  tobq = -invshk + phii*(1+beta*intswitch)*if-phii*LAG(if,1) - beta*intswitch*phii*LEAD(if,1) + phii*techshk - beta*intswitch*phii*LEAD(techshk,1)
+
+EQUATION > kp
+EQTYPE > IMPOSED
+EQ >  tobq = ((1-delta)*beta/Gz)*LEAD(tobq,1) - (rs - LEAD(dp,1))
+           + (1-((1-delta)*beta/Gz))*LEAD(rentks,1) - etashock 
+
+EQUATION > util
+EQTYPE > IMPOSED
+EQ >  util = (1/sigmaa)*rentks
+          
+EQUATION > RENTKS
+EQTYPE > IMPOSED
+EQ >  rentks =  zeta + le - util - LAG(kp,1) + techshk
+
+EQUATION > DP
+EQTYPE > IMPOSED
+EQ > dp = beta/(1+beta*(1-ap))*LEAD(dp,1) + (1-ap)/(1+beta*(1-ap))*LAG(dp,1) + kappap*mcost + (kappap/(ep-1))*markupshk
+
+EQUATION > MCOST
+EQTYPE > IMPOSED
+EQ > mcost = zeta - mpl
+
+EQUATION > MPL
+EQTYPE > IMPOSED
+EQ > mpl = gdp - le
+
+EQUATION > MRS
+EQTYPE > IMPOSED
+EQ > mrs  = sigmal*le - lamc
+
+EQUATION > DPW
+EQTYPE > IMPOSED
+EQ > dpw = (1-aw)*LAG(dp,1) + (1-bw)*techshk + zzw
+
+EQUATION > ZZW
+EQTYPE > IMPOSED
+EQ > zzw = beta*LEAD(zzw,1) + kappaw*(mrs - zeta) + (kappaw/(epw-1))*markupwshk
+
+EQUATION > ZETA
+EQTYPE > IMPOSED
+EQ > zeta = LAG(zeta,1) + dpw - dp - techshk
+
+EQUATION > LE
+EQTYPE > IMPOSED
+EQ > (1-alpha)*le = gdp-alpha*(util + LAG(kp,1) - techshk)
+
+EQUATION > GDP
+EQTYPE > IMPOSED
+EQ > gdp = gg*shrcy*cc + gcx + gg*shriy*if + gg*alpha*((ep-1)/ep)*util 
+
+EQUATION > RS1
+EQTYPE > IMPOSED
+EQ > rs1 = rs - LEAD(dp,1)
+
+EQUATION > RS
+EQTYPE > IMPOSED
+EQ > rs =  gam_rs*LAG(rs,1) + (1-gam_rs)*( gam_dp*dp + gamxhp*xhp + gamdy*(gdp - LAG(gdp,1) + techshk)) + intshk
+
+EQUATION > XHP
+EQTYPE > IMPOSED
+EQ > (1+6*lamhp*hpswitch+(1-hpswitch)*(1+2*lamhp))*xhp = hpswitch*( -lamhp*LEAD(xhpp1,1) + 4*lamhp*LEAD(xhp,1) + 4*lamhp*LAG(xhp,1) - lamhp*LAG(xhptilde,1) + lamhp*LEAD(gdpp1,1) - 4*lamhp*LEAD(gdp,1) + 6*lamhp*gdp  
+    -4*lamhp*LAG(gdp,1) + 3*lamhp*techshk ) + (1-hpswitch)*( lamhp*LAG(xhp,1) + lamhp*LEAD(xhp,1) + 2*lamhp*gdp - lamhp*LAG(gdp,1) - lamhp*LEAD(gdp,1)  + lamhp*techshk - lamhp*LEAD(techshk,1) )
+
+EQUATION > XHPTILDE
+EQTYPE > IMPOSED
+EQ >  xhptilde = LAG(xhp,1) - LAG(gdp,1) + techshk
+
+EQUATION > GDPP1
+EQTYPE > IMPOSED
+EQ > gdpp1 = LEAD(gdp,1)
+
+EQUATION > XHPP1
+EQTYPE > IMPOSED
+EQ > xhpp1 = LEAD(xhp,1)
+
+EQUATION > TECHLEVEL
+EQTYPE > IMPOSED
+EQ > techlevel = LAG(techlevel,1) + techshk
+
+EQUATION > gdpun
+EQTYPE > IMPOSED
+EQ > gdpun = gdp + techlevel
+
+EQUATION > ccun
+EQTYPE > IMPOSED
+EQ > ccun = cc + techlevel
+
+EQUATION > ifun
+EQTYPE > IMPOSED
+EQ > ifun = if + techlevel
+
+EQUATION > TECHSHK
+EQTYPE > IMPOSED
+EQ > techshk = rhotech*LAG(techshk,1) + sdevtech*LAG(errtech,1)
+
+EQUATION > GCX
+EQTYPE > IMPOSED
+EQ > gcx = rhog*LAG(gcx,1) + sdevg*LAG(errgcx,1)
+
+EQUATION > INVSHK
+EQTYPE > IMPOSED
+EQ > invshk = rhoinv*LAG(invshk,1) + sdevinv*LAG(errinv,1)
+
+EQUATION > ETASHOCK
+EQTYPE > IMPOSED
+EQ > etashock = rhoeta*LAG(etashock,1) + sdeveta*LAG(erreta,1)
+
+EQUATION > MUCSHKM1
+EQTYPE > IMPOSED
+EQ > mucshkm1 = LAG(mucshk,1)
+
+EQUATION > MUCSHK
+EQTYPE > IMPOSED
+EQ > mucshk = rhomuc1*LAG(mucshk,1) + rhomuc2*LAG(mucshkm1,1)  + sdevmuc*LAG(errmuc,1)
+
+EQUATION > INTSHK
+EQTYPE > IMPOSED
+EQ > intshk = rhoint*LAG(intshk,1) + sdevint*LAG(errint,1)
+
+EQUATION > markupshk
+EQTYPE > IMPOSED
+EQ > markupshk = rhomark*LAG(markupshk,1) + sdevmark*LAG(errmarkup,1)
+
+EQUATION > markupwshk
+EQTYPE > IMPOSED
+EQ > markupwshk = rhomarkw*LAG(markupwshk,1) + sdevmark*LAG(errmarkupw,1)
+
+EQUATION > ERRTECH
+EQTYPE > IMPOSED
+EQ > errtech = 0*LAG(errtech,1)
+
+EQUATION > ERRGCX
+EQTYPE > IMPOSED
+EQ > errgcx = 0*LAG(errgcx,1)
+
+EQUATION > ERRINV
+EQTYPE > IMPOSED
+EQ > errinv = 0*LAG(errinv,1)
+
+EQUATION > ERRETA
+EQTYPE > IMPOSED
+EQ > erreta = 0*LAG(erreta,1)
+
+EQUATION > ERRMUC
+EQTYPE > IMPOSED
+EQ > errmuc = 0*LAG(errmuc,1)
+
+EQUATION > ERRINT
+EQTYPE > IMPOSED
+EQ > errint = 0*LAG(errint,1)
+
+EQUATION > ERRMARKUP
+EQTYPE > IMPOSED
+EQ > errmarkup = 0*LAG(errmarkup,1)
+
+EQUATION > ERRMARKUPW
+EQTYPE > IMPOSED
+EQ > errmarkupw = 0*LAG(errmarkupw,1)
+
+END
+
+

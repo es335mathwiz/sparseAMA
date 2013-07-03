@@ -1,0 +1,40 @@
+MODEL> JEFFMOD
+
+ENDOG>                                    
+                     PI       1   _DATA
+                     WDOT     1   _NOTD
+
+                     RHO      0   _NOTD
+                     V        1   _NOTD
+                     F        0   _DATA
+                     ONE      1   _DTRM
+
+
+EQUATION> CONST
+EQTYPE> IMPOSED
+EQ>    ONE = LAG(ONE,1)
+
+EQUATION> PIDEF
+EQTYPE> IMPOSED
+EQ>   PI = (.001e3-LAMBDA)*LAG(PI,1) + LAMBDA*WDOT
+
+EQUATION> WAGINFL
+EQTYPE>   STOCH
+EQ>   WDOT = (1-LAMBDA)*(LEAD(WDOT,1) ) 
+           + LAMBDA * (PI  - CRHO*(RHO-RHOBAR*ONE))
+
+EQUATION> REALR
+EQTYPE>  IMPOSED
+EQ>   LEAD(RHO,1) - RHO = RHOBAR*(RHO - F + LEAD(PI,1))
+
+EQUATION> RELCP
+EQTYPE> IMPOSED
+EQ>  LEAD(V,1) - V = RHOBAR*V - (F - LEAD(PI,1) - RHOBAR*ONE)
+
+EQUATION> REACTION
+EQTYPE>   STOCH 
+EQ>   F - LAG(F,1) = ALPHAPI*(ELAG(PI,1) - PIBAR*ONE) 
+
+
+END
+
