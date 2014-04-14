@@ -11,7 +11,7 @@ int csrdnswrapper_(int * HROWS, int * HCOLS, double* hmat, int * aj, int *ai,dou
  
   int i;
   double *tempmat;
-  t1 = 3;
+  t1 = rows;
   t2 = 0;
 
   csrdns_(HROWS,HCOLS,hmat,aj,ai,newHmat,&t1,&t2); 
