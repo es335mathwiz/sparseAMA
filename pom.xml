@@ -37,7 +37,8 @@
 
 <configuration>
 <c>
-<name>gcc</name>
+<debug>true</debug>
+<name>icc</name>
   <options>
 <option>-m64</option>
 <option>-c</option>
@@ -56,7 +57,6 @@ src/main/include/
 <linker>
 <name>g++</name>
   <options>
- <option>-lgfortran</option>
   <option>-shared</option>
   <option>-m64</option>
   <option>-L/opt/atlas/lib</option>

@@ -66,7 +66,10 @@
 /* 	-------------------------------------------------------------------------------- */
 
 
-double ZERO_TOLERANCE, ZERO_TOL1 ;
+//double ZERO_TOLERANCE=1.0e-8;
+//double ZERO_TOL1=1.0e-8;
+double ZERO_TOLERANCE;
+double ZERO_TOL1;
 int USEARPACK, TESTBLANCHARDKAHN ;
 #include <stdio.h>
 
@@ -646,6 +649,12 @@ static int shiftRightAndRecord (
 		zeroRow = (hmati[i-1]==hmati[i]) ;
 		i++ ;
 	}
+/*debug code*/
+printf("debugging code zeroRow value=%");
+fputs(zeroRow ? "true" : "false", stdout);
+/*debug code*/
+
+
     sparseAMAAssert (zeroRow==FALSE, shiftRightAndRecordPreZeroRow);
 	if (*returnCode) return (-1) ;
 
@@ -774,13 +783,13 @@ static int annihilateRows(
 
 	/* zero means zero ... */
 	ztol=ZERO_TOLERANCE; job=1; len=HMATSIZE; ierr=0;
-
+/*
 	dropSmallElements (
 		&hrows, &job, &ztol, &len,
 		annihilator, annihilatorj, annihilatori,
 		annihilator, annihilatorj, annihilatori, &ierr
 	);
-
+*/
 
 	/* calculate ordering of new H by rows depending on rank (?).  nb first row number zero not one */
 	for(i=0;i<hrows;i++) {
@@ -1172,8 +1181,10 @@ static int augmentQmatWithInvariantSpaceVectors (
 			dnsToCsr(&nroot,&spacedim,&nzmax,beyondQmat,&nroot,a,ja,ia,&ierr);
 			bumpSparseAMA(qextent+(*essential * spacedim));
 
+
+
 			/* zero small elements in eigenvectors in 'a' */
-			job=1;ztol=ZERO_TOLERANCE;len=*maxNumberOfHElements;
+			job=1;ztol=1.0e-8;len=*maxNumberOfHElements;
 			dropSmallElements(&nroot,&job,&ztol,&len,a,ja,ia,a,ja,ia,&ierr);
 
 			/* transpose eigenvectors (not in place).  matrix won't be square, because we are only
@@ -1235,7 +1246,7 @@ static int augmentQmatWithInvariantSpaceVectors (
 			bumpSparseAMA(qextent+(*essential* *essential));
 
 			/* drop small elements from eigenvectors */
-			job=1;ztol=ZERO_TOLERANCE;len=*maxNumberOfHElements;
+			job=1;ztol=1.0e-8;len=*maxNumberOfHElements;
 			dropSmallElements(&nroot,&job,&ztol,&len,a,ja,ia,a,ja,ia,&ierr);
 
 			/* transpose matrix of eigenvectors -- square, so use csrToCsc; store in 'ta' */
@@ -1268,7 +1279,7 @@ static int augmentQmatWithInvariantSpaceVectors (
 
 		/* reset rowsInQ; drop small elements one more time */
 		rowsInQ=rowsInQ+sdim;
-		job=1;ztol=ZERO_TOLERANCE;len=HMATSIZE;
+		job=1;ztol=1.0e-8;len=HMATSIZE;
 		dropSmallElements(&rowsInQ,&job,&ztol,&len,qmat,qmatj,qmati,qmat,qmatj,qmati,&ierr);
 
 		free(beyondQmat);free(anotheriwork);

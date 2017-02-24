@@ -229,7 +229,7 @@ kappaw = epw*(1-gamtil)*psil*labss**(1+sigmal)/phiw
 !!  --------------------------------  !!
 ! should have one argument, the parameter vector
 ! get parameters into vector
-! call parser the output will be
+! call parser the output will bef
 ! parameter names vector
 
 ! then populate another vector
