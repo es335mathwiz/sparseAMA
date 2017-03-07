@@ -649,10 +649,6 @@ static int shiftRightAndRecord (
 		zeroRow = (hmati[i-1]==hmati[i]) ;
 		i++ ;
 	}
-/*debug code*/
-printf("debugging code zeroRow value=%");
-fputs(zeroRow ? "true" : "false", stdout);
-/*debug code*/
 
 
     sparseAMAAssert (zeroRow==FALSE, shiftRightAndRecordPreZeroRow);

@@ -1,7 +1,7 @@
 
 # The compiler
-#FC = gfortran
-FC = ifort
+FC = gfortran
+#FC = ifort
 # flags for debugging or for maximum performance, comment as necessary
 F90CFLAGS = -c -I./src/main/include -shared -m64 -fno-underscoring -g
 
