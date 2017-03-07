@@ -21,7 +21,7 @@ F90OBJS = $(F90SRCS:.f90=.o)
 FOBJS = $(FSRCS:.f=.o)
 #OBJS = $(COBJS) $(F90OBJS) $(FOBJS)
 OBJS =  $(F90OBJS) $(FOBJS)
-OBJS =   dnaupd.o dneupd.o
+OBJS =   dnaupd.o dneupd.o second.o
 
 # needed for linking, unused in the examples
 LDFLAGS = -L/opt/atlas/lib/L/opt/atlas/lib/ -lcblas -lf77blas -latlas -llapack 
@@ -44,6 +44,9 @@ dnaupd.o: ./src/main/fortran/dnaupd.f
 
 dneupd.o: ./src/main/fortran/dneupd.f 
 	gfortran -c  -I./src/main/include -shared -m64 ./src/main/fortran/dneupd.f 
+
+second.o: ./src/main/fortran/second.f 
+	gfortran -c  -I./src/main/include -shared -m64 ./src/main/fortran/second.f 
 
 
 sparskit2.o: ./src/main/c/sparskit2.c
