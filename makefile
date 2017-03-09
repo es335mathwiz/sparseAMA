@@ -11,7 +11,7 @@ FCFLAGS = -c -g -I./src/main/include
 
 
 ifeq ($(UNAME),Linux)
-LAPACKLIBS=   -L /msu/res5/software/ARPACKforCluster -larpack_linux -L/msu/res5/software/lapackForCluster -llapack -lrefblas
+LAPACKLIBS=   -L /msu/res5/software/ARPACK96forCluster -larpack_linux -L/msu/res5/software/lapackGithubForCluster -llapack -lrefblas
 endif
 
 ifeq ($(UNAME),Darwin)
