@@ -25,8 +25,11 @@ endif
 #compilers
 FC = gfortran
 
-simpleSparseAMAExample:simpleSparseAMAExample.o sparseAMA.o sparskit2.o ma50ad.o
-	$(FC) -o simpleSparseAMAExample simpleSparseAMAExample.o sparseAMA.o sparskit2.o ma50ad.o $(LAPACKLIBS) 
+libsparseAMA.a:	sparseAMA.o sparskit2.o ma50ad.o
+	ar -cvq libsparseAMA.a sparseAMA.o sparskit2.o ma50ad.o
+
+simpleSparseAMAExample:simpleSparseAMAExample.o libsparseAMA.a
+	$(FC) -o simpleSparseAMAExample simpleSparseAMAExample.o -L ./  -lsparseAMA $(LAPACKLIBS) 
 
 sparseAMA.o: ./src/main/c/sparseAMA.c sparskit2.o
 	$(CC) $(FCFLAGS)   ./src/main/c/sparseAMA.c 
@@ -45,5 +48,5 @@ simpleSparseAMAExample.o: ./src/test/c/simpleSparseAMAExample.c
 firstCUnitTest.o: ./src/test/c/firstCUnitTest.c
 	$(CC)  $(FCFLAGS) ./src/test/c/firstCUnitTest.c
 
-firstCUnitTest: firstCUnitTest.o sparseAMA.o sparskit2.o ma50ad.o 
-	$(FC) firstCUnitTest.o -o firstCUnitTest $(CUNITLIBS) sparseAMA.o sparskit2.o ma50ad.o $(LAPACKLIBS)
+firstCUnitTest: firstCUnitTest.o libsparseAMA.a
+	$(FC) firstCUnitTest.o -o firstCUnitTest $(CUNITLIBS) -L ./ -lsparseAMA $(LAPACKLIBS)
