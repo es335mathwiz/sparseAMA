@@ -15,7 +15,7 @@ LAPACKLIBS=   -L /msu/res5/software/ARPACKforCluster -larpack_linux -L/msu/res5/
 endif
 
 ifeq ($(UNAME),Darwin)
-LAPACKLIBS=    /usr/local/Cellar/arpack3.4.0/lib -larpack -llapack -lblas
+LAPACKLIBS=  -larpack -llapack -lblas
 endif
 
 

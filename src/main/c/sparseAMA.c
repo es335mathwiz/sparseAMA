@@ -855,19 +855,16 @@ static int annihilateRows(
 
 /* -------------------------------------------------------------------------
 	QR decomposition of matrix A.  return results as q and r, plus
-	permutation vectors prow and pcol.  calls LAPACK routines dgeqpf
+	permutation vectors prow and pcol.  calls LAPACK routines dgeqp3
 	and dorqpr, which operate on dense matrices.
 
-	arguments
+http://www.netlib.org/lapack/lapack-3.1.1/html/dgeqp3.f.html
 
-		matSize 		max number of elements in A
-		a, ja, ia		source matrix A in CSR format
-		q, jq, iq		target matrix q in CSR format
-		r, jr, ir		target matrix r in CSR format
-		prow, pcol		row and column pivots (only column pivots used here)
-		aPointerToVoid	not used
 
 --------------------------------------------------------------------------- */
+void	dgeqp3_(int * nr,int * nc,double * denseA,
+		int * nr2,int * pcol,double * tau,
+		double * work,int *lwork,int * info);
 
 static int constructQRDecomposition (
 	int matSize, int nr, int nc,
@@ -2372,7 +2369,7 @@ static int validVector(int numRows,double * vec)
 	int i,allFiniteNumbers;
       allFiniteNumbers=TRUE;
       for(i=0;i<numRows;i++){
-        allFiniteNumbers=(finite(vec[i])&&allFiniteNumbers);}
+        allFiniteNumbers=(isfinite(vec[i])&&allFiniteNumbers);}
 
       return(allFiniteNumbers);
 }
@@ -2394,7 +2391,7 @@ result=
         allPositive=(matj[i]>0&&allPositive);}
       allFiniteNumbers=TRUE;
       for(i=0;i<elements;i++){
-        allFiniteNumbers=(finite(mata[i])&&allFiniteNumbers);}
+        allFiniteNumbers=(isfinite(mata[i])&&allFiniteNumbers);}
 
       result=
         (result && allPositive && allFiniteNumbers);
