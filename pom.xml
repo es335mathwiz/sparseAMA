@@ -38,7 +38,7 @@
 <configuration>
 <c>
 <debug>true</debug>
-<name>icc</name>
+<name>gcc</name>
   <options>
 <option>-m64</option>
 <option>-c</option>
@@ -59,7 +59,8 @@ src/main/include/
   <options>
   <option>-shared</option>
   <option>-m64</option>
-  <option>-L/opt/atlas/lib</option>
+  <option>-L/usr/local/gfortran/lib/</option>
+  <option>-L/Users/garyanderson/git/numerics/ATLAS3.10.3/forBuild/lib/</option>
   <option>-llapack</option>
   <option>-lcblas</option>
   <option>-lf77blas</option>
