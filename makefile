@@ -1,76 +1,42 @@
+#identify operating system
+UNAME= $(shell uname)
 
-# The compiler
+#compilers
+CC = gcc
 FC = gfortran
-#FC = ifort
-# flags for debugging or for maximum performance, comment as necessary
-F90CFLAGS = -c -I./src/main/include -shared -m64 -fno-underscoring -g
+FCFLAGS = -c -O2 -I./src/main/include   
+FCFLAGS = -c -g -I./src/main/include   
 
-FCFLAGS = -c -I./src/main/include -shared -m64 -g
-# linking flags
-#FLFLAGS = -L/opt/atlas/lib/ -lcblas -lf77blas -latlas -llapack 
-FLFLAGS = -L./target/nar/sparseAMA-1.0-SNAPSHOT-amd64-Linux-g++-shared/lib/amd64-Linux-g++/shared/  -lsparseAMA-1.0-SNAPSHOT
-# flags forall (e.g. look for system .mod files, required in gfortran)
+#lapack
 
-FSRCS = $(patsubst %.f, %.o, $(wildcard ./src/main/ffiles/*.f))
 
-F90SRCS = $(patsubst %.f90, %.o, $(wildcard *.f90))
-SRCS = $(wildcard *.f90) $(wildcard *.f) $(wildcard *.c)
-#COBJS = sparseAMA.o sparskit2.o obtainsparsewrapper.o sparseamawrapper.o cprintsparsewrapper.o conversionwrapper.o  
-COBJS = obtainsparsewrapper.o sparseamawrapper.o cprintsparsewrapper.o conversionwrapper.o  
-F90OBJS = $(F90SRCS:.f90=.o)
-FOBJS = $(FSRCS:.f=.o)
-#OBJS = $(COBJS) $(F90OBJS) $(FOBJS)
-OBJS =  $(F90OBJS) $(FOBJS)
-OBJS =   dnaupd.o dneupd.o second.o
+ifeq ($(UNAME),Linux)
+LAPACKLIBS=   -L /msu/res5/software/ARPACKforCluster -larpack_linux -L/msu/res5/software/lapackForCluster -llapack -lrefblas
+endif
 
-# needed for linking, unused in the examples
-LDFLAGS = -L/opt/atlas/lib/L/opt/atlas/lib/ -lcblas -lf77blas -latlas -llapack 
-
-#linking
-simp: $(OBJS)
+ifeq ($(UNAME),Darwin)
+LAPACKLIBS=    /usr/local/Cellar/arpack3.4.0/lib -larpack -llapack -lblas
+endif
 
 
 %.o: %.f
 	$(FC) $(FCFLAGS) -o $@ $<
 
-#chrisSparseAMAExample.o: chrisSparseAMAExample.f90
-#	$(FC) $(F90CFLAGS) -o $@ $<
+simpleSparseAMAExample:simpleSparseAMAExample.o sparseAMA.o sparskit2.o ma50ad.o
+	$(FC) -o simpleSparseAMAExample simpleSparseAMAExample.o sparseAMA.o sparskit2.o ma50ad.o $(LAPACKLIBS) 
 
 sparseAMA.o: ./src/main/c/sparseAMA.c sparskit2.o
-	gcc -c -I./src/main/include -shared -m64 ./src/main/c/sparseAMA.c -g
+	gcc $(FCFLAGS)   ./src/main/c/sparseAMA.c 
 
-dnaupd.o: ./src/main/fortran/dnaupd.f 
-	gfortran -c  -I./src/main/include -shared -m64 ./src/main/fortran/dnaupd.f 
-
-dneupd.o: ./src/main/fortran/dneupd.f 
-	gfortran -c  -I./src/main/include -shared -m64 ./src/main/fortran/dneupd.f 
-
-second.o: ./src/main/fortran/second.f 
-	gfortran -c  -I./src/main/include -shared -m64 ./src/main/fortran/second.f 
-
+ma50ad.o: ./src/main/fortran/ma50ad.f
+	$(FC)  $(FCFLAGS)   ./src/main/fortran/ma50ad.f
 
 sparskit2.o: ./src/main/c/sparskit2.c
-	gcc -c -I./src/main/include -shared -m64 ./src/main/c/sparskit2.c -g
-
-sparseamawrapper.o: ./src/main/c/sparseamawrapper.c sparseAMA.o
-	gcc -c -I./src/main/include -shared -m64 ./src/main/c/sparseamawrapper.c -g
-
-obtainsparsewrapper.o: ./src/main/c/obtainsparsewrapper.c sparseAMA.o
-	gcc -c -I./src/main/include -shared -m64 ./src/main/c/obtainsparsewrapper.c -g
-
-cprintsparsewrapper.o: ./src/main/c/cprintsparsewrapper.c sparseAMA.o
-	gcc -c -I./src/main/include -shared -m64 ./src/main/c/cprintsparsewrapper.c -g
-
-#parserwrapper.o : ./src/main/c/parserwrapper.c antulio_mod_AMA_data.o 
-#	gcc -c -I./src/main/include -shared -m64 ./src/main/c/parserwrapper.c -g
-
-#antulio_mod_AMA_data.o : ./src/main/c/antulio_mod_AMA_data.c 
-#	gcc -c -I./src/main/include -shared -m64 ./src/main/c/antulio_mod_AMA_data.c -g
-
-conversionwrapper.o: ./src/main/c/conversionwrapper.c sparskit2.o
-	gcc -c -I./src/main/include -shared -m64 ./src/main/c/conversionwrapper.c -g
-
+	gcc  $(FCFLAGS)  ./src/main/c/sparskit2.c 
 clean: 
-	rm -f *.o chrisSparseAMAExample
-#rm simp
-	echo $(SRCS)
+	rm -f *.o 
+
+simpleSparseAMAExample.o: ./src/test/c/simpleSparseAMAExample.c
+	gcc  $(FCFLAGS) ./src/test/c/simpleSparseAMAExample.c
+
+

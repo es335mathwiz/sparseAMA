@@ -895,7 +895,7 @@ static int constructQRDecomposition (
 	tau= (double *) calloc((unsigned)nr,sizeof(double));
 	jpvt= (int *) calloc((unsigned)nr,sizeof(int));
 	diag= (double *) calloc((unsigned)nr,sizeof(double));
-	lwork = 3*nr;
+	lwork = 3*nr+1;
 	work = (double *) calloc((unsigned)lwork,sizeof(double));
 	rank=0;
 
@@ -909,10 +909,10 @@ static int constructQRDecomposition (
 	for(i=0;i<nr;i++) {prow[i]=i;}
 
 
-	/* dgeqpf computes QR factorization with column pivoting of denseA */
+	/* dgeqp3 computes QR factorization with column pivoting of denseA */
 	/* rwt profile QR decomposition */
 	time0 = cputime() ; /* rwt */
-	dgeqpf_(&nr,&nc,denseA,&nr,pcol,tau,work,&info);
+	dgeqp3_(&nr,&nc,denseA,&nr,pcol,tau,work,&lwork,&info);
 
 	qr_sec += cputime()-time0 ; /* rwt */
 
