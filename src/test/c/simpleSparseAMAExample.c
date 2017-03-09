@@ -64,7 +64,6 @@ rooti=(double *)CALLOC((unsigned)MAXELEMS,sizeof(double));
 printf("hmat\n");
 rowsInQ=aux=0;
 qmati[0]=1;
-for(i=0;i<=HROWS;i++);newHmati[i]=1;
 cPrintSparse(HROWS,hmat,hmatj,hmati);
 
 
