@@ -1074,7 +1074,8 @@ static int augmentQmatWithInvariantSpaceVectors (
 	valid=TRUE;
 	for(i=0;(valid &&i<(hcols-hrows));i++) {
 		if(js[i] !=0) {
-	    	if(js[i] != nxt)valid=FALSE;nxt=nxt+1;
+		  if(js[i] != nxt){valid=FALSE;}
+		nxt=nxt+1;
 		}
 	}
 	sparseAMAAssert(valid==TRUE, augmentQmatWithInvariantSpaceVectorsPostValidJs);
