@@ -38,7 +38,7 @@ double * bmat;int * bmatj;int * bmati;
 int essential;
 double * rootr;
 double * rooti;
-int retCode;
+int retCode=0;
 void * aPointerToVoid=(void *)NULL;
 int i;
 
