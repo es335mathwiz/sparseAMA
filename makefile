@@ -1,24 +1,29 @@
 #identify operating system
 UNAME= $(shell uname)
 
-#compilers
-CC = gcc-6
-FC = gfortran
-FCFLAGS = -c -O2 -I./src/main/include   
-FCFLAGS = -c -g -I./src/main/include   
 
-#lapack
 ifeq ($(UNAME),Linux)
+#compilers
+CC = gcc
+FCFLAGS = -c -O2 -I./src/main/include   -I /msu/res5/software/myUsr/include/
+FCFLAGS = -c -g -I./src/main/include   -I /msu/res5/software/myUsr/include/
+#lapack
 LAPACKLIBS=   -L /msu/res5/software/ARPACK96forCluster -larpack_linux -L/msu/res5/software/lapackGithubForCluster -llapack -lrefblas
+CUNITLIBS= -L /msu/res5/software/myUsr/lib/ -l cunit
 endif
 
 ifeq ($(UNAME),Darwin)
+#compilers
+CC = gcc-6
+FCFLAGS = -c -O2 -I./src/main/include   -I /Users/garyanderson/myUsr/include/
+FCFLAGS = -c -g -I./src/main/include   -I /Users/garyanderson/myUsr/include/
+#lapack
 LAPACKLIBS=  -L /Users/garyanderson/ARPACK96/  -larpack_MACOS -L /Users/garyanderson/lapack-release/ -llapack -lrefblas
+CUNITLIBS= -L /Users/garyanderson/myUsr/lib -l cunit
 endif
 
-
-%.o: %.f
-	$(FC) $(FCFLAGS) -o $@ $<
+#compilers
+FC = gfortran
 
 simpleSparseAMAExample:simpleSparseAMAExample.o sparseAMA.o sparskit2.o ma50ad.o
 	$(FC) -o simpleSparseAMAExample simpleSparseAMAExample.o sparseAMA.o sparskit2.o ma50ad.o $(LAPACKLIBS) 
@@ -37,4 +42,8 @@ clean:
 simpleSparseAMAExample.o: ./src/test/c/simpleSparseAMAExample.c
 	$(CC)  $(FCFLAGS) ./src/test/c/simpleSparseAMAExample.c
 
+firstCUnitTest.o: ./src/test/c/firstCUnitTest.c
+	$(CC)  $(FCFLAGS) ./src/test/c/firstCUnitTest.c
 
+firstCUnitTest: firstCUnitTest.o sparseAMA.o sparskit2.o ma50ad.o 
+	$(FC) firstCUnitTest.o -o firstCUnitTest $(CUNITLIBS) sparseAMA.o sparskit2.o ma50ad.o $(LAPACKLIBS)

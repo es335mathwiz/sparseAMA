@@ -14,13 +14,6 @@ int main(int argc, char * argv[])
 { 
 
 
-void obtainSparseReducedForm(
-                             
-                             int * maxNumberHElements, 
-                             int qrows, int qcols, double * qmat, int * qmatj, int * qmati,
-                              double * bmat, int * bmatj, int * bmati
-                             
-);
 int maxSize;
 double hmat[MAXELEMS]=
 {-0.1167899999999999, -0.2842153439999999, 0.098180323, -0.697197378, 

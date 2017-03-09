@@ -166,16 +166,63 @@ void transp_();
 void rnrms_();
 
 /* declare fns used in sparseAMA itself */
-static int autoRegression() ;
-static int shiftRightAndRecord() ;
-static int annihilateRows() ;
-static int constructQRDecomposition();
+static int autoRegression(
+	int *maxNumberOfHElements,
+    int *returnCode,
+    int hrows,int hcols,
+    double * hmat,int * hmatj,int * hmati,
+    double * qmat,int * qmatj,int * qmati,
+    double * newHmat,int * newHmatj,int * newHmati,
+    double * annihilator,int * annihilatorj,int * annihilatori,
+    double * rmat,int * rmatj,int * rmati,
+    int * prow,int * pcol,
+    void * aPointerToVoid
+);
+
+
+static int shiftRightAndRecord (
+	int *maxNumberOfHElements,
+    int *returnCode,
+    int dim,
+    int rowsInQ,
+    double * qmat,int * qmatj,int * qmati,
+    int hrows,int hcols,
+    double * hmat,int * hmatj,int * hmati,
+    void * aPointerToVoid
+);
+static int annihilateRows(
+	int *maxNumberOfHElements,
+    int *returnCode,
+    int hrows,int hcols,
+    double * hmat,int * hmatj,int * hmati,
+    double * newHmat,int * newHmatj,int * newHmati,
+    double * annihilator,int * annihilatorj,int * annihilatori,
+    double * rmat,int * rmatj,int * rmati,
+    int * prow,int * pcol,
+    void * aPointerToVoid
+);
+static int constructQRDecomposition (
+	int matSize, int nr, int nc,
+	double * a, int * ja, int * ia,
+    double * q, int * jq, int * iq,
+    double * r, int * jr, int * ir,
+    int * prow, int * pcol,
+    void * aPointerToVoid
+);
+
 static int augmentQmatWithInvariantSpaceVectors();
 static int identifyEssential() ;
 static void constructA() ;
 static int useArpack() ;
 int satisfiesLinearSystemQ () ;
-void obtainSparseReducedForm() ;
+void obtainSparseReducedForm(
+
+  int * maxNumberOfHElements,
+  int qrows, int qcols, double * qmat, int * qmatj, int * qmati,
+  double * bmat, int * bmatj, int * bmati
+
+);
+
 static int lineNumberToViolation(int lineNo);
 static char * lineNumberToString(int lineNo);
 int deleteRow (int targetRow, double *mat, int nrows, int ncols) ;
@@ -211,7 +258,7 @@ any fn using this macro must declare static int maxHElementsEncountered=0; */
 #else
 #define CALLOC(n,s) calloc(n,s);
 #endif
-void free();
+void free(void * ptr);
 void cPrintSparse(int rows,double * a,int * aj,int * ai);
 void cPrintMatrix(int nrows,int ncols,double * matrix);
 void fPrintSparse(char * fn, int rows,double * a,int * aj,int * ai);
