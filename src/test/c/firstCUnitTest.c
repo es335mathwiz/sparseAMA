@@ -137,8 +137,9 @@ sparseAMA(&maxSize,
    rootr,rooti,&retCode,aPointerToVoid
    );
      CU_ASSERT(381 == maxSize)
+     CU_ASSERT(0 == retCode)
 
-   int i1 = 10;
+
 
 }
 

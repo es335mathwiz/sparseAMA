@@ -1,6 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
-#include "sparseAMA.h"
+#include "useSparseAMA.h"
 
 
 #define MAXELEMS 381
@@ -33,7 +33,7 @@ double * rootr;
 double * rooti;
 int retCode=0;
 void * aPointerToVoid=(void *)NULL;
-int i;
+
 
 
 

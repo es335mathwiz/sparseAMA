@@ -137,8 +137,8 @@ extern void ma50bd_();
 extern void ma50cd_();
 // #endif
 
-int validCSRMatrix(int numRows,double * mata,int * matj,int *mati);
-int validVector(int numRows,double * vec);
+static int validCSRMatrix(int numRows,double * mata,int * matj,int *mati);
+static int validVector(int numRows,double * vec);
 
 /*void exit(int status);
 long getpid();
@@ -166,7 +166,7 @@ void transp_();
 void rnrms_();
 
 /* declare fns used in sparseAMA itself */
-int autoRegression(
+static int autoRegression(
 	int *maxNumberOfHElements,
     int *returnCode,
     int hrows,int hcols,
@@ -180,7 +180,7 @@ int autoRegression(
 );
 
 
-int shiftRightAndRecord (
+static int shiftRightAndRecord (
 	int *maxNumberOfHElements,
     int *returnCode,
     int dim,
@@ -190,7 +190,7 @@ int shiftRightAndRecord (
     double * hmat,int * hmatj,int * hmati,
     void * aPointerToVoid
 );
-int annihilateRows(
+static int annihilateRows(
 	int *maxNumberOfHElements,
     int *returnCode,
     int hrows,int hcols,
@@ -201,7 +201,7 @@ int annihilateRows(
     int * prow,int * pcol,
     void * aPointerToVoid
 );
-int constructQRDecomposition (
+static int constructQRDecomposition (
 	int matSize, int nr, int nc,
 	double * a, int * ja, int * ia,
     double * q, int * jq, int * iq,
@@ -210,7 +210,7 @@ int constructQRDecomposition (
     void * aPointerToVoid
 );
 
-int augmentQmatWithInvariantSpaceVectors (
+static int augmentQmatWithInvariantSpaceVectors (
 
 	int *maxNumberOfHElements,
 	int *returnCode,
@@ -227,14 +227,14 @@ int augmentQmatWithInvariantSpaceVectors (
 	double * rootr,double * rooti,void * aPointerToVoid
 );
 
-int identifyEssential(
+static int identifyEssential(
 	int neq,
 	int hcols,
     double *hmat, int *hmatj, int *hmati,
     int * js,
 	void *aPointerToVoid
 );
-void constructA (
+static void constructA (
 
 	int *maxNumberOfHElements,
 	int *returnCode,
@@ -247,7 +247,7 @@ void constructA (
 	void * aPointerToVoid
 
 );
-int useArpack(
+static int useArpack(
 	int *maxNumberOfHElements, int maxnev, int nroot,
 	double * amat,int * amatj,int * amati,
 	double * spanVecs,double * rootr,double * rooti,
@@ -273,9 +273,9 @@ void obtainSparseReducedForm(
 
 );
 
-int lineNumberToViolation(int lineNo);
-char * lineNumberToString(int lineNo);
-int deleteRow (int targetRow, double *mat, int nrows, int ncols) ;
+static int lineNumberToViolation(int lineNo);
+static char * lineNumberToString(int lineNo);
+static int deleteRow (int targetRow, double *mat, int nrows, int ncols) ;
 
 
 
@@ -417,7 +417,7 @@ copyToPos,job))
 (csrdns_(nrow,ncol,a,ja,ia,dns,ndns,ierr) )
 
 
-/*LAPACK -- dgeqpf*/
+/*LAPACK -- dgeqp3*/
 
 /*LAPACK -- dorgqr*/
 

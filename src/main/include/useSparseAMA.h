@@ -417,7 +417,7 @@ copyToPos,job))
 (csrdns_(nrow,ncol,a,ja,ia,dns,ndns,ierr) )
 
 
-/*LAPACK -- dgeqpf*/
+/*LAPACK -- dgeqp3*/
 
 /*LAPACK -- dorgqr*/
 

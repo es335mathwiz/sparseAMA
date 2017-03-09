@@ -99,7 +99,7 @@ int continuousSelect(double * realPart,double * imagPart) {
 	return(*realPart>ZERO_TOLERANCE);
 }
 
-#include "sparseAMA.h"
+#include "compileSparseAMA.h"
 //#include "mex.h"
 
 /* --------------------------------------------------------------- */
@@ -1041,14 +1041,14 @@ static int augmentQmatWithInvariantSpaceVectors (
 	int nroot, maxroots;
 	double * work;
 	int lwork;int info;int spacedim;int rc;
-	unsigned int ONE=1 ;
+/*	unsigned int ONE=1 ;*/
 
-	double time0, time_useArpack, time_dgees, time_constructA ;
+	double time0, time_useArpack/*,time_dgees*/, time_constructA ;
 
 	int nxt,valid;
 	originalMaxHElements=*maxNumberOfHElements;
 	time_useArpack = 0 ;
-	time_dgees = 0 ;
+/*	time_dgees = 0 ;*/
 	time_constructA = 0 ;
 	*returnCode = 0 ;
 
@@ -1232,7 +1232,7 @@ static int augmentQmatWithInvariantSpaceVectors (
 			}
 			//			printf("done dgees: info = %d, sdim= %d, nroot = %d\n",info,sdim,nroot);
 			//			printf("done dgees: rconde = %e, rcondv= %e\n",rconde,rcondv);
-			time_dgees = cputime() - time0 ;
+/*			time_dgees = cputime() - time0 ;*/
 
 			/* convert eigenvectors to CSR format, store in space for 'a' */
 			dnsToCsr(&nroot,&nroot,&nzmax,beyondQmat,&nroot,a,ja,ia,&ierr);
@@ -1418,9 +1418,9 @@ static void constructA (
 	double * tempHmat;int * tempHmatj;int * tempHmati;
 	double * tempRmat;int * tempRmatj;int * tempRmati;
 	double time0 ;
-	int originalMaxHElements;
+/*	int originalMaxHElements;
 
-	originalMaxHElements=*maxNumberOfHElements;
+	originalMaxHElements=*maxNumberOfHElements;*/
 
 	/* allocate space */
 	perm=(int *)calloc((unsigned)hrows,sizeof(int));
@@ -1607,7 +1607,7 @@ static int useArpack(
 	double time0 ;
 	int i, lowpos;
 	double thisroot, lowroot, realpart, imagpart ;
-	unsigned int ONE=1, TWO=2 ;
+/*	unsigned int ONE=1,WO=2*/
 	int original_maxnev ;
 
 	time_arpack = 0.0 ;				/* declared in sparseAMA() */
@@ -1843,11 +1843,11 @@ void obtainSparseReducedForm(
 	int *irnf;
 	int * iptrl;
 	int * iptru;
-	int originalMaxHElements;
-	double time0 ;
+/*	int originalMaxHElements;*/
+/*	double time0 ;
 
 	originalMaxHElements=*maxNumberOfHElements;
-	time0 = cputime() ; /* rwt */
+	time0 = cputime() ;*/ /* rwt */
 
 	/* allocate space for args to ma50bd, etc */
 	jcn = (int *)calloc(*maxNumberOfHElements,sizeof(int));
@@ -2085,10 +2085,10 @@ int satisfiesLinearSystemQ (
 	int aOne=1;int aTwo=2;
 	int lastRow;int firstRow;int offset;
 	int ii;
-	int originalMaxHElements;
+/*	int originalMaxHElements;*/
 
 	int maxHElementsEncountered=0;
-	originalMaxHElements=*maxNumberOfHElements;
+/*	originalMaxHElements=*maxNumberOfHElements;*/
 
 	wkspc=(double *)calloc(*maxNumberOfHElements,sizeof(double));
 	forHMult=(double *)calloc(*maxNumberOfHElements,sizeof(double));
