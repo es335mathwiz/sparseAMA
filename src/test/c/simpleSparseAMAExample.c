@@ -32,23 +32,22 @@ int essential;
 double * rootr;
 double * rooti;
 int retCode=0;
-void * aPointerToVoid=(void *)NULL;
 
 
 
 
 
-newHmat=(double *)CALLOC((unsigned)MAXELEMS,sizeof(double));
-newHmatj=(int *)CALLOC((unsigned)MAXELEMS,sizeof(int));
-newHmati=(int *)CALLOC((unsigned)MAXELEMS,sizeof(int));
-qmat=(double *)CALLOC((unsigned)MAXELEMS,sizeof(double));
-qmatj=(int *)CALLOC((unsigned)MAXELEMS,sizeof(int));
-qmati=(int *)CALLOC((unsigned)MAXELEMS,sizeof(int));
-bmat=(double *)CALLOC((unsigned)MAXELEMS,sizeof(double));
-bmatj=(int *)CALLOC((unsigned)MAXELEMS,sizeof(int));
-bmati=(int *)CALLOC((unsigned)MAXELEMS,sizeof(int));
-rootr=(double *)CALLOC((unsigned)MAXELEMS,sizeof(double));
-rooti=(double *)CALLOC((unsigned)MAXELEMS,sizeof(double));
+newHmat=(double *)calloc((unsigned)MAXELEMS,sizeof(double));
+newHmatj=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
+newHmati=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
+qmat=(double *)calloc((unsigned)MAXELEMS,sizeof(double));
+qmatj=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
+qmati=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
+bmat=(double *)calloc((unsigned)MAXELEMS,sizeof(double));
+bmatj=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
+bmati=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
+rootr=(double *)calloc((unsigned)MAXELEMS,sizeof(double));
+rooti=(double *)calloc((unsigned)MAXELEMS,sizeof(double));
 
 
 
@@ -68,7 +67,7 @@ sparseAMA(&maxSize,
    newHmat,newHmatj,newHmati,
    &aux,&rowsInQ,qmat,qmatj,qmati,
    &essential,
-   rootr,rooti,&retCode,aPointerToVoid
+   rootr,rooti,&retCode
    );
 
 

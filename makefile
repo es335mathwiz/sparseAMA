@@ -6,7 +6,7 @@ ifeq ($(UNAME),Linux)
 #compilers
 CC = gcc
 FCFLAGS = -c -O2 -I./src/main/include   -I /msu/res5/software/myUsr/include/
-FCFLAGS = -c -g -Wall -I./src/main/include   -I /msu/res5/software/myUsr/include/
+FCFLAGS = -c -g -Wall -I./src/main/include   -I /msu/res5/software/myUsr/include
 #lapack
 LAPACKLIBS=   -L /msu/res5/software/ARPACK96forCluster -larpack_linux -L/msu/res5/software/lapackGithubForCluster -llapack -lrefblas
 CUNITLIBS= -L /msu/res5/software/myUsr/lib/ -l cunit
@@ -29,7 +29,8 @@ libsparseAMA.a:	sparseAMA.o sparskit2.o ma50ad.o
 	ar -cvq libsparseAMA.a sparseAMA.o sparskit2.o ma50ad.o
 
 simpleSparseAMAExample:simpleSparseAMAExample.o libsparseAMA.a
-	$(FC) -o simpleSparseAMAExample simpleSparseAMAExample.o -L ./  -lsparseAMA $(LAPACKLIBS) 
+	$(FC) -o simpleSparseAMAExample simpleSparseAMAExample.o -L ./  -lsparseAMA $(LAPACKLIBS)
+
 
 sparseAMA.o: ./src/main/c/sparseAMA.c sparskit2.o
 	$(CC) $(FCFLAGS)   ./src/main/c/sparseAMA.c 

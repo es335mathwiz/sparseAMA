@@ -234,7 +234,6 @@ Arguments
 		HELEMS_TOO_SMALL 2007
 		AMAT_TOO_LARGE 2008
 
-	aPointerToVoid (input,output)
 
 		not used in the default implementation.
 
@@ -265,8 +264,7 @@ void sparseAMA (
     double * qmat,int * qmatj,int * qmati,
     int * essential,
     double * rootr,double * rooti,
-    int *returnCode, void * aPointerToVoid
-
+    int *returnCode
 )
 {
 	static int maxHElementsEncountered=0;
@@ -355,7 +353,7 @@ void sparseAMA (
         newHmat,newHmatj,newHmati,
         annihilator,annihilatorj,annihilatori,
         rmat,rmatj,rmati,
-        prow,pcol,aPointerToVoid
+        prow,pcol
 
 	);
 	if (*returnCode) return ;
@@ -399,7 +397,7 @@ void sparseAMA (
       	constraintsNeeded,
       	qmat,qmatj,qmati,
       	essential,
-      	rootr,rooti,aPointerToVoid
+      	rootr,rooti
 
 	);
 	if (*returnCode) return ;
@@ -471,8 +469,8 @@ static int autoRegression(
     double * newHmat,int * newHmatj,int * newHmati,
     double * annihilator,int * annihilatorj,int * annihilatori,
     double * rmat,int * rmatj,int * rmati,
-    int * prow,int * pcol,
-    void * aPointerToVoid
+    int * prow,int * pcol
+
 )
 {
 	double time0, time_annihilateRows, time_shiftRightAndRecord ; /* rwt */
@@ -526,7 +524,7 @@ static int autoRegression(
 		/* shift zero rows of rightmost block of H to the right and copy into Q as auxiliary initial conditions */
 		time0 = cputime() ; /* rwt */
 		rowsInQ=shiftRightAndRecord(maxNumberOfHElements,returnCode,hrows,rowsInQ,
-			qmat,qmatj,qmati,hrows,hcols,hmat,hmatj,hmati,aPointerToVoid
+			qmat,qmatj,qmati,hrows,hcols,hmat,hmatj,hmati
 		);
 
 		if (*returnCode) return (-1) ;
@@ -545,7 +543,7 @@ static int autoRegression(
 			newHmat, newHmatj, newHmati,
 			annihilator, annihilatorj, annihilatori,
 			rmat, rmatj, rmati,
-			prow, pcol, aPointerToVoid
+			prow, pcol
 		);
 
 		if (*returnCode) return (-1) ;
@@ -623,7 +621,7 @@ static int autoRegression(
 		qmat, qmatj, qmati			Q matrix in CSR format
 		hrows, hcols				number of rows, columns in H matrix
 		hmat, hmatj, hmati			H matrix in CSR format
-		aPointerToVoid				not used
+
 
 ----------------------------------------------------------------------------- */
 
@@ -634,8 +632,7 @@ static int shiftRightAndRecord (
     int rowsInQ,
     double * qmat,int * qmatj,int * qmati,
     int hrows,int hcols,
-    double * hmat,int * hmatj,int * hmati,
-    void * aPointerToVoid
+    double * hmat,int * hmatj,int * hmati
 )
 {
 	int i, j, qextent, zeroRow ;
@@ -721,7 +718,7 @@ static int shiftRightAndRecord (
 	    rmat, rmatj, rmati,							r matrix from QR decomposition of H-theta
 	    prow										reordering of H matrix by rows (?)
 	    pcol										column pivots from QR decomposition
-	    aPointerToVoid								not used
+
 ----------------------------------------------------------------------------------------- */
 
 static int annihilateRows(
@@ -732,8 +729,7 @@ static int annihilateRows(
     double * newHmat,int * newHmatj,int * newHmati,
     double * annihilator,int * annihilatorj,int * annihilatori,
     double * rmat,int * rmatj,int * rmati,
-    int * prow,int * pcol,
-    void * aPointerToVoid
+    int * prow,int * pcol
 )
 {
 	int i,j;static int maxHElementsEncountered=0;
@@ -773,7 +769,7 @@ static int annihilateRows(
 		(int)RBLOCKSIZE, hrows, hrows, rightBlock, rightBlockj, rightBlocki,
 		annihilator, annihilatorj, annihilatori,
 		rmat, rmatj, rmati,
-		prow, pcol, aPointerToVoid
+		prow, pcol
 	);
 	time_constructQRDecomposition += cputime() - time0 ; /* rwt */
 
@@ -871,8 +867,7 @@ static int constructQRDecomposition (
 	double * a, int * ja, int * ia,
     double * q, int * jq, int * iq,
     double * r, int * jr, int * ir,
-    int * prow, int * pcol,
-    void * aPointerToVoid
+    int * prow, int * pcol
 )
 {
 	int info;
@@ -1000,7 +995,6 @@ static int constructQRDecomposition (
 		qmat, qmatj,qmati							Q matrix in CSR format
 		essential									dimension of transition matrix
 		rootr, rooti								vectors of roots, real and imaginary
-		aPointerToVoid								not used
 
 ------------------------------------------------------------------------------------ */
 
@@ -1018,7 +1012,7 @@ static int augmentQmatWithInvariantSpaceVectors (
 	int constraintsNeeded,
 	double * qmat,int * qmatj,int * qmati,
 	int * essential,
-	double * rootr,double * rooti,void * aPointerToVoid
+	double * rootr,double * rooti
 )
 {
 	static int maxHElementsEncountered=0;
@@ -1066,7 +1060,7 @@ static int augmentQmatWithInvariantSpaceVectors (
 
 
 	/* obtain dimension of transition matrix */
-	*essential=identifyEssential(hrows, hcols, hmat, hmatj, hmati, js, aPointerToVoid) ;
+	*essential=identifyEssential(hrows, hcols, hmat, hmatj, hmati, js) ;
 	bumpSparseAMA((*essential));
 	*maxNumberOfHElements=originalMaxHElements;
 	damat=(double *)calloc((unsigned)*essential * *essential,sizeof(double));
@@ -1089,8 +1083,7 @@ static int augmentQmatWithInvariantSpaceVectors (
 		annihilator,annihilatorj,annihilatori,
 		rmat,rmatj,rmati,
 		prow,pcol,
-		damat,
-		aPointerToVoid
+		damat
 	);
 	if (*returnCode) return (-1) ;
 	time_constructA += cputime() - time0 ;
@@ -1325,15 +1318,14 @@ static int augmentQmatWithInvariantSpaceVectors (
 		hcols					number of cols in H
 		hmat, hmatj, hmati		H matrix in CSR format
 		js						vector masking nonzero columns in H
-		aPointerToVoid			not used
+
 
 ------------------------------------------------------------------ */
 static int identifyEssential(
 	int neq,
 	int hcols,
     double *hmat, int *hmatj, int *hmati,
-    int * js,
-	void *aPointerToVoid
+    int * js
 )
 {
    	int i, j, ia, norm;
@@ -1390,7 +1382,7 @@ static int identifyEssential(
 		rmat, rmatj, rmati		   		r matrix from QR decomposition of H-theta
 		prow, pcol				   		row and column permutations of H-theta (?)
 		damat					   		dense version of A ??? used in call to dgeesx
-		aPointerToVoid			   		not used
+
 ------------------------------------------------------------------- */
 static void constructA (
 
@@ -1401,8 +1393,7 @@ static void constructA (
 	double * qmat,int * qmatj,int * qmati,
 	double * rmat,int * rmatj,int * rmati,
 	int * prow,int * pcol,
-	double * damat,
-	void * aPointerToVoid
+	double * damat
 
 )
 {
@@ -2067,8 +2058,7 @@ int satisfiesLinearSystemQ (
 	int *  rowsInQ,
 	double * bmat, int * bmatj, int * bmati,
 	int * essential,
-	double * rootr,double * rooti,double * normVec,
-	void * aPointerToVoid
+	double * rootr,double * rooti,double * normVec
 )
 {
 	int ierr;

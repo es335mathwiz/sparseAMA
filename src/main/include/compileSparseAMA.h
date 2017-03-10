@@ -175,8 +175,7 @@ static int autoRegression(
     double * newHmat,int * newHmatj,int * newHmati,
     double * annihilator,int * annihilatorj,int * annihilatori,
     double * rmat,int * rmatj,int * rmati,
-    int * prow,int * pcol,
-    void * aPointerToVoid
+    int * prow,int * pcol
 );
 
 
@@ -187,8 +186,7 @@ static int shiftRightAndRecord (
     int rowsInQ,
     double * qmat,int * qmatj,int * qmati,
     int hrows,int hcols,
-    double * hmat,int * hmatj,int * hmati,
-    void * aPointerToVoid
+    double * hmat,int * hmatj,int * hmati
 );
 static int annihilateRows(
 	int *maxNumberOfHElements,
@@ -198,16 +196,14 @@ static int annihilateRows(
     double * newHmat,int * newHmatj,int * newHmati,
     double * annihilator,int * annihilatorj,int * annihilatori,
     double * rmat,int * rmatj,int * rmati,
-    int * prow,int * pcol,
-    void * aPointerToVoid
+    int * prow,int * pcol
 );
 static int constructQRDecomposition (
 	int matSize, int nr, int nc,
 	double * a, int * ja, int * ia,
     double * q, int * jq, int * iq,
     double * r, int * jr, int * ir,
-    int * prow, int * pcol,
-    void * aPointerToVoid
+    int * prow, int * pcol
 );
 
 static int augmentQmatWithInvariantSpaceVectors (
@@ -224,15 +220,14 @@ static int augmentQmatWithInvariantSpaceVectors (
 	int constraintsNeeded,
 	double * qmat,int * qmatj,int * qmati,
 	int * essential,
-	double * rootr,double * rooti,void * aPointerToVoid
+	double * rootr,double * rooti
 );
 
 static int identifyEssential(
 	int neq,
 	int hcols,
     double *hmat, int *hmatj, int *hmati,
-    int * js,
-	void *aPointerToVoid
+    int * js
 );
 static void constructA (
 
@@ -243,8 +238,7 @@ static void constructA (
 	double * qmat,int * qmatj,int * qmati,
 	double * rmat,int * rmatj,int * rmati,
 	int * prow,int * pcol,
-	double * damat,
-	void * aPointerToVoid
+	double * damat
 
 );
 static int useArpack(
@@ -262,8 +256,7 @@ int satisfiesLinearSystemQ (
 	int *  rowsInQ,
 	double * bmat, int * bmatj, int * bmati,
 	int * essential,
-	double * rootr,double * rooti,double * normVec,
-	void * aPointerToVoid
+	double * rootr,double * rooti,double * normVec
 );
 void obtainSparseReducedForm(
 
@@ -302,12 +295,6 @@ any fn using this macro must declare static int maxHElementsEncountered=0; */
 	printf("bumpSparseAMA stuff(%d,%d) at line %d\n",\
 	potentialMaxValue,maxHElementsEncountered,__LINE__);
 
-#ifdef ENABLEVOIDPTR
-#define CALLOC(n,s) calloc(n,s);aPointerToVoid++;
-/* just to make sure variable available where needed */
-#else
-#define CALLOC(n,s) calloc(n,s);
-#endif
 void free(void * ptr);
 void cPrintSparse(int rows,double * a,int * aj,int * ai);
 void cPrintMatrix(int nrows,int ncols,double * matrix);
@@ -324,7 +311,7 @@ void sparseAMA(int *maxNumberOfHElements,
                double * qmat,int * qmatj,int * qmati,
                int * essential,
                double * rootr,double * rooti,
-               int *returnCode, void * aPointerToVoid
+               int *returnCode
                );
 
 #define sparseAdd(numRows,numCols,spaceAllocated, \
