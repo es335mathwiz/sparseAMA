@@ -29,7 +29,7 @@
 #include <string.h>
 #include "CUnit/Basic.h"
 #include<stdlib.h>
-#include "sparseAMA.h"
+#include "useSparseAMA.h"
 
 
 #define MAXELEMS 381
