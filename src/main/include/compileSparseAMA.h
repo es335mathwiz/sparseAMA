@@ -137,8 +137,8 @@ extern void ma50bd_();
 extern void ma50cd_();
 // #endif
 
-static int validCSRMatrix(int numRows,double * mata,int * matj,int *mati);
-static int validVector(int numRows,double * vec);
+int validCSRMatrix(int numRows,double * mata,int * matj,int *mati);
+int validVector(int numRows,double * vec);
 
 /*void exit(int status);
 long getpid();

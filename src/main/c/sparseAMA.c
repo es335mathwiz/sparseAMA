@@ -2118,7 +2118,7 @@ int satisfiesLinearSystemQ (
 	extractSubmatrix(&neqTimesTheta,&aOne,&firstRow,&lastRow,&aOne,&neqTimesTau,
 		bmat,bmatj,bmati,&resRows,&resCols,partB,partBj,partBi
 	);
-
+	printf("here 1\n");
 	if(lags>0) {
 		for(ii=0;ii<(lags-1)*hrows;ii++) {
 			bTrans[ii]=1;bTransj[ii]=hrows+ii+1;bTransi[ii]=ii+1;
@@ -2159,12 +2159,13 @@ int satisfiesLinearSystemQ (
 		forHMult,forHMultj,forHMulti,
 		&ierr
 	);
+cPrintSparse(hrows,forHMult,forHMultj,forHMulti);
 	bumpSparseAMA(ltpti[neqTimesTau+neqTimesTheta+1]-ltpti[0]);
 	bumpSparseAMA(forHMulti[hrows]-forHMulti[0]);
 	if(ierr!=0){printf("*************ran out of space****************\n");return(1);}
-
 	normsByRow(&hrows,&aTwo,forHMult,forHMultj,forHMulti,normVec);
-
+	printf("here\n");
+cPrintMatrixNonZero(hrows,1,normVec,1.0e-8);
 	free(wkspc);
 	free(forHMult);
 	free(forHMultj);
@@ -2355,9 +2356,9 @@ return(result);
 }
 
 
-static int validVector(int numRows,double * vec)
+int validVector(int numRows,double * vec)
 {
-	int i,allFiniteNumbers;
+int i,allFiniteNumbers;
       allFiniteNumbers=TRUE;
       for(i=0;i<numRows;i++){
         allFiniteNumbers=(isfinite(vec[i])&&allFiniteNumbers);}
@@ -2366,7 +2367,7 @@ static int validVector(int numRows,double * vec)
 }
 
 
-static int validCSRMatrix(int numRows,double * mata,int * matj,int *mati)
+int validCSRMatrix(int numRows,double * mata,int * matj,int *mati)
 {
 int result,allPositive,elements,i,allFiniteNumbers;
 elements=mati[numRows]-mati[0];

@@ -32,11 +32,13 @@
 #include "useSparseAMA.h"
 
 
-#define MAXELEMS 381
-#define HROWS 3
+#define MAXELEMSA 381
+
+
 #define HCOLS 39
 #define LEADS 8
 
+#define MAXELEMSB 428
 
 /* Pointer to the file used by the tests. */
 static FILE* temp_file = NULL;
@@ -52,12 +54,12 @@ static FILE* temp_file = NULL;
  */
 
 int maxSize;
-double hmat[MAXELEMS]=
+double hmat[MAXELEMSA]=
 {-0.1167899999999999, -0.2842153439999999, 0.098180323, -0.697197378, 
     -0.1357490219999999, 1, -0.024790419, 0.024790419, -0.024790419, 
     0.024790419, -0.024790419, 0.251999689, 0.024790419, -0.024790419, 
     -1.158861192, 0.024790419, 1, -0.32, 1, -2.62};
-int hmatj[MAXELEMS]=
+int hmatj[MAXELEMSA]=
 {1, 4, 7, 10, 11, 13, 1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 14, 12, 15, 37};
 int hmati[4]={1, 7, 18,21 };
 double * newHmat;int * newHmatj;int * newHmati;
@@ -71,6 +73,10 @@ double * rooti;
 int retCode;
 int i;
 
+#define HROWS 3
+
+double normVec[HROWS];
+
 
 
 
@@ -79,21 +85,20 @@ int i;
 int init_suite1(void)
 {
 
-newHmat=(double *)calloc((unsigned)MAXELEMS,sizeof(double));
-newHmatj=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
-newHmati=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
-qmat=(double *)calloc((unsigned)MAXELEMS,sizeof(double));
-qmatj=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
-qmati=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
-bmat=(double *)calloc((unsigned)MAXELEMS,sizeof(double));
-bmatj=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
-bmati=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
-rootr=(double *)calloc((unsigned)MAXELEMS,sizeof(double));
-rooti=(double *)calloc((unsigned)MAXELEMS,sizeof(double));
+newHmat=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));
+newHmatj=(int *)calloc((unsigned)MAXELEMSA,sizeof(int));
+newHmati=(int *)calloc((unsigned)MAXELEMSA,sizeof(int));
+qmat=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));
+qmatj=(int *)calloc((unsigned)MAXELEMSA,sizeof(int));
+qmati=(int *)calloc((unsigned)MAXELEMSA,sizeof(int));
+bmat=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));
+bmatj=(int *)calloc((unsigned)MAXELEMSA,sizeof(int));
+bmati=(int *)calloc((unsigned)MAXELEMSA,sizeof(int));
+rootr=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));
+rooti=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));
 rowsInQ=aux=0;
 qmati[0]=1;
-maxSize=MAXELEMS;
-
+maxSize=MAXELEMSA;
    if (NULL == (temp_file = fopen("temp.txt", "w+"))) {
       return -1;
    }
@@ -135,10 +140,25 @@ sparseAMA(&maxSize,
    &essential,
    rootr,rooti,&retCode
    );
-     CU_ASSERT(381 == maxSize)
+     CU_ASSERT(MAXELEMSA  == maxSize)
      CU_ASSERT(0 == retCode)
+maxSize=MAXELEMSB;
+obtainSparseReducedForm(
+  &maxSize,
+  HROWS*LEADS,(HCOLS-HROWS),qmat,qmatj,qmati,
+  bmat, bmatj, bmati
+);
 
-
+satisfiesLinearSystemQ (
+	&maxSize,
+   HROWS,HCOLS,LEADS,
+	hmat,hmatj,hmati,
+	&aux,
+	&rowsInQ,
+	bmat, bmatj, bmati,
+	&essential,
+	rootr,rooti,normVec
+);
 
 }
 
