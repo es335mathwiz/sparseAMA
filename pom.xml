@@ -42,7 +42,8 @@
   <options>
 <option>-m64</option>
 <option>-c</option>
-    </options>
+ <option>-g</option>
+  </options>
 <includePaths>
 <includePath>
 src/main/include/
@@ -59,12 +60,11 @@ src/main/include/
   <options>
   <option>-shared</option>
   <option>-m64</option>
-  <option>-L/usr/local/gfortran/lib/</option>
-  <option>-L/Users/garyanderson/git/numerics/ATLAS3.10.3/forBuild/lib/</option>
+  <option>-L/Users/garyanderson/ARPACK96/</option>
+  <option>-larpack_MACOS</option>
+  <option>-L/Users/garyanderson/lapack-release/</option>
   <option>-llapack</option>
-  <option>-lcblas</option>
-  <option>-lf77blas</option>
-  <option>-latlas</option>
+  <option>-lrefblas</option>
   </options>
 </linker>
           <libraries>

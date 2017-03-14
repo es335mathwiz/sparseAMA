@@ -17,8 +17,8 @@
 #define _POSIX_SOURCE 1
 #endif
 
-#define HMATSIZE ((unsigned)*maxNumberOfHElements)
-#define RBLOCKSIZE ((unsigned) (hrows * hrows) +1)
+#define HMATSIZE (*maxNumberOfHElements)
+#define RBLOCKSIZE ( (hrows * hrows) +1)
 #define RIGHT 0
 #define NONZERO 1
 #define TRUE 1
@@ -298,8 +298,9 @@ any fn using this macro must declare static int maxHElementsEncountered=0; */
 void free(void * ptr);
 void cPrintSparse(int rows,double * a,int * aj,int * ai);
 void cPrintMatrix(int nrows,int ncols,double * matrix);
-void fPrintSparse(char * fn, int rows,double * a,int * aj,int * ai);
-void fPrintMatrix(char * fn, int nrows,int ncols,double * matrix);
+void cPrintMatrixNonZero(int nrows,int ncols,double * matrix,double zerotol);
+/*void fPrintSparse(char * fn, int rows,double * a,int * aj,int * ai);
+  void fPrintMatrix(char * fn, int nrows,int ncols,double * matrix);*/
 void sparseAMA(int *maxNumberOfHElements,
                int discreteTime,
                int hrows,int hcols,

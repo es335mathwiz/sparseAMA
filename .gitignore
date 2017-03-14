@@ -1,3 +1,4 @@
 *.o
 *~
 src/main/fortran/ma50ad.f
+/target/

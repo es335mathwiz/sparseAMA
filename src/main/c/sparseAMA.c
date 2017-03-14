@@ -72,12 +72,11 @@ double ZERO_TOLERANCE;
 double ZERO_TOL1;
 int USEARPACK, TESTBLANCHARDKAHN ;
 #include <stdio.h>
-
 #ifdef WIN32
 #include <time.h>
 #else
-#include <sys/time.h>
 #include <time.h>
+#include <sys/time.h>
 #endif
 #define cputime() (( (double)clock() ) / CLOCKS_PER_SEC)
 double totcpusec, tmpcpusec, oldcpusec, alloc_sec, assert_sec, qr_sec ;
@@ -88,14 +87,15 @@ int count_rightMostAllZeroQ, count_constructA, count_useArpack, count_dgees ;
 double time_constructQRDecomposition, time_sparseMult, time_arpack, time_sparseMatTimesVec ;
 double time_extract, time_backsolve ;
 double time_autoregression, time_augmentQ;
+#include "compileSparseAMA.h"
 
 int rowEndsInZeroBlock() ;
 
 /*not static because mathLink code uses these*/
-int discreteSelect(double * realPart,double * imagPart) {
+int discreteSelect(double * realPart,double * imagPart){
 	return((*realPart* *realPart)+(*imagPart* *imagPart)>1+ (ZERO_TOL1));
 }
-int continuousSelect(double * realPart,double * imagPart) {
+int continuousSelect(double * realPart,double * imagPart){
 	return(*realPart>ZERO_TOLERANCE);
 }
 

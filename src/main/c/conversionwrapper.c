@@ -1,3 +1,4 @@
+#include "useSparseAMA.h"
 int conversionwrapper_(int * HROWS, int * HCOLS, double* hmat, double* newHmat, int * aj, int *ai)
 
 {
@@ -5,13 +6,13 @@ int conversionwrapper_(int * HROWS, int * HCOLS, double* hmat, double* newHmat, 
   int ndns;
   int rows;
   int cols;
-  int i;
-  int limit;
-  double *tempmat;
+  /*  int i;*/
+  /*int limit;*/
+  /*double *tempmat;*/
 
   rows = *HROWS;
   cols = *HCOLS;
-  limit = rows*cols;
+  /*  limit = rows*cols;*/
 
   ndns = *HROWS; 
   largen = rows*cols;

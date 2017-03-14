@@ -1,16 +1,18 @@
+#include "useSparseAMA.h"
+
 int csrdnswrapper_(int * HROWS, int * HCOLS, double* hmat, int * aj, int *ai,double* newHmat, int *ierr)
 
 {
   int t1;
   int t2;
   int rows;
-  int cols;
-  int limit;
+  /*  int cols;*/
+  /*  int limit;*/
   rows = *HROWS;
-  cols = *HCOLS;
+  /*  cols = *HCOLS;*/
  
-  int i;
-  double *tempmat;
+  /*int i;*/
+  /*  double *tempmat;*/
   t1 = rows;
   t2 = 0;
 

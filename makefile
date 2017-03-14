@@ -41,7 +41,7 @@ ma50ad.o: ./src/main/fortran/ma50ad.f
 sparskit2.o: ./src/main/c/sparskit2.c
 	$(CC)  $(FCFLAGS)  ./src/main/c/sparskit2.c 
 clean: 
-	rm -f *.o simpleSparseAMAExample libsparseAMA.a
+	rm -f *.o simpleSparseAMAExample libsparseAMA.a firstCUnitTest
 
 simpleSparseAMAExample.o: ./src/test/c/simpleSparseAMAExample.c
 	$(CC)  $(FCFLAGS) ./src/test/c/simpleSparseAMAExample.c

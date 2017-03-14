@@ -1,3 +1,4 @@
+#include "useSparseAMA.h"
 int obtainsparsewrapper_(
   int * maxSize,
   int * qrows, int * qcols, double * qmat, int * qmatj, int * qmati,
