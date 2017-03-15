@@ -14,38 +14,38 @@ int main(int argc, char * argv[])
 { 
 
 
-int maxSize;
+unsigned int maxSize;
 double hmat[MAXELEMS]=
 {-0.1167899999999999, -0.2842153439999999, 0.098180323, -0.697197378, 
     -0.1357490219999999, 1, -0.024790419, 0.024790419, -0.024790419, 
     0.024790419, -0.024790419, 0.251999689, 0.024790419, -0.024790419, 
     -1.158861192, 0.024790419, 1, -0.32, 1, -2.62};
-int hmatj[MAXELEMS]=
+unsigned int hmatj[MAXELEMS]=
 {1, 4, 7, 10, 11, 13, 1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 14, 12, 15, 37};
-int hmati[4]={1, 7, 18,21 };
-double * newHmat;int * newHmatj;int * newHmati;
-int aux;
-int rowsInQ;
-double * qmat;int * qmatj;int * qmati;
-double * bmat;int * bmatj;int * bmati;
-int essential;
+unsigned int hmati[4]={1, 7, 18,21 };
+double * newHmat;unsigned int * newHmatj;unsigned int * newHmati;
+unsigned int aux;
+unsigned int rowsInQ;
+double * qmat;unsigned int * qmatj;unsigned int * qmati;
+double * bmat;unsigned int * bmatj;unsigned int * bmati;
+unsigned int essential;
 double * rootr;
 double * rooti;
-int retCode=0;
+unsigned int retCode=0;
 
 
 
 
 
 newHmat=(double *)calloc((unsigned)MAXELEMS,sizeof(double));
-newHmatj=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
-newHmati=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
+newHmatj=(unsigned int *)calloc((unsigned)MAXELEMS,sizeof(unsigned int));
+newHmati=(unsigned int *)calloc((unsigned)MAXELEMS,sizeof(unsigned int));
 qmat=(double *)calloc((unsigned)MAXELEMS,sizeof(double));
-qmatj=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
-qmati=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
+qmatj=(unsigned int *)calloc((unsigned)MAXELEMS,sizeof(unsigned int));
+qmati=(unsigned int *)calloc((unsigned)MAXELEMS,sizeof(unsigned int));
 bmat=(double *)calloc((unsigned)MAXELEMS,sizeof(double));
-bmatj=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
-bmati=(int *)calloc((unsigned)MAXELEMS,sizeof(int));
+bmatj=(unsigned int *)calloc((unsigned)MAXELEMS,sizeof(unsigned int));
+bmati=(unsigned int *)calloc((unsigned)MAXELEMS,sizeof(unsigned int));
 rootr=(double *)calloc((unsigned)MAXELEMS,sizeof(double));
 rooti=(double *)calloc((unsigned)MAXELEMS,sizeof(double));
 

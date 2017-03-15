@@ -68,10 +68,6 @@
 
 //double ZERO_TOLERANCE=1.0e-8;
 //double ZERO_TOL1=1.0e-8;
-double ZERO_TOLERANCE;
-double ZERO_TOL1;
-int USEARPACK, TESTBLANCHARDKAHN ;
-#include <stdio.h>
 #include "useSparseAMA.h"
 #ifdef WIN32
 #include <time.h>
@@ -79,17 +75,256 @@ int USEARPACK, TESTBLANCHARDKAHN ;
 #include <time.h>
 #include <sys/time.h>
 #endif
+#define BADRC 99u
 #define cputime() (( (double)clock() ) / CLOCKS_PER_SEC)
 double totcpusec, tmpcpusec, oldcpusec, alloc_sec, assert_sec, qr_sec ;
-int alloc_count, assert_count, qr_count ;
+unsigned int  alloc_count, assert_count, qr_count ;
 
 double time_rightMostAllZeroQ, time_rmazq_alloc ;
-int count_rightMostAllZeroQ, count_constructA, count_useArpack, count_dgees ;
+unsigned int count_rightMostAllZeroQ, count_constructA, count_useArpack, count_dgees ;
 double time_constructQRDecomposition, time_sparseMult, time_arpack, time_sparseMatTimesVec ;
 double time_extract, time_backsolve ;
 double time_autoregression, time_augmentQ;
 
-int rowEndsInZeroBlock() ;
+/*int rowEndsInZeroBlock() ;*/
+
+
+/* ----------------------------------------------------------------- */
+/* misc utility routines follow ...                                  */
+/*                                                                   */
+/*                                                                   */
+/*  lineNumberToViolation                                            */
+/*  lineNumberToString                                               */
+/*  validVector                                                      */
+/*  validCSRMatrix                                                   */
+/*  cPrintMatrix                                                     */
+/*  cPrintMatrixNonZero                                              */
+/*  cPrintSparse                                                     */
+/*  rowEndsInZeroBlock                                               */
+/*                                                                   */
+/* ----------------------------------------------------------------- */
+
+static char * lineNumberToString(int lineNo)
+{
+char * result;
+switch(lineNo)
+{
+case  sparseAMAPreMaxNumberOfHElementsLEZero: result=
+  "sparseAMA_PRECONDITIONS_VIOLATED"; break;
+case  sparseAMAPreHrows: result=
+  "sparseAMA_PRECONDITIONS_VIOLATED"; break;
+case  sparseAMAPreHcolsHrows: result=
+  "sparseAMA_PRECONDITIONS_VIOLATED"; break;
+case  sparseAMAPreLeads: result=
+  "sparseAMA_PRECONDITIONS_VIOLATED"; break;
+case  sparseAMAPreHmat: result=
+  "sparseAMA_PRECONDITIONS_VIOLATED"; break;
+case  sparseAMAPreAuxRows: result=
+  "sparseAMA_PRECONDITIONS_VIOLATED"; break;
+case  sparseAMAPreRowsInQ: result=
+  "sparseAMA_PRECONDITIONS_VIOLATED"; break;
+case  sparseAMAPreQmat: result=
+  "sparseAMA_PRECONDITIONS_VIOLATED"; break;
+case  autoRegressionPostValidQ: result=
+  "autoRegression_POSTCONDITIONS_VIOLATED"; break;
+case  autoRegressionPostValidH: result=
+  "autoRegression_POSTCONDITIONS_VIOLATED"; break;
+case  autoRegressionPostValidAnnihilator: result=
+  "autoRegression_POSTCONDITIONS_VIOLATED"; break;
+case  autoRegressionPostValidR: result=
+  "autoRegression_POSTCONDITIONS_VIOLATED"; break;
+case  autoRegressionPostValidJs: result=
+  "autoRegression_POSTCONDITIONS_VIOLATED"; break;
+case  augmentQmatWithInvariantSpaceVectorsPreConstraints: result=
+  "augmentQmatWithInvariantSpaceVectors_PRECONDITIONS_VIOLATED"; break;
+case  augmentQmatWithInvariantSpaceVectorsPreAuxiliary: result=
+  "augmentQmatWithInvariantSpaceVectors_PRECONDITIONS_VIOLATED"; break;
+case  augmentQmatWithInvariantSpaceVectorsPostValidQ: result=
+  "augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED"; break;
+case  augmentQmatWithInvariantSpaceVectorsPostValidRealRoot: result=
+  "augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED"; break;
+case  augmentQmatWithInvariantSpaceVectorsPostValidImagRoot: result=
+  "augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED"; break;
+case  augmentQmatWithInvariantSpaceVectorsPostValidA: result=
+  "augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED"; break;
+case  augmentQmatWithInvariantSpaceVectorsPostADim: result=
+  "augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED"; break;
+case  augmentQmatWithInvariantSpaceVectorsPostValidJs: result=
+  "augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED"; break;
+case  shiftRightAndRecordPreZeroRow: result=
+  "STACKED_SYSTEM_NOT_FULL_RANK"; break;
+case  annihilateRowsPostValidH: result=
+  "annihilateRows_POSTCONDITIONS_VIOLATED"; break;
+case nzmaxTooSmallConstructA: result=
+  "maxNumberOfHElementsTooSmall"; break;
+case nzmaxTooSmallAnnihilateRows: result=
+  "maxNumberOfHElementsTooSmall"; break;
+case nzmaxTooSmallAugmentQ: result=
+  "nzmaxTooSmallAugmentQ"; break;
+case ndnsTooSmall: result=
+  "transitionMatrixTooSmall"; break;
+case qextentTooBig: result=
+  "maxNumberOfHElementsTooSmall"; break;
+case errorReturnFromUseArpack: result=
+  "unable to compute eigenvalues using ARPACK"; break;
+case tooManyLargeRoots: result=
+  "Blanchard-Kahn fails:  too many large roots" ; break;
+case tooFewLargeRoots: result=
+  "Blanchard-Kahn fails:  too few large roots" ; break;
+default: result=
+  "unknown assertion violation";break;
+}
+return(result);
+}
+
+
+
+
+int validVector(unsigned int numRows,double * vec)
+{
+  unsigned int i;
+int allFiniteNumbers;
+      allFiniteNumbers=TRUE;
+      for(i=0;i<numRows;i++){
+        allFiniteNumbers=(isfinite(vec[i])&&allFiniteNumbers);}
+
+      return(allFiniteNumbers);
+}
+
+
+unsigned int validCSRMatrix( unsigned int numRows,double * mata,unsigned int * matj,unsigned int *mati)
+{
+  unsigned int i;unsigned int result,allPositive,elements,allFiniteNumbers;
+elements=mati[numRows]-mati[0];
+result=
+  (mati[numRows]>0) && (mati[0]>0) && (
+          (elements) >=0);
+      allPositive=TRUE;
+      for(i=0;i<numRows;i++){allPositive=(mati[i]>0&&allPositive);}
+      result=
+        (result && allPositive);
+      allPositive=TRUE;
+      for(i=0;i<elements;i++){
+        allPositive=(matj[i]>0&&allPositive);}
+      allFiniteNumbers=TRUE;
+      for(i=0;i<elements;i++){
+        allFiniteNumbers=(isfinite(mata[i])&&allFiniteNumbers);}
+
+      result=
+        (result && allPositive && allFiniteNumbers);
+      return(result);
+}
+
+
+void cPrintMatrix(unsigned int nrows,unsigned int ncols,double * matrix)
+{
+unsigned int i,j;
+for(i=0;i<nrows;i++)
+for(j=0;j<ncols;j++)printf("[%d] [%d] %f\n",i,j,matrix[i+(j*nrows)]);
+}
+
+
+void cPrintMatrixNonZero(unsigned int nrows,unsigned int ncols,double *matrix,double zerotol)
+{
+unsigned int i,j;
+double fabs(double x);
+for(i=0;i<nrows;i++)
+for(j=0;j<ncols;j++)
+    if(fabs(matrix[i+(j*nrows)]) > zerotol)
+    printf("[%d] [%d] %f\n",i,j,matrix[i+(j*nrows)]);
+}
+
+
+void cPrintSparse(unsigned int rows,double * a,unsigned int * aj,unsigned int * ai)
+{
+unsigned int i,j,numEls;
+numEls=ai[rows]-ai[0];
+printf("matrix has %d non zero element/s\n",numEls);
+for(i=0;i<rows;i++)
+{
+for(j=ai[i];j<ai[i+1];j++)
+{
+printf("row=%d,col=%d,val=%f\n",i+1,aj[j-1],a[j-1]);
+}}
+}
+
+
+
+/* ----------------------------------------------------------------------
+ rowEndsInZeroBlock (targetRow, blockLength, mat, matj, mati, ncols)
+
+ returns true if targetRow in CSR matrix mat ends in zero block,
+ else returns false
+
+	targetRow   		row number to check
+	blockLength   		length of block to check
+	mat, matj, mati  	target matrix in CSR format
+	ncols    			number of columns in 'mat'
+
+ notes
+ no range checking -- targetRow and blockLength are assumed to be in bounds
+---------------------------------------------------------------------- */
+int rowEndsInZeroBlock (
+ unsigned 	int targetRow,
+unsigned  	int blockLength,
+ 	double *mat,
+unsigned  	int *matj,
+unsigned  	int *mati,
+unsigned  	int ncols
+) {
+
+unsigned  	int i ;
+
+ 	/* loop through nonzeros for this row */
+ 	for (i=mati[targetRow-1]; i<mati[targetRow]; i++) {
+
+	  	/* if column index for this value is inside block,
+	       we have a nonzero value, so return false */
+	  	if (matj[i-1]>(ncols-blockLength) && matj[i-1]<=ncols)
+	   		return (0) ;
+
+	}
+
+ 	/* no nonzeros found, return true */
+ 	return (1) ;
+
+}
+
+
+/* ----------------------------------------------------------------------
+ deleteRow (targetRow, mat, nrows, ncols)
+
+ 	deletes row targetRow from dense matrix mat, which is nrows by ncols
+	deletes in place, last row of existing matrix is left unchanged
+ 	returns 0 if successful
+	targetRow is indexed from 1 to nrows
+
+
+---------------------------------------------------------------------- */
+int deleteRow (unsigned int targetRow, double *mat,unsigned  int nrows,unsigned  int ncols) {
+
+unsigned int i, istart, istop ;
+
+	/* if targetRow is out of bounds, print msg and return */
+	if (targetRow < 1 || targetRow > nrows) {
+		printf ("deleteRow:  target row %d is out of bounds\n", targetRow) ;
+		return (-1) ;
+	}
+
+	/* start with first value of row to be deleted */
+	istart = (targetRow-1)*ncols ;
+
+	/* stop and beginning of last row */
+	istop = (nrows-1)*ncols ;
+
+	/* copy data from one row ahead */
+	for (i=istart; i<istop; i++)
+		mat[i] = mat[i+ncols] ;
+
+	/* all done */
+	return (0) ;
+
+}	/* deleteRow */
 
 /*not static because mathLink code uses these*/
 int discreteSelect(double * realPart,double * imagPart){
@@ -123,18 +358,18 @@ int continuousSelect(double * realPart,double * imagPart){
 
 ----------------------------------------------------------------------------- */
 
-static int shiftRightAndRecord (
-	long unsigned int *maxNumberOfHelements,
-    int *returnCode,
-    int dim,
-    int rowsInQ,
-    double * qmat,int * qmatj,int * qmati,
-    int hrows,int hcols,
-    double * hmat,int * hmatj,int * hmati
+static unsigned int shiftRightAndRecord (
+	unsigned int *maxNumberOfHelements,
+    unsigned int *returnCode,
+unsigned     int dim,
+unsigned int rowsInQ,
+    double * qmat,unsigned int * qmatj,unsigned int * qmati,
+unsigned     int hrows,unsigned int hcols,
+    double * hmat,unsigned int * hmatj,unsigned int * hmati
 )
 {
-	int i, j, qextent, zeroRow ;
-	static long unsigned int maxHElementsEncountered=0;		/* bumpSparseAMA */
+unsigned 	int i, j, qextent, zeroRow ;
+	static unsigned int maxHElementsEncountered=0;		/* bumpSparseAMA */
 
 	/* check for zero rows in H matrix -- can't shift right if all zeros */
 	/* (if row has no nonzero values, adjacent row pointers will be equal) */
@@ -147,7 +382,7 @@ static int shiftRightAndRecord (
 
 
     sparseAMAAssert (zeroRow==FALSE, shiftRightAndRecordPreZeroRow);
-	if (*returnCode) return (-1) ;
+	if (*returnCode) return (BADRC) ;
 
 	/* keep track of space used in Q */
  	qextent=qmati[rowsInQ]-qmati[0];
@@ -174,7 +409,7 @@ static int shiftRightAndRecord (
 				/* make sure we've got enough space (tighten up vis-a-vis original) */
 			   	/* sparseAMAAssert((qextent <= *maxNumberOfHElements+1), qextentTooBig); */
 			   	sparseAMAAssert((qextent < *maxNumberOfHElements), qextentTooBig);
-				if (*returnCode) return (-1) ;
+				if (*returnCode) return (BADRC) ;
 
 				/* shift H value right one block.  (Zeros are just ignored.) */
 				hmatj[j-1] += dim;
@@ -213,23 +448,23 @@ void	dgeqp3_(int * nr,int * nc,double * denseA,
 		int * nr2,int * pcol,double * tau,
 		double * work,int *lwork,int * info);
 
-static int constructQRDecomposition (
-	int matSize, int nr, int nc,
-	double * a, int * ja, int * ia,
-    double * q, int * jq, int * iq,
-    double * r, int * jr, int * ir,
-    int * prow, int * pcol
+static unsigned int constructQRDecomposition (
+	unsigned int matSize, unsigned int nr, unsigned int nc,
+	double * a,unsigned  int * ja,unsigned  int * ia,
+    double * q, unsigned int * jq, unsigned int * iq,
+    double * r,unsigned  int * jr,unsigned  int * ir,
+   unsigned int * prow,unsigned int * pcol
 )
 {
 	int info;
-	int lwork;
-	int nzmax;
-	int i;
+	unsigned int lwork;
+	unsigned int nzmax;
+	unsigned int i;
 	int * jpvt;
 	double * denseA;
 	double * tau;
 	double * work;
-	int rank;
+	unsigned int rank;
 	int norm;
 	double * diag;
 	double time0 ;
@@ -255,7 +490,7 @@ static int constructQRDecomposition (
 	/* dgeqp3 computes QR factorization with column pivoting of denseA */
 	/* rwt profile QR decomposition */
 	time0 = cputime() ; /* rwt */
-	dgeqp3_(&nr,&nc,denseA,&nr,pcol,tau,work,&lwork,&info);
+	dgeqp3_((int *)&nr,(int *)&nc,denseA,(int *)&nr,(int*)pcol,tau,work,(int*)&lwork,&info);
 
 	qr_sec += cputime()-time0 ; /* rwt */
 
@@ -332,33 +567,33 @@ static int constructQRDecomposition (
 
 ----------------------------------------------------------------------------------------- */
 
-static int annihilateRows(
-	long unsigned int *maxNumberOfHelements,
-    int *returnCode,
-    int hrows,int hcols,
-    double * hmat,int * hmatj,int * hmati,
-    double * newHmat,int * newHmatj,int * newHmati,
-    double * annihilator,int * annihilatorj,int * annihilatori,
-    double * rmat,int * rmatj,int * rmati,
-    int * prow,int * pcol
+static unsigned int annihilateRows(
+	unsigned int *maxNumberOfHelements,
+   unsigned int *returnCode,
+   unsigned int hrows,unsigned int hcols,
+    double * hmat,unsigned int * hmatj,unsigned int * hmati,
+    double * newHmat,unsigned int * newHmatj,unsigned int * newHmati,
+    double * annihilator,unsigned int * annihilatorj,unsigned int * annihilatori,
+    double * rmat,unsigned int * rmatj,unsigned int * rmati,
+    unsigned int * prow,unsigned int * pcol
 )
 {
-	int i,j;static long unsigned int maxHElementsEncountered=0;
-	double ztol;int rnk;int len;int * perm;
-	double * rightBlock;int * rightBlockj;int * rightBlocki;
-	double * tempHmat;int * tempHmatj;int * tempHmati;
-	int job,i1,i2,j1,j2,resRows,resColumns,ierr,nzmax;
+	unsigned int i,j;static unsigned int maxHElementsEncountered=0;
+	double ztol;unsigned int rnk;unsigned int len;unsigned int * perm;
+	double * rightBlock;unsigned int * rightBlockj;unsigned int * rightBlocki;
+	double * tempHmat;unsigned int * tempHmatj;unsigned int * tempHmati;
+	unsigned int job,i1,i2,j1,j2,resRows,resColumns,ierr,nzmax;
 	int * iw;
 	double time0 ;
 
 	/* allocate space */
-	perm		= (int *) calloc((unsigned)hrows,sizeof(int));
+	perm		= (unsigned int *) calloc((unsigned)hrows,sizeof(unsigned int));
 	rightBlock	= (double *) calloc(RBLOCKSIZE,sizeof(double));
-	rightBlockj	= (int *) calloc(RBLOCKSIZE,sizeof(int));
-	rightBlocki = (int *) calloc((unsigned)hrows+1,sizeof(int));
+	rightBlockj	= (unsigned int *) calloc(RBLOCKSIZE,sizeof(unsigned int));
+	rightBlocki = (unsigned int *) calloc((unsigned)hrows+1,sizeof(unsigned int));
 	tempHmat	= (double *) calloc(HMATSIZE,sizeof(double));
-	tempHmatj	= (int *) calloc(HMATSIZE,sizeof(int));
-	tempHmati	= (int *) calloc((unsigned)hrows+1,sizeof(int));
+	tempHmatj	= (unsigned int *) calloc(HMATSIZE,sizeof(unsigned int));
+	tempHmati	= (unsigned int *) calloc((unsigned)hrows+1,sizeof(unsigned int));
 	iw			= (int *) calloc((unsigned)HMATSIZE,sizeof(int));
 
 
@@ -377,7 +612,7 @@ static int annihilateRows(
 	time0 = cputime() ; /* rwt */
 
 	rnk=constructQRDecomposition(
-		(int)RBLOCKSIZE, hrows, hrows, rightBlock, rightBlockj, rightBlocki,
+		(unsigned int)RBLOCKSIZE, hrows, hrows, rightBlock, rightBlockj, rightBlocki,
 		annihilator, annihilatorj, annihilatori,
 		rmat, rmatj, rmati,
 		prow, pcol
@@ -415,7 +650,7 @@ static int annihilateRows(
 	);
 	time_sparseMult += cputime()-time0 ; /* rwt */
 	sparseAMAAssert(ierr==0, nzmaxTooSmallAnnihilateRows);
-	if (*returnCode) return (-1) ;
+	if (*returnCode) return (BADRC) ;
 	bumpSparseAMA((newHmati[hrows]-newHmati[0]));
 
 	/* reorder rows of new Hmat using permutation calculated above, store in tempHmat */
@@ -446,7 +681,7 @@ static int annihilateRows(
 	free(rightBlocki);
 
 	sparseAMAAssert(validCSRMatrix(hrows,hmat,hmatj,hmati), annihilateRowsPostValidH);
-	if (*returnCode) return (-1) ;
+	if (*returnCode) return (BADRC) ;
 
 	*maxNumberOfHElements=maxHElementsEncountered;
 
@@ -491,31 +726,31 @@ static int annihilateRows(
 
 ------------------------------------------------------------------------- */
 
-static int autoRegression(
-	long unsigned int *maxNumberOfHelements,
-    int *returnCode,
-    int hrows,int hcols,
-    double * hmat,int * hmatj,int * hmati,
-    double * qmat,int * qmatj,int * qmati,
-    double * newHmat,int * newHmatj,int * newHmati,
-    double * annihilator,int * annihilatorj,int * annihilatori,
-    double * rmat,int * rmatj,int * rmati,
-    int * prow,int * pcol
+static unsigned int autoRegression(
+	unsigned int *maxNumberOfHelements,
+    unsigned int *returnCode,
+    unsigned int hrows,unsigned int hcols,
+    double * hmat,unsigned int * hmatj,unsigned int * hmati,
+    double * qmat,unsigned int * qmatj,unsigned int * qmati,
+    double * newHmat,unsigned int * newHmatj,unsigned int * newHmati,
+    double * annihilator,unsigned int * annihilatorj,unsigned int * annihilatori,
+    double * rmat,unsigned int * rmatj,unsigned int * rmati,
+    unsigned int * prow,unsigned int * pcol
 
 )
 {
 	double time0, time_annihilateRows, time_shiftRightAndRecord ; /* rwt */
-	int count_ARloop ; /* rwt */
-	int originalMaxHElements;
-	int aOne;int swapped;int i;static long unsigned int maxHElementsEncountered=0;
-	int len;int ierr;double ztol;int job;
-	int rowsInQ,rnk;
-	int * tmpHmati;int * tmpHmatj;
+	unsigned int count_ARloop ; /* rwt */
+	unsigned int aOne;unsigned int swapped;unsigned int i;static unsigned int maxHElementsEncountered=0;
+	unsigned int len;unsigned int ierr;double ztol;unsigned int job;
+	unsigned int rowsInQ,rnk;
+	unsigned int * tmpHmati;unsigned int * tmpHmatj;
 	double * tmpHmat;
-  	int * chkJs;
-	int valid;
+  	unsigned int * chkJs;
+	unsigned int valid;
 
 	/* save original maxspace parameter */
+	static unsigned int originalMaxHElements;
 	originalMaxHElements=*maxNumberOfHElements;
 
 	time_shiftRightAndRecord = 0 ;  /* rwt */
@@ -558,7 +793,7 @@ static int autoRegression(
 			qmat,qmatj,qmati,hrows,hcols,hmat,hmatj,hmati
 		);
 
-		if (*returnCode) return (-1) ;
+		if (*returnCode) return 0u ;
 		time_shiftRightAndRecord += cputime() - time0 ; /* rwt */
 
 		/* record space used and reset */
@@ -577,7 +812,7 @@ static int autoRegression(
 			prow, pcol
 		);
 
-		if (*returnCode) return (-1) ;
+		if (*returnCode) return 0u ;
 		time_annihilateRows += cputime()-time0 ; /* rwt */
 
 		/* record space used and reset */
@@ -605,14 +840,14 @@ static int autoRegression(
 	sparseAMAAssert(validCSRMatrix(hrows,newHmat,newHmatj,newHmati), autoRegressionPostValidH);
 	sparseAMAAssert(validCSRMatrix(hrows,annihilator,annihilatorj,annihilatori), autoRegressionPostValidAnnihilator);
 	sparseAMAAssert(validCSRMatrix(hrows,rmat,rmatj,rmati), autoRegressionPostValidR);
-	if (*returnCode) return (-1) ;
+	if (*returnCode) return 0u ;
 
 	/* 	The Js vector makes the correspondence between the columns of the */
 	/* 	reduced dimension matrix and the original input matrix.           */
 	/* 	The Js vector should contain 0's for excluded columns and         */
 	/*  each integer from 1 to *essential for retained columns.           */
 
-	chkJs=(int *)calloc((unsigned)hrows,sizeof(int));
+	chkJs=(unsigned int *)calloc((unsigned)hrows,sizeof(unsigned int));
 	for(i=0;i<hrows;i++) chkJs[i]=0;
 	for(i=0;i<hrows;i++) if(prow[i]>=0&&prow[i]<hrows) chkJs[prow[i]]+=1;
 	for(i=0;i<hrows;i++) chkJs[i]=0;
@@ -621,7 +856,7 @@ static int autoRegression(
 	for(i=0;i<hrows;i++) if(chkJs[i]!=1) valid=FALSE;
 	free(chkJs);
 	sparseAMAAssert(valid, autoRegressionPostValidJs);
-	if (*returnCode) return (-1) ;
+	if (*returnCode) return 0u ;
 
 
 
@@ -649,14 +884,14 @@ static int autoRegression(
 
 
 ------------------------------------------------------------------ */
-static int identifyEssential(
-	int neq,
-	int hcols,
-    double *hmat, int *hmatj, int *hmati,
-    int * js
+static unsigned int identifyEssential(
+	unsigned int neq,
+	unsigned int hcols,
+    double *hmat, unsigned int *hmatj, unsigned int *hmati,
+    unsigned int * js
 )
 {
-   	int i, j, ia, norm;
+   	unsigned int i, j, ia, norm;
    	double * diag, epsi;
 
 	/* write column norms of H (max abs values) into 'diag'  */
@@ -712,53 +947,52 @@ static int identifyEssential(
 
 ------------------------------------------------------------------- */
 static void constructA (
-	long unsigned int *maxNumberOfHelements,
-	int *returnCode,
-	int hrows,int hcols,int ia,int * js,
-	double * hmat,int * hmatj,int * hmati,
-	double * qmat,int * qmatj,int * qmati,
-	double * rmat,int * rmatj,int * rmati,
-	int * prow,int * pcol,
+	unsigned int *maxNumberOfHElements,
+	unsigned int *returnCode,
+	unsigned int hrows,unsigned int hcols,unsigned int ia,unsigned int * js,
+	double * hmat,unsigned int * hmatj,unsigned int * hmati,
+	double * qmat,unsigned int * qmatj,unsigned int * qmati,
+	double * rmat,unsigned int * rmatj,unsigned int * rmati,
+	unsigned int * prow,unsigned int * pcol,
 	double * damat
 
 )
 {
-	double ztol;static long unsigned int maxHElementsEncountered=0;
+	double ztol;static unsigned int maxHElementsEncountered=0;
 	double val;
-	int nzmax;
-	int ierr;int * iw;
-	int i;int job;int j;
-	int * perm;int rowNow;
-	int len;int ioff;int nr;int nc;int aOne;int ndns;int i1,i2,j1,j2;
-	int * idiag;double * diag;
-	double * xo;int * ixo;int * jxo;double * x;double * y;
-	double * gmat;int * gmatj;int * gmati;
-	double * tempHmat;int * tempHmatj;int * tempHmati;
-	double * tempRmat;int * tempRmatj;int * tempRmati;
+	unsigned int nzmax;
+	unsigned int ierr;unsigned int * iw;
+	unsigned int i;unsigned int job;unsigned int j;
+	unsigned int * perm;unsigned int rowNow;
+	unsigned int len;unsigned int ioff;unsigned int nr;unsigned int nc;unsigned int aOne;unsigned int ndns;unsigned int i1,i2,j1,j2;
+	unsigned int * idiag;double * diag;
+	double * xo;unsigned int * ixo;unsigned int * jxo;double * x;double * y;
+	double * gmat;unsigned int * gmatj;unsigned int * gmati;
+	double * tempHmat;unsigned int * tempHmatj;unsigned int * tempHmati;
+	double * tempRmat;unsigned int * tempRmatj;unsigned int * tempRmati;
 	double time0 ;
-/*	int originalMaxHElements;
-
-	originalMaxHElements=*maxNumberOfHElements;*/
+	/*	static unsigned int originalMaxHElements;
+		originalMaxHElements=*maxNumberOfHElements;*/
 
 	/* allocate space */
-	perm=(int *)calloc((unsigned)hrows,sizeof(int));
-	iw =(int *)calloc((unsigned)hcols,sizeof(int));
+	perm=(unsigned int *)calloc((unsigned)hrows,sizeof(unsigned int));
+	iw =(unsigned int *)calloc((unsigned)hcols,sizeof(unsigned int));
 	xo=(double *)calloc((unsigned)hrows,sizeof(double));
-	ixo=(int *)calloc((unsigned)hrows+1,sizeof(int));
-	jxo=(int *)calloc((unsigned)hrows,sizeof(int));
+	ixo=(unsigned int *)calloc((unsigned)hrows+1,sizeof(unsigned int));
+	jxo=(unsigned int *)calloc((unsigned)hrows,sizeof(unsigned int));
 	x=(double *)calloc((unsigned)hrows * ia,sizeof(double));
 	y=(double *)calloc((unsigned)hrows * ia,sizeof(double));
 	tempHmat=(double *)calloc(HMATSIZE,sizeof(double));
-	tempHmatj=(int *)calloc(HMATSIZE,sizeof(int));
-	tempHmati=(int *)calloc((unsigned)hrows+1,sizeof(int));
+	tempHmatj=(unsigned int *)calloc(HMATSIZE,sizeof(unsigned int));
+	tempHmati=(unsigned int *)calloc((unsigned)hrows+1,sizeof(unsigned int));
 	tempRmat=(double *)calloc(RBLOCKSIZE,sizeof(double));
-	tempRmatj=(int *)calloc(RBLOCKSIZE,sizeof(int));
-	tempRmati=(int *)calloc((unsigned)hrows+1,sizeof(int));
+	tempRmatj=(unsigned int *)calloc(RBLOCKSIZE,sizeof(unsigned int));
+	tempRmati=(unsigned int *)calloc((unsigned)hrows+1,sizeof(unsigned int));
 	gmat=(double *)calloc(HMATSIZE,sizeof(double));
-	gmatj=(int *)calloc(HMATSIZE,sizeof(int));
-	gmati=(int *)calloc((unsigned)hrows+1,sizeof(int));
+	gmatj=(unsigned int *)calloc(HMATSIZE,sizeof(unsigned int));
+	gmati=(unsigned int *)calloc((unsigned)hrows+1,sizeof(unsigned int));
 	diag=(double *)calloc((unsigned)hrows,sizeof(double));
-	idiag=(int *)calloc((unsigned)hrows,sizeof(int));
+	idiag=(unsigned int *)calloc((unsigned)hrows,sizeof(unsigned int));
 
 	*returnCode=0;
 
@@ -903,31 +1137,31 @@ static void constructA (
 		rootr, rooti						vectors of real and imaginary roots
 		&nlarge								ptr to number of large roots
 ------------------------------------------------------------------------- */
-static int useArpack(
-	long unsigned int *maxNumberOfHelements, int maxnev, int nroot,
-	double * amat,int * amatj,int * amati,
+static unsigned int useArpack(
+	unsigned int *maxNumberOfHelements, unsigned int maxnev, unsigned int nroot,
+	double * amat,unsigned int * amatj,unsigned int * amati,
 	double * spanVecs,double * rootr,double * rooti,
-	int *nlarge
+	unsigned int *nlarge
 )
 {
-	int ishfts=1;
-	int maxitr=300;
-	int model=1;
-	int ido;int lworkl;int info;
-	int rvec=1;
+	unsigned int ishfts=1;
+	unsigned int maxitr=300;
+	unsigned int model=1;
+	unsigned int ido;unsigned int lworkl;unsigned int info;
+	unsigned int rvec=1;
 	double tol=0;
 	char  bmat[1]={'I'};
 	char  huhmat[1]={'A'};
 	char  which[2]={'L','M'};
-	int * iparam;int * ipntr;int * select;
+	unsigned int * iparam;unsigned int * ipntr;unsigned int * select;
 	double * workd;double sigmar;double sigmai;
 	double * ax;double * d;double * v; double * workev;double * workl;
-	double * resid;int maxn;int ldv;int maxncv;
+	double * resid;unsigned int maxn;unsigned int ldv;unsigned int maxncv;
 	double time0 ;
-	int i, lowpos;
+	unsigned int i, lowpos;
 	double thisroot, lowroot, realpart, imagpart ;
-/*	unsigned int ONE=1,WO=2*/
-	int original_maxnev ;
+/*	unsigned unsigned int ONE=1,WO=2*/
+	unsigned int original_maxnev ;
 
 	time_arpack = 0.0 ;				/* declared in sparseAMA() */
 	time_sparseMatTimesVec = 0.0 ;	/* declared in sparseAMA() */
@@ -950,9 +1184,9 @@ static int useArpack(
 
 	/* allocate space for dnaupd */
 	lworkl = 3*maxncv*maxncv+6*maxncv;
-	iparam=(int *)calloc((unsigned)11,sizeof(int));
-	ipntr=(int *)calloc((unsigned)14,sizeof(int));
-	select=(int *)calloc((unsigned)maxncv,sizeof(int));
+	iparam=(unsigned int *)calloc((unsigned)11,sizeof(int));
+	ipntr=(unsigned int *)calloc((unsigned)14,sizeof(int));
+	select=(unsigned int *)calloc((unsigned)maxncv,sizeof(int));
 	ax=(double *)calloc((unsigned)maxn,sizeof(double));
 	d=(double *)calloc((unsigned)maxncv*3,sizeof(double));
 	resid=(double *)calloc((unsigned)maxn,sizeof(double));
@@ -989,7 +1223,7 @@ static int useArpack(
 	time_arpack += (cputime() - time0) ;
 	if (info != 0) {
 		printf ("error return from dnaupd, ierr=%d\n", info) ;
-		return(-1) ;
+		return(0) ;
 	}
 
 	/* iterate on candidate eigenvectors until convergence */
@@ -1016,7 +1250,7 @@ static int useArpack(
 		time_arpack += (cputime() - time0) ;
 		if (info != 0) {
 			printf ("error return from dnaupd, ierr=%d\n", info) ;
-			return(-1) ;
+			return(0u) ;
 		}
 
 		count_useArpack ++ ;
@@ -1046,7 +1280,7 @@ static int useArpack(
 	time_arpack += (cputime() - time0) ;
 	if (info != 0) {
 		printf ("error return from dneupd, ierr=%d\n", info) ;
-		return(-1) ;
+		return(0u) ;
 	}
 
 	/* compute number of large roots; find row num of smallest root (may have been added for B-K test) */
@@ -1165,47 +1399,47 @@ static int useArpack(
 
 ------------------------------------------------------------------------------------ */
 
-static int augmentQmatWithInvariantSpaceVectors (
-	long unsigned int *maxNumberOfHelements,
-	int *returnCode,
-	int discreteTime,
-	int hrows,int hcols,
-	double * hmat,int * hmatj,int * hmati,
-	double * annihilator,int * annihilatorj,int * annihilatori,
-	double * rmat,int * rmatj,int * rmati,
-	int * prow,int * pcol,
-	int auxiliaryInitialConditions,
-	int constraintsNeeded,
-	double * qmat,int * qmatj,int * qmati,
-	int * essential,
+static unsigned int augmentQmatWithInvariantSpaceVectors (
+	unsigned int *maxNumberOfHelements,
+	unsigned int *returnCode,
+	unsigned int discreteTime,
+	unsigned int hrows,unsigned int hcols,
+	double * hmat,unsigned int * hmatj,unsigned int * hmati,
+	double * annihilator,unsigned int * annihilatorj,unsigned int * annihilatori,
+	double * rmat,unsigned int * rmatj,unsigned int * rmati,
+	unsigned int * prow,unsigned int * pcol,
+	unsigned int auxiliaryInitialConditions,
+	unsigned int constraintsNeeded,
+	double * qmat,unsigned int * qmatj,unsigned int * qmati,
+	unsigned int * essential,
 	double * rootr,double * rooti
 )
 {
-	static long unsigned int maxHElementsEncountered=0;
-	int originalMaxHElements;
-	int nzmax;
+	static unsigned int maxHElementsEncountered=0;
+	unsigned int originalMaxHElements;
+	unsigned int nzmax;
 	double rconde;double rcondv;
 	char jobvs,sort,sense;
-	int sdim,*bwork;
-	int liwork;int * anotheriwork;
+	unsigned int sdim,*bwork;
+	unsigned int liwork;int * anotheriwork;
 	double * damat;
-	int * js;
-	int qextent;int delQextent;int j;
+	unsigned int * js;
+	unsigned int qextent;unsigned int delQextent;unsigned int j;
 	double * beyondQmat;
-	double * a;int * ia;int * ja;
-	double * ta;int * tia;int * tja;
-	int * wcols;
-	int len;int ierr;double ztol;int job;
-	int rowsInQ;
-	int i;
-	int nroot, maxroots;
+	double * a;unsigned int * ia;unsigned int * ja;
+	double * ta;unsigned int * tia;unsigned int * tja;
+	unsigned int * wcols;
+	unsigned int len;int ierr;double ztol;int job;
+	unsigned int rowsInQ;
+	unsigned int i;
+	unsigned int nroot, maxroots;
 	double * work;
-	int lwork;int info;int spacedim;int rc;
+	unsigned int lwork;int info;unsigned int spacedim;unsigned int rc;
 /*	unsigned int ONE=1 ;*/
 
 	double time0, time_useArpack/*,time_dgees*/, time_constructA ;
 
-	int nxt,valid;
+	unsigned int nxt,valid;
 	originalMaxHElements=*maxNumberOfHElements;
 	time_useArpack = 0 ;
 /*	time_dgees = 0 ;*/
@@ -1214,13 +1448,13 @@ static int augmentQmatWithInvariantSpaceVectors (
 
 	sparseAMAAssert(constraintsNeeded>0, augmentQmatWithInvariantSpaceVectorsPreConstraints);
     sparseAMAAssert(auxiliaryInitialConditions>=0, augmentQmatWithInvariantSpaceVectorsPreAuxiliary);
-	if (*returnCode) return (-1) ;
+	if (*returnCode) return (0) ;
 
-    wcols = (int *) calloc((unsigned)hcols-hrows,sizeof(int));
-	rowsInQ=auxiliaryInitialConditions;
+    wcols = (unsigned int *) calloc((unsigned)hcols-hrows,sizeof(int));
+    rowsInQ=(unsigned int)auxiliaryInitialConditions;
 	qextent=qmati[auxiliaryInitialConditions]-qmati[0];
 	bumpSparseAMA((qextent));
-	js=(int *)calloc((unsigned)(hcols-hrows),sizeof(int));
+	js=(unsigned int *)calloc((unsigned)(hcols-hrows),sizeof(int));
 
 	originalMaxHElements=*maxNumberOfHElements;
 
@@ -1239,7 +1473,7 @@ static int augmentQmatWithInvariantSpaceVectors (
 		}
 	}
 	sparseAMAAssert(valid==TRUE, augmentQmatWithInvariantSpaceVectorsPostValidJs);
-	if (*returnCode) return (-1) ;
+	if (*returnCode) return (0) ;
 
 
 	/* construct state space transition matrix A -- output is dense matrix damat */
@@ -1251,11 +1485,11 @@ static int augmentQmatWithInvariantSpaceVectors (
 		prow,pcol,
 		damat
 	);
-	if (*returnCode) return (-1) ;
+	if (*returnCode) return (0) ;
 	time_constructA += cputime() - time0 ;
 	bumpSparseAMA(*maxNumberOfHElements);
 	sparseAMAAssert(validVector(*essential* *essential,damat), augmentQmatWithInvariantSpaceVectorsPostADim);
-	if (*returnCode) return (-1) ;
+	if (*returnCode) return (0) ;
 
 
 	/* obtain eigenvectors and roots ... */
@@ -1272,19 +1506,19 @@ static int augmentQmatWithInvariantSpaceVectors (
 		nroot=*essential;											/* dimension of eigenproblem */
 		spacedim=constraintsNeeded-auxiliaryInitialConditions;		/* number of eigenvalues to be calculated */
 		/* GSA:  debug, too big by far only need for schur computation test */
-		lwork = 1+nroot*(1+2*nroot);
+		lwork =  1u+nroot*(1u+2u*nroot); 
 
-		/* GSA:  fix it, need to call with itdim nev and ncv so that really going to use arpack */
+		/* /\* GSA:  fix it, need to call with itdim nev and ncv so that really going to use arpack *\/ */
 
-		beyondQmat = (double *) calloc((unsigned)nroot*nroot,sizeof(double));
-		bwork = (int*)calloc((unsigned)nroot,sizeof(int));
+		beyondQmat = (double *) calloc((unsigned)nroot*nroot,sizeof(double)); 
+		bwork = (unsigned int*)calloc((unsigned)nroot,sizeof(int));
 		work = (double *) calloc((unsigned)(lwork ), sizeof(double));
 		a = (double *) calloc((unsigned)*maxNumberOfHElements,sizeof(double));
-		ja = (int *) calloc((unsigned)*maxNumberOfHElements,sizeof(int));
-		ia = (int *) calloc((unsigned)nroot+1,sizeof(int));
+		ja = (unsigned int *) calloc((unsigned)*maxNumberOfHElements,sizeof(int));
+		ia = (unsigned int *) calloc((unsigned)nroot+1,sizeof(int));
 		ta = (double *) calloc((unsigned)*maxNumberOfHElements,sizeof(double));
-		tja = (int *) calloc((unsigned)*maxNumberOfHElements,sizeof(int));
-		tia = (int *) calloc((unsigned)nroot+1,sizeof(int));
+		tja = (unsigned int *) calloc((unsigned)*maxNumberOfHElements,sizeof(int));
+		tia = (unsigned int *) calloc((unsigned)nroot+1,sizeof(int));
 		liwork = nroot*nroot;
 		anotheriwork = (int *) calloc((unsigned) (liwork),sizeof(int));
 
@@ -1309,7 +1543,7 @@ static int augmentQmatWithInvariantSpaceVectors (
 				maxroots = spacedim+2 ;
 		   	if (nroot<=maxroots) {
 			  //				printf ("unable to use ARPACK, switching to DGEESX\n") ;
-				USEARPACK=0 ;
+				USEARPACK=0u ;
 			}
 		}
 
@@ -1327,7 +1561,7 @@ static int augmentQmatWithInvariantSpaceVectors (
 				maxNumberOfHElements, spacedim, nroot, a, ja, ia, beyondQmat, rootr, rooti, &sdim
 			);
 			sparseAMAAssert (rc==0, errorReturnFromUseArpack) ;
-			if (*returnCode) return (-1) ;
+			if (*returnCode) return (0u) ;
 			time_useArpack += cputime() - time0 ;
 
 			/* convert eigenvectors to CSR sparse, store in space for 'a' matrix */
@@ -1419,7 +1653,7 @@ static int augmentQmatWithInvariantSpaceVectors (
 		j=0;
 		for(i=0;i<hcols-hrows;i++) {				  /* loop through extra cols in H */
 			if (js[i]) {							  /* if i+1'th col of H is nonzero */
-				wcols[j]=i+1;						  /* add col number to vector wcols */
+				wcols[j]=i+1u;						  /* add col number to vector wcols */
 				j++;
 			}
 		}
@@ -1428,7 +1662,7 @@ static int augmentQmatWithInvariantSpaceVectors (
 		}
 		bumpSparseAMA(qextent);
 	    sparseAMAAssert(qextent  <= *maxNumberOfHElements, qextentTooBig);
-		if (*returnCode) return (-1) ;
+		if (*returnCode) return (0u) ;
 
 		/* reset rowsInQ; drop small elements one more time */
 		rowsInQ=rowsInQ+sdim;
@@ -1461,7 +1695,7 @@ static int augmentQmatWithInvariantSpaceVectors (
 	sparseAMAAssert(validVector(*essential,rooti), augmentQmatWithInvariantSpaceVectorsPostValidImagRoot);
 	sparseAMAAssert(*essential>=0, augmentQmatWithInvariantSpaceVectorsPostADim);
 	/* if error here, just set in *returnCode -- return rowsInQ as usual */
-	/* if (*returnCode) return (-1) ; */
+	/* if (*returnCode) return (0) ; */
 
 
 
@@ -1477,23 +1711,24 @@ static int augmentQmatWithInvariantSpaceVectors (
 /* --------------------------------------------------------------- */
 void obtainSparseReducedForm(
 
-  int * maxNumberOfHElements,
-  int qrows, int qcols, double * qmat, int * qmatj, int * qmati,
-  double * bmat, int * bmatj, int * bmati
+  unsigned int * maxNumberOfHElements,
+  unsigned int qrows, unsigned int qcols,
+  double * qmat, unsigned int * qmatj, unsigned int * qmati,
+  double * bmat, unsigned int * bmatj,  unsigned int * bmati
 
 )
 {
-	long unsigned int maxHElementsEncountered=0;
+	unsigned int maxHElementsEncountered=0;
 	double * nsSumC;int ierr;double * x;
-	int nzmaxLeft;double aSmallDouble;
-	int cmatsExtent;int i;int cColumns;
-	double *b;int *jb,*ib;
-	double *tb;int *jtb,*itb;
-	int  trans;
-    double * qrmat; int * qrmatj; int * qrmati;
+	unsigned int nzmaxLeft;double aSmallDouble;
+	unsigned int cmatsExtent;unsigned int i;unsigned int cColumns;
+	double *b;unsigned int *jb,*ib;
+	double *tb;unsigned int *jtb,*itb;
+	unsigned int  trans;
+    double * qrmat; unsigned int * qrmatj; unsigned int * qrmati;
 	int *iw;double * w;
-	int  aOne; int  firstColumn;int  lastColumn;
-	int  nr;int  nc;int nonZeroNow;int nzmax;
+	 unsigned int  aOne;  unsigned int  firstColumn;unsigned int  lastColumn;
+	int  nr;int  nc;unsigned int nonZeroNow;unsigned int nzmax;
 	int * jcn;
 	double * cntl;
 	int * icntl;
@@ -1509,7 +1744,7 @@ void obtainSparseReducedForm(
 	int * nextc;
 	int * info;
 	double * rinfo;
-	int *lfact;
+	unsigned int *lfact;
 	double * fact;
 	int *irnf;
 	int * iptrl;
@@ -1541,16 +1776,16 @@ void obtainSparseReducedForm(
 
 
 	qrmat = (double *) calloc(*maxNumberOfHElements,sizeof(double));
-	qrmatj = (int *) calloc(*maxNumberOfHElements,sizeof(double));
-	qrmati = (int *) calloc(qrows+1,sizeof(double));
+	qrmatj = (unsigned int *) calloc(*maxNumberOfHElements,sizeof(double));
+	qrmati = (unsigned int *) calloc(qrows+1,sizeof(double));
 	tb = (double *) calloc(*maxNumberOfHElements,sizeof(double));
-	jtb = (int *) calloc(*maxNumberOfHElements,sizeof(double));
-	itb = (int *) calloc(qcols+1,sizeof(double));
+	jtb = (unsigned int *) calloc(*maxNumberOfHElements,sizeof(double));
+	itb = ( unsigned int *) calloc(qcols+1,sizeof(double));
 	b = (double *) calloc(*maxNumberOfHElements,sizeof(double));
-	jb = (int *) calloc(*maxNumberOfHElements,sizeof(int));
-	ib = (int *) calloc(qrows+1,sizeof(int));
+	jb = (unsigned int *) calloc(*maxNumberOfHElements,sizeof(unsigned int));
+	ib = (unsigned int *) calloc(qrows+1,sizeof(unsigned int));
 
-	lfact =(int *)calloc(1,sizeof(int));
+	lfact =(unsigned int *)calloc(1,sizeof(int));
 	*lfact = (  *maxNumberOfHElements);/*pessimistic setting for filling*/
 	fact = (double *)calloc(*lfact,sizeof(double));
 	irnf = (int *)calloc(*lfact,sizeof(int));
@@ -1606,11 +1841,11 @@ void obtainSparseReducedForm(
 
 	/*expand sum of c's. use transpose since c column major order */
 	trans = 1;
-	itb[0]=1;cmatsExtent=0;
-	cColumns=qcols-qrows;
+	itb[0]=1u;cmatsExtent=0u;
+	cColumns=(unsigned int)qcols-qrows;
 	for(i=0;i<cColumns;i++){
 
-		lastColumn = firstColumn=(1+i);
+		lastColumn = firstColumn=(1u+i);
 
 		extractSubmatrix(&qrows,&aOne,&aOne,&qrows,&firstColumn,&lastColumn,
 			qmat,qmatj,qmati,&nr,&nc,b,jb,ib
@@ -1626,14 +1861,14 @@ void obtainSparseReducedForm(
 			nsSumC,x,w,info
 		);
 		bumpSparseAMA(qrows);
-		nzmaxLeft= nzmax-cmatsExtent-1;
+		nzmaxLeft= nzmax-cmatsExtent-1u;
 
 		dnsToCsr(&aOne,&qrows,&nzmaxLeft,x,&aOne,tb+(itb[i]-1),jtb+(itb[i]-1),itb+i,&ierr);
 		/*wordybumpSparseAMA(info[3]);&*/
 		if(ierr!=0){printf("*************ran out of space****************\n");return;}
 		itb[i+1]=itb[i+1]+cmatsExtent;
 		itb[i]=itb[i]+cmatsExtent;
-		cmatsExtent=itb[i+1]-1;
+		cmatsExtent=(unsigned int)itb[i+1]-1u;
 	}
 
 
@@ -1695,14 +1930,14 @@ void obtainSparseReducedForm(
 /* --------------------------------------------------------------- */
 void applySparseReducedForm(
 
-	int rowDim,int colDim,double * initialX,
+	unsigned int rowDim,unsigned int colDim,double * initialX,
 	double * fp,double * intercept,
-	double * bmat,int * bmatj,int * bmati,double * resultX
+	double * bmat,unsigned int * bmatj,unsigned int * bmati,double * resultX
 
 )
 {
 	double * deviations;
-	int i;
+	unsigned int i;
 
 	deviations = (double *) calloc(colDim,sizeof(double));
 
@@ -1729,55 +1964,55 @@ void applySparseReducedForm(
 /* rwt add profiling                                               */
 /* --------------------------------------------------------------- */
 int satisfiesLinearSystemQ (
-	long unsigned int *maxNumberOfHelements,
-	int hrows,int lags,	int leads,
-	double * hmat,int * hmatj,int * hmati,
-	int *  auxiliaryInitialConditions,
-	int *  rowsInQ,
-	double * bmat, int * bmatj, int * bmati,
-	int * essential,
+	unsigned int *maxNumberOfHelements,
+	unsigned int hrows,unsigned int lags,	unsigned int leads,
+	double * hmat,unsigned int * hmatj,unsigned int * hmati,
+	unsigned int *  auxiliaryInitialConditions,
+	unsigned int *  rowsInQ,
+	double * bmat, unsigned int * bmatj, unsigned int * bmati,
+	unsigned int * essential,
 	double * rootr,double * rooti,double * normVec
 )
 {
 	int ierr;
-	int hcols;
-	int neqTimesTau;
-	int neqTimesTheta;
+	unsigned int hcols;
+	unsigned int neqTimesTau;
+	unsigned int neqTimesTheta;
 	double * wkspc;
-	double * partB;int * partBj;int * partBi;
-	double * forHMult;int * forHMultj;int *forHMulti;
-	double * bTrans;int * bTransj;int *bTransi;
-	double * forBMult;int * forBMultj;int *forBMulti;
-	double * resBMult;int * resBMultj;int *resBMulti;
-	double * ltpt;int * ltptj;int * ltpti;
-	int resRows;int resCols;
-	int aOne=1;int aTwo=2;
-	int lastRow;int firstRow;int offset;
-	int ii;
+	double * partB;unsigned int * partBj;unsigned int * partBi;
+	double * forHMult;unsigned int * forHMultj;unsigned int *forHMulti;
+	double * bTrans;unsigned int * bTransj;unsigned int *bTransi;
+	double * forBMult;unsigned int * forBMultj;unsigned int *forBMulti;
+	double * resBMult;unsigned int * resBMultj;unsigned int *resBMulti;
+	double * ltpt;unsigned int * ltptj;unsigned int * ltpti;
+	unsigned int resRows;unsigned int resCols;
+	unsigned int aOne=1;unsigned int aTwo=2;
+	unsigned int lastRow;unsigned int firstRow;unsigned int offset;
+	unsigned int ii;
 /*	int originalMaxHElements;*/
 
-	long unsigned int maxHElementsEncountered=0;
+	unsigned int maxHElementsEncountered=0;
 /*	originalMaxHElements=*maxNumberOfHElements;*/
 
 	wkspc=(double *)calloc(*maxNumberOfHElements,sizeof(double));
 	forHMult=(double *)calloc(*maxNumberOfHElements,sizeof(double));
-	forHMultj=(int *)calloc(*maxNumberOfHElements,sizeof(int));
-	forHMulti=(int *)calloc(*maxNumberOfHElements,sizeof(int));
+	forHMultj=(unsigned int *)calloc(*maxNumberOfHElements,sizeof(unsigned int));
+	forHMulti=(unsigned int *)calloc(*maxNumberOfHElements,sizeof(unsigned int));
 	bTrans=(double *)calloc(*maxNumberOfHElements,sizeof(double));
-	bTransj=(int *)calloc(*maxNumberOfHElements,sizeof(int));
-	bTransi=(int *)calloc(*maxNumberOfHElements,sizeof(int));
+	bTransj=(unsigned int *)calloc(*maxNumberOfHElements,sizeof(unsigned int));
+	bTransi=(unsigned int *)calloc(*maxNumberOfHElements,sizeof(unsigned int));
 	forBMult=(double *)calloc(*maxNumberOfHElements,sizeof(double));
-	forBMultj=(int *)calloc(*maxNumberOfHElements,sizeof(int));
-	forBMulti=(int *)calloc(*maxNumberOfHElements,sizeof(int));
+	forBMultj=(unsigned int *)calloc(*maxNumberOfHElements,sizeof(unsigned int));
+	forBMulti=(unsigned int *)calloc(*maxNumberOfHElements,sizeof(unsigned int));
 	resBMult=(double *)calloc(*maxNumberOfHElements,sizeof(double));
-	resBMultj=(int *)calloc(*maxNumberOfHElements,sizeof(int));
-	resBMulti=(int *)calloc(*maxNumberOfHElements,sizeof(int));
+	resBMultj=(unsigned int *)calloc(*maxNumberOfHElements,sizeof(unsigned int));
+	resBMulti=(unsigned int *)calloc(*maxNumberOfHElements,sizeof(unsigned int));
 	partB=(double *)calloc(*maxNumberOfHElements,sizeof(double));
-	partBj=(int *)calloc(*maxNumberOfHElements,sizeof(int));
-	partBi=(int *)calloc(*maxNumberOfHElements,sizeof(int));
+	partBj=(unsigned int *)calloc(*maxNumberOfHElements,sizeof(unsigned int));
+	partBi=(unsigned int *)calloc(*maxNumberOfHElements,sizeof(unsigned int));
 	ltpt=(double *)calloc(*maxNumberOfHElements,sizeof(double));
-	ltptj=(int *)calloc(*maxNumberOfHElements,sizeof(int));
-	ltpti=(int *)calloc(*maxNumberOfHElements,sizeof(int));
+	ltptj=(unsigned int *)calloc(*maxNumberOfHElements,sizeof(unsigned int));
+	ltpti=(unsigned int *)calloc(*maxNumberOfHElements,sizeof(unsigned int));
 
 	neqTimesTau=hrows*lags;
 	neqTimesTheta=hrows*leads;
@@ -1801,7 +2036,7 @@ int satisfiesLinearSystemQ (
 		for(ii=0;ii<(lags-1)*hrows;ii++) {
 			bTrans[ii]=1;bTransj[ii]=hrows+ii+1;bTransi[ii]=ii+1;
 		}
-		offset=(int)(bTrans[(lags-1)*hrows]=(lags-1)*hrows+1);
+		offset=(unsigned int)(bTrans[(lags-1)*hrows]=(lags-1)*hrows+1);
 		copyMatrix(&hrows,&aOne,bmat,bmatj,bmati,&offset,bTrans,bTransj,bTransi+(lags-1)*hrows);
 	} else {
 		offset=1;
@@ -1869,319 +2104,6 @@ cPrintMatrixNonZero(hrows,1,normVec,1.0e-8);
 
 }	/* satsifiesLinearSystemQ */
 
-
-
-/* ----------------------------------------------------------------- */
-/* misc utility routines follow ...                                  */
-/*                                                                   */
-/*                                                                   */
-/*  lineNumberToViolation                                            */
-/*  lineNumberToString                                               */
-/*  validVector                                                      */
-/*  validCSRMatrix                                                   */
-/*  cPrintMatrix                                                     */
-/*  cPrintMatrixNonZero                                              */
-/*  cPrintSparse                                                     */
-/*  rowEndsInZeroBlock                                               */
-/*                                                                   */
-/* ----------------------------------------------------------------- */
-
-static int lineNumberToViolation(int lineNo)
-{
-int result;
-switch(lineNo)
-{
-case  sparseAMAPreMaxNumberOfHElementsLEZero: result=
-  sparseAMA_PRECONDITIONS_VIOLATED; break;
-case  sparseAMAPreHrows: result=
-  sparseAMA_PRECONDITIONS_VIOLATED; break;
-case  sparseAMAPreHcolsHrows: result=
-  sparseAMA_PRECONDITIONS_VIOLATED; break;
-case  sparseAMAPreLeads: result=
-  sparseAMA_PRECONDITIONS_VIOLATED; break;
-case  sparseAMAPreHmat: result=
-  sparseAMA_PRECONDITIONS_VIOLATED; break;
-case  sparseAMAPreAuxRows: result=
-  sparseAMA_PRECONDITIONS_VIOLATED; break;
-case  sparseAMAPreRowsInQ: result=
-  sparseAMA_PRECONDITIONS_VIOLATED; break;
-case  sparseAMAPreQmat: result=
-  sparseAMA_PRECONDITIONS_VIOLATED; break;
-case  autoRegressionPostValidQ: result=
-  autoRegression_POSTCONDITIONS_VIOLATED; break;
-case  autoRegressionPostValidH: result=
-  autoRegression_POSTCONDITIONS_VIOLATED; break;
-case  autoRegressionPostValidAnnihilator: result=
-  autoRegression_POSTCONDITIONS_VIOLATED; break;
-case  autoRegressionPostValidR: result=
-  autoRegression_POSTCONDITIONS_VIOLATED; break;
-case  autoRegressionPostValidJs: result=
-  autoRegression_POSTCONDITIONS_VIOLATED; break;
-case  augmentQmatWithInvariantSpaceVectorsPreConstraints: result=
-  augmentQmatWithInvariantSpaceVectors_PRECONDITIONS_VIOLATED; break;
-case  augmentQmatWithInvariantSpaceVectorsPreAuxiliary: result=
-  augmentQmatWithInvariantSpaceVectors_PRECONDITIONS_VIOLATED; break;
-case  augmentQmatWithInvariantSpaceVectorsPostValidQ: result=
-  augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED; break;
-case  augmentQmatWithInvariantSpaceVectorsPostValidRealRoot: result=
-  augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED; break;
-case  augmentQmatWithInvariantSpaceVectorsPostValidImagRoot: result=
-  augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED; break;
-case  augmentQmatWithInvariantSpaceVectorsPostValidA: result=
-  augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED; break;
-case  augmentQmatWithInvariantSpaceVectorsPostADim: result=
-  augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED; break;
-case  augmentQmatWithInvariantSpaceVectorsPostValidJs: result=
-  augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED; break;
-case  shiftRightAndRecordPreZeroRow: result=
-  STACKED_SYSTEM_NOT_FULL_RANK; break;
-case  annihilateRowsPostValidH: result=
-  annihilateRows_POSTCONDITIONS_VIOLATED; break;
-case nzmaxTooSmallConstructA: result=
-  HELEMS_TOO_SMALL; break;
-case nzmaxTooSmallAugmentQ: result=
-  HELEMS_TOO_SMALL; break;
-case nzmaxTooSmallAnnihilateRows: result=
-  HELEMS_TOO_SMALL; break;
-case ndnsTooSmall: result=
-  AMAT_TOO_LARGE; break;
-case qextentTooBig: result=
-  HELEMS_TOO_SMALL; break;
-case errorReturnFromUseArpack: result=
-  augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED; break;
-case tooManyLargeRoots: result=
-  TOO_MANY_LARGE_ROOTS; break;
-case tooFewLargeRoots: result=
-  TOO_FEW_LARGE_ROOTS; break;
-default: result=
-  -1;break;
-}
-return(result);
-}
-
-
-static char * lineNumberToString(int lineNo)
-{
-char * result;
-switch(lineNo)
-{
-case  sparseAMAPreMaxNumberOfHElementsLEZero: result=
-  "sparseAMA_PRECONDITIONS_VIOLATED"; break;
-case  sparseAMAPreHrows: result=
-  "sparseAMA_PRECONDITIONS_VIOLATED"; break;
-case  sparseAMAPreHcolsHrows: result=
-  "sparseAMA_PRECONDITIONS_VIOLATED"; break;
-case  sparseAMAPreLeads: result=
-  "sparseAMA_PRECONDITIONS_VIOLATED"; break;
-case  sparseAMAPreHmat: result=
-  "sparseAMA_PRECONDITIONS_VIOLATED"; break;
-case  sparseAMAPreAuxRows: result=
-  "sparseAMA_PRECONDITIONS_VIOLATED"; break;
-case  sparseAMAPreRowsInQ: result=
-  "sparseAMA_PRECONDITIONS_VIOLATED"; break;
-case  sparseAMAPreQmat: result=
-  "sparseAMA_PRECONDITIONS_VIOLATED"; break;
-case  autoRegressionPostValidQ: result=
-  "autoRegression_POSTCONDITIONS_VIOLATED"; break;
-case  autoRegressionPostValidH: result=
-  "autoRegression_POSTCONDITIONS_VIOLATED"; break;
-case  autoRegressionPostValidAnnihilator: result=
-  "autoRegression_POSTCONDITIONS_VIOLATED"; break;
-case  autoRegressionPostValidR: result=
-  "autoRegression_POSTCONDITIONS_VIOLATED"; break;
-case  autoRegressionPostValidJs: result=
-  "autoRegression_POSTCONDITIONS_VIOLATED"; break;
-case  augmentQmatWithInvariantSpaceVectorsPreConstraints: result=
-  "augmentQmatWithInvariantSpaceVectors_PRECONDITIONS_VIOLATED"; break;
-case  augmentQmatWithInvariantSpaceVectorsPreAuxiliary: result=
-  "augmentQmatWithInvariantSpaceVectors_PRECONDITIONS_VIOLATED"; break;
-case  augmentQmatWithInvariantSpaceVectorsPostValidQ: result=
-  "augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED"; break;
-case  augmentQmatWithInvariantSpaceVectorsPostValidRealRoot: result=
-  "augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED"; break;
-case  augmentQmatWithInvariantSpaceVectorsPostValidImagRoot: result=
-  "augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED"; break;
-case  augmentQmatWithInvariantSpaceVectorsPostValidA: result=
-  "augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED"; break;
-case  augmentQmatWithInvariantSpaceVectorsPostADim: result=
-  "augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED"; break;
-case  augmentQmatWithInvariantSpaceVectorsPostValidJs: result=
-  "augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED"; break;
-case  shiftRightAndRecordPreZeroRow: result=
-  "STACKED_SYSTEM_NOT_FULL_RANK"; break;
-case  annihilateRowsPostValidH: result=
-  "annihilateRows_POSTCONDITIONS_VIOLATED"; break;
-case nzmaxTooSmallConstructA: result=
-  "maxNumberOfHElementsTooSmall"; break;
-case nzmaxTooSmallAnnihilateRows: result=
-  "maxNumberOfHElementsTooSmall"; break;
-case nzmaxTooSmallAugmentQ: result=
-  "nzmaxTooSmallAugmentQ"; break;
-case ndnsTooSmall: result=
-  "transitionMatrixTooSmall"; break;
-case qextentTooBig: result=
-  "maxNumberOfHElementsTooSmall"; break;
-case errorReturnFromUseArpack: result=
-  "unable to compute eigenvalues using ARPACK"; break;
-case tooManyLargeRoots: result=
-  "Blanchard-Kahn fails:  too many large roots" ; break;
-case tooFewLargeRoots: result=
-  "Blanchard-Kahn fails:  too few large roots" ; break;
-default: result=
-  "unknown assertion violation";break;
-}
-return(result);
-}
-
-
-int validVector(int numRows,double * vec)
-{
-int i,allFiniteNumbers;
-      allFiniteNumbers=TRUE;
-      for(i=0;i<numRows;i++){
-        allFiniteNumbers=(isfinite(vec[i])&&allFiniteNumbers);}
-
-      return(allFiniteNumbers);
-}
-
-
-int validCSRMatrix(int numRows,double * mata,int * matj,int *mati)
-{
-int result,allPositive,elements,i,allFiniteNumbers;
-elements=mati[numRows]-mati[0];
-result=
-  (mati[numRows]>0) && (mati[0]>0) && (
-          (elements) >=0);
-      allPositive=TRUE;
-      for(i=0;i<numRows;i++){allPositive=(mati[i]>0&&allPositive);}
-      result=
-        (result && allPositive);
-      allPositive=TRUE;
-      for(i=0;i<elements;i++){
-        allPositive=(matj[i]>0&&allPositive);}
-      allFiniteNumbers=TRUE;
-      for(i=0;i<elements;i++){
-        allFiniteNumbers=(isfinite(mata[i])&&allFiniteNumbers);}
-
-      result=
-        (result && allPositive && allFiniteNumbers);
-      return(result);
-}
-
-
-void cPrintMatrix(int nrows,int ncols,double * matrix)
-{
-int i,j;
-for(i=0;i<nrows;i++)
-for(j=0;j<ncols;j++)printf("[%d] [%d] %f\n",i,j,matrix[i+(j*nrows)]);
-}
-
-
-void cPrintMatrixNonZero(nrows,ncols,matrix,zerotol)
-int  nrows;
-int  ncols;
-double * matrix;
-double zerotol;
-{
-int i,j;
-double fabs(double x);
-for(i=0;i<nrows;i++)
-for(j=0;j<ncols;j++)
-    if(fabs(matrix[i+(j*nrows)]) > zerotol)
-    printf("[%d] [%d] %f\n",i,j,matrix[i+(j*nrows)]);
-}
-
-
-void cPrintSparse(int rows,double * a,int * aj,int * ai)
-{
-int i,j,numEls;
-numEls=ai[rows]-ai[0];
-printf("matrix has %d non zero element/s\n",numEls);
-for(i=0;i<rows;i++)
-{
-for(j=ai[i];j<ai[i+1];j++)
-{
-printf("row=%d,col=%d,val=%f\n",i+1,aj[j-1],a[j-1]);
-}}
-}
-
-
-
-/* ----------------------------------------------------------------------
- rowEndsInZeroBlock (targetRow, blockLength, mat, matj, mati, ncols)
-
- returns true if targetRow in CSR matrix mat ends in zero block,
- else returns false
-
-	targetRow   		row number to check
-	blockLength   		length of block to check
-	mat, matj, mati  	target matrix in CSR format
-	ncols    			number of columns in 'mat'
-
- notes
- no range checking -- targetRow and blockLength are assumed to be in bounds
----------------------------------------------------------------------- */
-int rowEndsInZeroBlock (
- 	int targetRow,
- 	int blockLength,
- 	double *mat,
- 	int *matj,
- 	int *mati,
- 	int ncols
-) {
-
- 	int i ;
-
- 	/* loop through nonzeros for this row */
- 	for (i=mati[targetRow-1]; i<mati[targetRow]; i++) {
-
-	  	/* if column index for this value is inside block,
-	       we have a nonzero value, so return false */
-	  	if (matj[i-1]>(ncols-blockLength) && matj[i-1]<=ncols)
-	   		return (0) ;
-
-	}
-
- 	/* no nonzeros found, return true */
- 	return (1) ;
-
-}
-
-
-/* ----------------------------------------------------------------------
- deleteRow (targetRow, mat, nrows, ncols)
-
- 	deletes row targetRow from dense matrix mat, which is nrows by ncols
-	deletes in place, last row of existing matrix is left unchanged
- 	returns 0 if successful
-	targetRow is indexed from 1 to nrows
-
-
----------------------------------------------------------------------- */
-int deleteRow (int targetRow, double *mat, int nrows, int ncols) {
-
-	int i, istart, istop ;
-
-	/* if targetRow is out of bounds, print msg and return */
-	if (targetRow < 1 || targetRow > nrows) {
-		printf ("deleteRow:  target row %d is out of bounds\n", targetRow) ;
-		return (-1) ;
-	}
-
-	/* start with first value of row to be deleted */
-	istart = (targetRow-1)*ncols ;
-
-	/* stop and beginning of last row */
-	istop = (nrows-1)*ncols ;
-
-	/* copy data from one row ahead */
-	for (i=istart; i<istop; i++)
-		mat[i] = mat[i+ncols] ;
-
-	/* all done */
-	return (0) ;
-
-}	/* deleteRow */
 
 
 
@@ -2337,27 +2259,27 @@ Arguments
 ---------------------------------------------------------------------------------- */
 
 void sparseAMA (
-
-    int discreteTime,
-    int hrows,int hcols,
-    int leads,
-    double * hmat,int * hmatj,int * hmati,
-    double * newHmat,int * newHmatj,int * newHmati,
-    int *  auxiliaryInitialConditions,
-    int *  rowsInQ,
-    double * qmat,int * qmatj,int * qmati,
-    int * essential,
+unsigned int *maxNumberOfHElements,		
+    unsigned int discreteTime,
+    unsigned int hrows,unsigned int hcols,
+    unsigned int leads,
+    double * hmat,unsigned int * hmatj,unsigned int * hmati,
+    double * newHmat,unsigned int * newHmatj,unsigned int * newHmati,
+    unsigned int *  auxiliaryInitialConditions,
+    unsigned int *  rowsInQ,
+    double * qmat,unsigned int * qmatj,unsigned int * qmati,
+    unsigned int * essential,
     double * rootr,double * rooti,
-    int *returnCode
+    unsigned int *returnCode
 )
 {
-	static long unsigned int maxHElementsEncountered=0;
-	int originalMaxHElements;
-	double * annihilator;int * annihilatorj;int * annihilatori;
-	double * rmat;int * rmatj;int * rmati;
-	int * prow;int * pcol;
-	int constraintsNeeded;
-	int i;
+	static unsigned int maxHElementsEncountered=0;
+	unsigned int originalMaxHElements;
+	double * annihilator;unsigned int * annihilatorj;unsigned int * annihilatori;
+	double * rmat;unsigned int * rmatj;unsigned int * rmati;
+	unsigned int * prow;unsigned int * pcol;
+	unsigned int constraintsNeeded;
+	unsigned int i;
 	double time0 ;
 
 	/* Check Inputs*/
@@ -2386,13 +2308,13 @@ void sparseAMA (
 	if (*returnCode) return ;
 
 	annihilator=(double *) calloc((unsigned)RBLOCKSIZE,sizeof(double));
-	annihilatorj=(int *) calloc((unsigned)RBLOCKSIZE,sizeof(int));
-	annihilatori=(int *) calloc((unsigned)hrows+1,sizeof(int));
+	annihilatorj=(unsigned int *) calloc((unsigned)RBLOCKSIZE,sizeof(unsigned int));
+	annihilatori=(unsigned int *) calloc((unsigned)hrows+1,sizeof(unsigned int));
 	rmat=(double *)calloc((unsigned)RBLOCKSIZE,sizeof(double));
-	rmatj=(int *)calloc((unsigned)RBLOCKSIZE,sizeof(int));
-	rmati=(int *)calloc((unsigned)hrows+1,sizeof(int));
-	prow=(int *) calloc((unsigned)hrows,sizeof(int));
-	pcol=(int *) calloc((unsigned)hrows,sizeof(int));
+	rmatj=(unsigned int *)calloc((unsigned)RBLOCKSIZE,sizeof(unsigned int));
+	rmati=(unsigned int *)calloc((unsigned)hrows+1,sizeof(unsigned int));
+	prow=(unsigned int *) calloc((unsigned)hrows,sizeof(unsigned int));
+	pcol=(unsigned int *) calloc((unsigned)hrows,sizeof(unsigned int));
 	/* originalMaxHElements=*maxNumberOfHElements; just did this above */
 
 	for(i=0;i<=hrows;i++) {

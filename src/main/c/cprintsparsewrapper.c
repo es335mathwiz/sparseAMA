@@ -1,6 +1,6 @@
 #include "useSparseAMA.h"
 
-int cprintsparsewrapper_(int* rows, double *a, int*aj, int*ai) {
+int cprintsparsewrapper_(unsigned int* rows, double *a,unsigned  int*aj,unsigned  int*ai) {
 
   cPrintSparse(*rows,a,aj,ai);
 

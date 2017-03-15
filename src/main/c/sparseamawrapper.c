@@ -1,24 +1,24 @@
 #include "useSparseAMA.h"
 
-int sparseamawrapper_(	int *maxNumberOfHElements,
-    int * discreteTime,
-    int * hrows, int * hcols,
-    int * leads,
+int sparseamawrapper_(unsigned 	int *maxNumberOfHElements,
+    unsigned int * discreteTime,
+    unsigned int * hrows, unsigned int * hcols,
+    unsigned int * leads,
     double * hmat,
-    int * hmatj,
-    int * hmati,
+    unsigned int * hmatj,
+   unsigned  int * hmati,
     double * newHmat,
-    int * newHmatj,
-    int * newHmati,
-    int *  auxiliaryInitialConditions,
-    int *  rowsInQ,
+    unsigned int * newHmatj,
+    unsigned int * newHmati,
+   unsigned  int *  auxiliaryInitialConditions,
+   unsigned  int *  rowsInQ,
     double * qmat,
-    int * qmatj,
-    int * qmati,
-    int * essential,
+    unsigned int * qmatj,
+    unsigned int * qmati,
+    unsigned int * essential,
     double * rootr,
     double * rooti,
-    int *returnCode){
+    unsigned int *returnCode){
 
   /*  int * DISCRETE_TIME;*/
   /*  int*aux;

@@ -1,8 +1,11 @@
 #include "useSparseAMA.h"
+
+
+
 int obtainsparsewrapper_(
-  int * maxSize,
-  int * qrows, int * qcols, double * qmat, int * qmatj, int * qmati,
-  double * bmat, int * bmatj, int * bmati
+ unsigned  int * maxSize,
+  unsigned int * qrows, unsigned int * qcols, double * qmat, unsigned int * qmatj, unsigned int * qmati,
+  double * bmat, unsigned int * bmatj, unsigned int * bmati
 ){
  
   obtainSparseReducedForm(maxSize,*qrows,*qcols,qmat,qmatj,qmati,bmat,bmatj,bmati);

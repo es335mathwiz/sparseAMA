@@ -1,7 +1,6 @@
 #include "useSparseAMA.h"
 
 int csrdnswrapper_(int * HROWS, int * HCOLS, double* hmat, int * aj, int *ai,double* newHmat, int *ierr)
-
 {
   int t1;
   int t2;

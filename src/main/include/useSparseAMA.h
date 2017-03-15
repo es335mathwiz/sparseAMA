@@ -4,10 +4,14 @@
 /* ------------------------------------------------------------------------------------------------ */
 /* rwt version of sparseAMA.h.  Numerous changes, including insert code from top of old sparseAMA.c */
 /* ------------------------------------------------------------------------------------------------ */
-	long unsigned int  *maxNumberOfHElements,
+unsigned int  *maxNumberOfHElements;
+#include <stdio.h>
+double ZERO_TOLERANCE;
+double ZERO_TOL1;
+unsigned int USEARPACK, TESTBLANCHARDKAHN ;
 
 /*#include <stdio.h>*/
-  #include <stdlib.h>
+#include <stdlib.h>
 #include <float.h>
 #include <math.h>
 // #include "mex.h"
@@ -19,7 +23,7 @@
 #endif
 
 #define HMATSIZE (*maxNumberOfHElements)
-#define RBLOCKSIZE () (hrows * hrows) +1)
+#define RBLOCKSIZE ( (hrows * hrows) +1)
 #define RIGHT 0
 #define NONZERO 1
 #define TRUE 1
@@ -138,8 +142,9 @@ extern void ma50bd_();
 extern void ma50cd_();
 // #endif
 
-int validCSRMatrix(int numRows,double * mata,int * matj,int *mati);
-int validVector(int numRows,double * vec);
+unsigned int validCSRMatrix( unsigned int numRows,double * mata,unsigned int * matj,unsigned int *mati);
+int validVector(unsigned int numRows,double * vec);
+
 
 /*void exit(int status);
 long getpid();
@@ -167,28 +172,28 @@ void transp_();
 void rnrms_();
 
 int satisfiesLinearSystemQ (
-
-	int *maxNumberOfHElements,
-	int hrows,int lags,	int leads,
-	double * hmat,int * hmatj,int * hmati,
-	int *  auxiliaryInitialConditions,
-	int *  rowsInQ,
-	double * bmat, int * bmatj, int * bmati,
-	int * essential,
+	unsigned int *maxNumberOfHelements,
+	unsigned int hrows,unsigned int lags,	unsigned int leads,
+	double * hmat,unsigned int * hmatj,unsigned int * hmati,
+	unsigned int *  auxiliaryInitialConditions,
+	unsigned int *  rowsInQ,
+	double * bmat, unsigned int * bmatj, unsigned int * bmati,
+	unsigned int * essential,
 	double * rootr,double * rooti,double * normVec
 );
 void obtainSparseReducedForm(
 
-  int * maxNumberOfHElements,
-  int qrows, int qcols, double * qmat, int * qmatj, int * qmati,
-  double * bmat, int * bmatj, int * bmati
+  unsigned int * maxNumberOfHElements,
+  unsigned int qrows, unsigned int qcols,
+  double * qmat, unsigned int * qmatj, unsigned int * qmati,
+  double * bmat, unsigned int * bmatj,  unsigned int * bmati
 
 );
-
+/*
 int lineNumberToViolation(int lineNo);
 char * lineNumberToString(int lineNo);
 int deleteRow (int targetRow, double *mat, int nrows, int ncols) ;
-
+*/
 
 
 
@@ -200,37 +205,42 @@ any fn using this macro must declare static int maxHElementsEncountered=0; */
 #ifdef DEBUG
 #define bumpSparseAMA(potentialMaxValue) \
    	if(potentialMaxValue>maxHElementsEncountered) \
-   		maxHElementsEncountered=potentialMaxValue;\
-	printf("bumpSparseAMA stuff(%d,%d) at line %d\n",\
+	maxHElementsEncountered=(unsigned int))(potentialMaxValue);	\	printf("bumpSparseAMA stuff(%d,%d) at line %d\n", \
 	potentialMaxValue,maxHElementsEncountered,__LINE__);
 #else
 #define bumpSparseAMA(potentialMaxValue) \
    if(potentialMaxValue>maxHElementsEncountered) \
-   	maxHElementsEncountered=potentialMaxValue;
+     maxHElementsEncountered=(unsigned int)(potentialMaxValue);
 #endif
 #define wordyBumpSparseAMA(potentialMaxValue) \
    	if(potentialMaxValue>maxHElementsEncountered) \
-   		maxHElementsEncountered=potentialMaxValue;\
+maxHElementsEncountered=(unsigned int)(potentialMaxValue);\
 	printf("bumpSparseAMA stuff(%d,%d) at line %d\n",\
 	potentialMaxValue,maxHElementsEncountered,__LINE__);
 
 void free(void * ptr);
-void cPrintSparse(int rows,double * a,int * aj,int * ai);
-void cPrintMatrix(int nrows,int ncols,double * matrix);
-void cPrintMatrixNonZero(int nrows,int ncols,double * matrix,double zerotol);
-void sparseAMA(int *maxNumberOfHElements,
-               int discreteTime,
-               int hrows,int hcols,
-               int leads,
-               double * hmat,int * hmatj,int * hmati,
-               double * newHmat,int * newHmatj,int * newHmati,
-               int *  auxiliaryInitialConditions,
-               int *  rowsInQ,
-               double * qmat,int * qmatj,int * qmati,
-               int * essential,
-               double * rootr,double * rooti,
-               int *returnCode
-               );
+void cPrintMatrixNonZero(unsigned int nrows,unsigned int ncols,double *matrix,double zerotol);
+
+void cPrintSparse(unsigned int rows,double * a,unsigned int * aj,unsigned int * ai);
+
+void cPrintMatrix(unsigned int nrows,unsigned int ncols,double * matrix);
+
+
+void sparseAMA (
+unsigned int *maxNumberOfHElements,		
+    unsigned int discreteTime,
+    unsigned int hrows,unsigned int hcols,
+    unsigned int leads,
+    double * hmat,unsigned int * hmatj,unsigned int * hmati,
+    double * newHmat,unsigned int * newHmatj,unsigned int * newHmati,
+    unsigned int *  auxiliaryInitialConditions,
+    unsigned int *  rowsInQ,
+    double * qmat,unsigned int * qmatj,unsigned int * qmati,
+    unsigned int * essential,
+    double * rootr,double * rooti,
+    unsigned int *returnCode
+		);
+
 
 #define sparseAdd(numRows,numCols,spaceAllocated, \
 workSpace,job, \
