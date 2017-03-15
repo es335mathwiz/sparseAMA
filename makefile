@@ -31,6 +31,8 @@ libsparseAMA.a:	sparseAMA.o sparskit2.o ma50ad.o
 simpleSparseAMAExample:simpleSparseAMAExample.o libsparseAMA.a
 	$(FC) -o simpleSparseAMAExample simpleSparseAMAExample.o -L ./  -lsparseAMA $(LAPACKLIBS)
 
+src/main/c/sparseAMA.c : sparseAMA.w
+	nuweb -t sparseAMA.w
 
 sparseAMA.o: ./src/main/c/sparseAMA.c sparskit2.o
 	$(CC) $(FCFLAGS)   ./src/main/c/sparseAMA.c 

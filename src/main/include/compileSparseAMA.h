@@ -10,6 +10,7 @@
 #include <float.h>
 #include <math.h>
 // #include "mex.h"
+	long unsigned int  *maxNumberOfHElements,
 
 #define WIN32 1
 #define USESETJMP 1
@@ -167,7 +168,7 @@ void rnrms_();
 
 /* declare fns used in sparseAMA itself */
 static int autoRegression(
-	int *maxNumberOfHElements,
+long unsigned int  	 *maxNumberOfHElements,
     int *returnCode,
     int hrows,int hcols,
     double * hmat,int * hmatj,int * hmati,
@@ -180,7 +181,7 @@ static int autoRegression(
 
 
 static int shiftRightAndRecord (
-	int *maxNumberOfHElements,
+     long unsigned int   *maxNumberOfHElements,
     int *returnCode,
     int dim,
     int rowsInQ,
@@ -189,7 +190,7 @@ static int shiftRightAndRecord (
     double * hmat,int * hmatj,int * hmati
 );
 static int annihilateRows(
-	int *maxNumberOfHElements,
+	long unsigned int   *maxNumberOfHElements,
     int *returnCode,
     int hrows,int hcols,
     double * hmat,int * hmatj,int * hmati,
@@ -208,7 +209,7 @@ static int constructQRDecomposition (
 
 static int augmentQmatWithInvariantSpaceVectors (
 
-	int *maxNumberOfHElements,
+	long unsigned int   *maxNumberOfHElements,
 	int *returnCode,
 	int discreteTime,
 	int hrows,int hcols,
@@ -231,7 +232,7 @@ static int identifyEssential(
 );
 static void constructA (
 
-	int *maxNumberOfHElements,
+	long unsigned int   *maxNumberOfHElements,
 	int *returnCode,
 	int hrows,int hcols,int ia,int * js,
 	double * hmat,int * hmatj,int * hmati,
@@ -242,14 +243,13 @@ static void constructA (
 
 );
 static int useArpack(
-	int *maxNumberOfHElements, int maxnev, int nroot,
+	long unsigned int   *maxNumberOfHElements, int maxnev, int nroot,
 	double * amat,int * amatj,int * amati,
 	double * spanVecs,double * rootr,double * rooti,
 	int *nlarge
 );
 int satisfiesLinearSystemQ (
-
-	int *maxNumberOfHElements,
+long unsigned int   *maxNumberOfHElements,
 	int hrows,int lags,	int leads,
 	double * hmat,int * hmatj,int * hmati,
 	int *  auxiliaryInitialConditions,
@@ -259,8 +259,7 @@ int satisfiesLinearSystemQ (
 	double * rootr,double * rooti,double * normVec
 );
 void obtainSparseReducedForm(
-
-  int * maxNumberOfHElements,
+unsigned long * maxNumberOfHElements,
   int qrows, int qcols, double * qmat, int * qmatj, int * qmati,
   double * bmat, int * bmatj, int * bmati
 
@@ -281,7 +280,7 @@ any fn using this macro must declare static int maxHElementsEncountered=0; */
 #ifdef DEBUG
 #define bumpSparseAMA(potentialMaxValue) \
    	if(potentialMaxValue>maxHElementsEncountered) \
-   		maxHElementsEncountered=potentialMaxValue;\
+	  maxHElementsEncountered=static_cast<unsigned long>(potentialMaxValue); \
 	printf("bumpSparseAMA stuff(%d,%d) at line %d\n",\
 	potentialMaxValue,maxHElementsEncountered,__LINE__);
 #else

@@ -4,6 +4,7 @@
 /* ------------------------------------------------------------------------------------------------ */
 /* rwt version of sparseAMA.h.  Numerous changes, including insert code from top of old sparseAMA.c */
 /* ------------------------------------------------------------------------------------------------ */
+	long unsigned int  *maxNumberOfHElements,
 
 /*#include <stdio.h>*/
   #include <stdlib.h>

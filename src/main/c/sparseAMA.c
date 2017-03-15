@@ -72,6 +72,7 @@ double ZERO_TOLERANCE;
 double ZERO_TOL1;
 int USEARPACK, TESTBLANCHARDKAHN ;
 #include <stdio.h>
+#include "useSparseAMA.h"
 #ifdef WIN32
 #include <time.h>
 #else
@@ -87,7 +88,6 @@ int count_rightMostAllZeroQ, count_constructA, count_useArpack, count_dgees ;
 double time_constructQRDecomposition, time_sparseMult, time_arpack, time_sparseMatTimesVec ;
 double time_extract, time_backsolve ;
 double time_autoregression, time_augmentQ;
-#include "compileSparseAMA.h"
 
 int rowEndsInZeroBlock() ;
 
@@ -99,330 +99,361 @@ int continuousSelect(double * realPart,double * imagPart){
 	return(*realPart>ZERO_TOLERANCE);
 }
 
-#include "compileSparseAMA.h"
-//#include "mex.h"
 
 /* --------------------------------------------------------------- */
-/* !sparseAMA                                                      */
+/* !shiftRighttAndRecord                                           */
+/* --------------------------------------------------------------- */
+
+/* -----------------------------------------------------------------------------
+
+	shift rows of H right one block at a time until no row ends in a zero block.
+	for each shift, add row to Q to form auxiliary initial conditions.
+	return total number of rows in Q.
+
+	arguments
+
+		maxNumberOfHElements 		space allocated for Q matrix
+		returnCode 					used by sparseAMAAssert
+		dim  						number of columns in block to check for zero
+		rowsInQ 					number of rows in Q matrix
+		qmat, qmatj, qmati			Q matrix in CSR format
+		hrows, hcols				number of rows, columns in H matrix
+		hmat, hmatj, hmati			H matrix in CSR format
+
+
+----------------------------------------------------------------------------- */
+
+static int shiftRightAndRecord (
+	long unsigned int *maxNumberOfHelements,
+    int *returnCode,
+    int dim,
+    int rowsInQ,
+    double * qmat,int * qmatj,int * qmati,
+    int hrows,int hcols,
+    double * hmat,int * hmatj,int * hmati
+)
+{
+	int i, j, qextent, zeroRow ;
+	static long unsigned int maxHElementsEncountered=0;		/* bumpSparseAMA */
+
+	/* check for zero rows in H matrix -- can't shift right if all zeros */
+	/* (if row has no nonzero values, adjacent row pointers will be equal) */
+	zeroRow=FALSE;
+	i = 1 ;
+	while (i <= hrows && !zeroRow) {
+		zeroRow = (hmati[i-1]==hmati[i]) ;
+		i++ ;
+	}
+
+
+    sparseAMAAssert (zeroRow==FALSE, shiftRightAndRecordPreZeroRow);
+	if (*returnCode) return (-1) ;
+
+	/* keep track of space used in Q */
+ 	qextent=qmati[rowsInQ]-qmati[0];
+	bumpSparseAMA((qextent));
+
+	/* loop through rows of H */
+	for(i=1; i<=hrows; i++) {
+
+		/* while row ends in zero block, add row to Q and shift right in H */
+		while (rowEndsInZeroBlock(i, dim, hmat, hmatj, hmati, hcols)) {
+
+			/* add a row to Q */
+			rowsInQ ++ ;
+			qmati[rowsInQ-1]=qextent+1;
+
+			/* loop through nonzeros in this row of H */
+			for(j=hmati[i-1]; j<hmati[i]; j++){
+
+				/* copy H value into Q */
+				qmat[qextent]=hmat[j-1];
+				qmatj[qextent]=hmatj[j-1];
+				qextent++;
+
+				/* make sure we've got enough space (tighten up vis-a-vis original) */
+			   	/* sparseAMAAssert((qextent <= *maxNumberOfHElements+1), qextentTooBig); */
+			   	sparseAMAAssert((qextent < *maxNumberOfHElements), qextentTooBig);
+				if (*returnCode) return (-1) ;
+
+				/* shift H value right one block.  (Zeros are just ignored.) */
+				hmatj[j-1] += dim;
+
+			}
+		}
+	}
+
+	/* keep track of space used in Q */
+	qmati[rowsInQ]=qextent+1;
+	bumpSparseAMA((qextent));
+	*maxNumberOfHElements=maxHElementsEncountered;
+
+
+	/* that's it */
+	return(rowsInQ);
+
+}	/* shiftRightAndRecord */
+
+
+/* --------------------------------------------------------------- */
+/* !constructQRDecomposition                                       */
 /* rwt add profiling                                               */
 /* --------------------------------------------------------------- */
 
-/* ---------------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
+	QR decomposition of matrix A.  return results as q and r, plus
+	permutation vectors prow and pcol.  calls LAPACK routines dgeqp3
+	and dorqpr, which operate on dense matrices.
 
-	Given the structural coefficients matrix, this routine computes
-	the statespace transition matrix, and its eigenvalues and constructs the asymptotic
-	constraints matrix.  Returns an int, the number of rows in the asymptotic constraint
-	matrix.
-
-
-Arguments
----------
-
-	All args should be allocated and initialized by the caller as shown below.
-	In these comments,
-			qmax == maxNumberOfHElements
-	Arrays are assumed to be initialized to zero unless otherwise specified.
-
-	maxNumberOfHElements (input,output)
-
-		A pointer to a strictly positive int:  the number of elements to allocate
-		for sparse matrix storage. On output, the minimum value required to carry
-		out the computations for this function invocation.
-
-		Recommended initial guess is hrows*hcols.
-
-	discreteTime (input)
-
-		when non-zero, computes discrete time solutions
-		when 0 computes continuous time solutions.
-		The former case requires ruling out eigenvalues bigger than one in magnitude.
-		The latter case requires ruling out eigenvalues with positive real part.
-		The sparseAMA.h include file provides definitions for these int constants.
-
-	hrows (input)
-
-		a strictly positive int characterizing the number of rows in hmat
-		also equal to the number of equations in the model, referred to here as neq
-
-	hcols (input)
-
-		a strictly positive int characterizing the number of columns in hmat
-
-	leads (input)
-
-		a strictly positive int characterizing the number of leads
-
-	hmat, hmatj, hmati (input)
-
-		structural coefficients matrix in `compressed sparse row' (CSR) format.
-		The CSR data structure consists of three arrays:
-
-			A real array A containing the real values a_{i,j} stored row by row,
-			from row 1 to N. The length of A is NNZ.
-
-			An integer array JA containing the column indices of the elements a_{i,j}
-			as stored in the array $A$.  The length of JA is NNZ.
-
-			An integer array IA containing the pointers to the beginning of each row
-			in the arrays A and JA. The content of IA(i) is the position in arrays A and JA
-			where the i-th row starts.  The length of IA is N+1 with IA(N+1) containing the
-			number IA(1)+NNZ, i.e., the address in A and JA of the beginning of a fictitious
-			row N+1.
-
-		allocate as:
-
-			double *hmat[qmax]
-			int *hmatj[qmax]
-			int *hmati[hrows+1]
-
-	newHmat, newHmatj, newHmati (output)
-
-		transformed structural coefficients matrix in CSR format. Leading block non-singular.
-		allocate as:
-
-			double *newHmat[qmax]
-			int *newHmatj[qmax]
-			int *newHmati[hrows+1]
-
-	auxiliaryInitialConditions (input,output)
-
-		a non-negative int indicating the number of auxiliary initial conditions
-		set to zero on input unless user is pre-initializing Q with aux conditions.
-
-	rowsInQ (input,output)
-
-		a non-negative int indicating the number of rows in qmat.
-		set to zero on input (unless aux conditions set on input?)
-
-	qmat, qmatj, qmati (input,output)
-
-		asymptotic constraint matrix in CSR format.
-		allocate as:
-			double *qmat[qmax]
-			int *qmatj[qmax]
-			int *qmati[hrows*(nleads+nlags+1)+1]
-		where nleads == max number of leads, nlags = max number of lags
-
-	essential (output)
-
-		a non-negative int indicating the number of elements in rootr and rooti.
-
-	rootr (output)
-
-		real part of transition matrix eigenvalues
-		allocate as:
-			double *rootr[qcols]
-		where qcols == neq*(nlags+nleads)
-
-	rooti (output)
-
-		imaginary part of transition matrix eigenvalues
-		allocate as:
-			double *rooti[qcols]
-		where qcols == neq*(nlags+nleads)
-
-	returnCode (output)
-
-		ASYMPTOTIC_LINEAR_CONSTRAINTS_AVAILABLE 0
-		STACKED_SYSTEM_NOT_FULL_RANK 2000
-		sparseAMA_PRECONDITIONS_VIOLATED 2001
-		autoRegression_POSTCONDITIONS_VIOLATED 2002
-		augmentQmatWithInvariantSpaceVectors_PRECONDITIONS_VIOLATED 2003
-		augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED 2004
-		shiftRightAndRecord_PRECONDITIONS_VIOLATED 2005
-		annihilateRows_POSTCONDITIONS_VIOLATED 2006
-		HELEMS_TOO_SMALL 2007
-		AMAT_TOO_LARGE 2008
+http://www.netlib.org/lapack/lapack-3.1.1/html/dgeqp3.f.html
 
 
-		not used in the default implementation.
+--------------------------------------------------------------------------- */
+void	dgeqp3_(int * nr,int * nc,double * denseA,
+		int * nr2,int * pcol,double * tau,
+		double * work,int *lwork,int * info);
 
-
-	'global' variables
-
-		double ZERO_TOLERANCE
-		double ZERO_TOL1
-		int USEARPACK
-		int TESTBLANCHARDKAHN
-
-	must all be declared and set in the calling program.
-
-
-
----------------------------------------------------------------------------------- */
-
-void sparseAMA (
-
-	int *maxNumberOfHElements,
-    int discreteTime,
-    int hrows,int hcols,
-    int leads,
-    double * hmat,int * hmatj,int * hmati,
-    double * newHmat,int * newHmatj,int * newHmati,
-    int *  auxiliaryInitialConditions,
-    int *  rowsInQ,
-    double * qmat,int * qmatj,int * qmati,
-    int * essential,
-    double * rootr,double * rooti,
-    int *returnCode
+static int constructQRDecomposition (
+	int matSize, int nr, int nc,
+	double * a, int * ja, int * ia,
+    double * q, int * jq, int * iq,
+    double * r, int * jr, int * ir,
+    int * prow, int * pcol
 )
 {
-	static int maxHElementsEncountered=0;
-	int originalMaxHElements;
-	double * annihilator;int * annihilatorj;int * annihilatori;
-	double * rmat;int * rmatj;int * rmati;
-	int * prow;int * pcol;
-	int constraintsNeeded;
+	int info;
+	int lwork;
+	int nzmax;
 	int i;
+	int * jpvt;
+	double * denseA;
+	double * tau;
+	double * work;
+	int rank;
+	int norm;
+	double * diag;
 	double time0 ;
 
-	/* Check Inputs*/
-	//cPrintSparse(hrows,hmat,hmatj,hmati);
+	denseA = (double *) calloc((unsigned)nr*nc,sizeof(double));
+	tau= (double *) calloc((unsigned)nr,sizeof(double));
+	jpvt= (int *) calloc((unsigned)nr,sizeof(int));
+	diag= (double *) calloc((unsigned)nr,sizeof(double));
+	lwork = 3*nr+1;
+	work = (double *) calloc((unsigned)lwork,sizeof(double));
+	rank=0;
 
-	/* save maxspace parameter -- original will be overwritten by actual */
-	originalMaxHElements=*maxNumberOfHElements;
+	nzmax=matSize;
 
-	/* rwt                                                     */
-	/*totcpusec = oldcpusec = 0 is initialized in main program */
-	tmpcpusec = alloc_sec = assert_sec = qr_sec = 0.0 ; /* rwt */
-	alloc_count = assert_count = qr_count = 0 ;	 /* rwt */
-	time_rightMostAllZeroQ = 0 ; /* rwt */
-	count_rightMostAllZeroQ = 0 ; /* rwt */
-	time_autoregression = time_augmentQ = 0 ;
 
-	sparseAMAAssert(*maxNumberOfHElements > 0, sparseAMAPreMaxNumberOfHElementsLEZero);
-    sparseAMAAssert(hrows > 0, sparseAMAPreHrows);
-    sparseAMAAssert((hcols > 0)&&(hcols>=hrows)&&((hcols%hrows) == 0), sparseAMAPreHcolsHrows);
-    sparseAMAAssert(leads > 0, sparseAMAPreLeads);
- 	sparseAMAAssert(validCSRMatrix(hrows,hmat,hmatj,hmati), sparseAMAPreHmat);
-	sparseAMAAssert(hmati[hrows]-hmati[0]<=*maxNumberOfHElements, sparseAMAPreHmatTotElems);
-    sparseAMAAssert(*auxiliaryInitialConditions >= 0, sparseAMAPreAuxRows);
-    sparseAMAAssert(*rowsInQ>=*auxiliaryInitialConditions,sparseAMAPreRowsInQ);
-	sparseAMAAssert(*rowsInQ==0||validCSRMatrix(*rowsInQ,qmat,qmatj,qmati),sparseAMAPreQmat);
-	if (*returnCode) return ;
 
-	annihilator=(double *) calloc((unsigned)RBLOCKSIZE,sizeof(double));
-	annihilatorj=(int *) calloc((unsigned)RBLOCKSIZE,sizeof(int));
-	annihilatori=(int *) calloc((unsigned)hrows+1,sizeof(int));
-	rmat=(double *)calloc((unsigned)RBLOCKSIZE,sizeof(double));
-	rmatj=(int *)calloc((unsigned)RBLOCKSIZE,sizeof(int));
-	rmati=(int *)calloc((unsigned)hrows+1,sizeof(int));
-	prow=(int *) calloc((unsigned)hrows,sizeof(int));
-	pcol=(int *) calloc((unsigned)hrows,sizeof(int));
-	/* originalMaxHElements=*maxNumberOfHElements; just did this above */
+	/* convert source matrix to dense for LAPACK routines, init pivot vectors */
+	csrToDns(&nr,&nr,a,ja,ia,denseA,&nr,&info);
+	for(i=0;i<nr;i++) {pcol[i]=0;}
+	for(i=0;i<nr;i++) {prow[i]=i;}
 
-	for(i=0;i<=hrows;i++) {
-		rmati[i]=annihilatori[i]=1;
+
+	/* dgeqp3 computes QR factorization with column pivoting of denseA */
+	/* rwt profile QR decomposition */
+	time0 = cputime() ; /* rwt */
+	dgeqp3_(&nr,&nc,denseA,&nr,pcol,tau,work,&lwork,&info);
+
+	qr_sec += cputime()-time0 ; /* rwt */
+
+	/* upper triangle of denseA has r of qr decomposition, convert to CSR */
+	dnsToCsr(&nr,&nr,&nzmax,denseA,&nr,r,jr,ir,&info);
+
+
+	getUpperTriangular(&nr,r,jr,ir,r,jr,ir);
+
+	/* lower triangle and tau have info for constructing q */
+	time0 = cputime() ; /* rwt */
+
+	dorgqr_(&nr,&nc,&nr,denseA,&nr,tau,work,&lwork,&info);
+	/*	printf("dorgqr returned %d \n",info);*/
+
+	qr_sec += cputime()-time0 ; /* rwt */
+	qr_count ++ ;  /* rwt */
+
+	/* convert q to CSR and transpose (use denseA for workspace) */
+	dnsToCsr(&nr,&nr,&nzmax,denseA,&nr,q,jq,iq,&info);
+
+
+	inPlaceTranspose(&nr,&nr,q,jq,iq,denseA,&info);
+
+
+	for(i=0;i<nr;i++) {pcol[i]--;}
+
+	/* find rank of r matrix */
+	norm=0;
+	normsByRow(&nr, &norm, r, jr, ir, diag);
+	rank=0;
+	for(i=0;i<nr;i++) {
+		if(diag[i]/diag[0] > ZERO_TOLERANCE)
+			rank++;
 	}
 
-	qmati[0]=1;
+	/* and we're done */
+	free(denseA);
+	free(tau);
+	free(jpvt);
+	free(diag);
+	free(work);
+
+
+	return(rank);
+
+}	/* constructQRDecomposition */
+
+
+
+
+
+/* --------------------------------------------------------------- */
+/* !annihilateRows                                                 */
+/* rwt add profiling, ztol                                         */
+/* --------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------------------
+    compute QR decomposition of rightmost block of H matrix (H-theta), then premultiply H
+    by resulting q and reorder matrix by rows so that the bottom rows of the right block are
+    zeroed out.  return result in newHmat, along with QR decomposition and pivot vectors.
+
+	arguments
+
+		maxNumberOfHElements						max space used
+	    returnCode									used in sparseAMAAssert
+	    hrows, hcols								rows and cols in H
+	    hmat, hmatj, hmati,							H matrix in CSR format
+	    newHmat, newHmatj, newHmati,				transformed H matrix in CSR format
+	    annihilator, annihilatorj, annihilatori,	q matrix from QR decomposition of H-theta
+	    rmat, rmatj, rmati,							r matrix from QR decomposition of H-theta
+	    prow										reordering of H matrix by rows (?)
+	    pcol										column pivots from QR decomposition
+
+----------------------------------------------------------------------------------------- */
+
+static int annihilateRows(
+	long unsigned int *maxNumberOfHelements,
+    int *returnCode,
+    int hrows,int hcols,
+    double * hmat,int * hmatj,int * hmati,
+    double * newHmat,int * newHmatj,int * newHmati,
+    double * annihilator,int * annihilatorj,int * annihilatori,
+    double * rmat,int * rmatj,int * rmati,
+    int * prow,int * pcol
+)
+{
+	int i,j;static long unsigned int maxHElementsEncountered=0;
+	double ztol;int rnk;int len;int * perm;
+	double * rightBlock;int * rightBlockj;int * rightBlocki;
+	double * tempHmat;int * tempHmatj;int * tempHmati;
+	int job,i1,i2,j1,j2,resRows,resColumns,ierr,nzmax;
+	int * iw;
+	double time0 ;
+
+	/* allocate space */
+	perm		= (int *) calloc((unsigned)hrows,sizeof(int));
+	rightBlock	= (double *) calloc(RBLOCKSIZE,sizeof(double));
+	rightBlockj	= (int *) calloc(RBLOCKSIZE,sizeof(int));
+	rightBlocki = (int *) calloc((unsigned)hrows+1,sizeof(int));
+	tempHmat	= (double *) calloc(HMATSIZE,sizeof(double));
+	tempHmatj	= (int *) calloc(HMATSIZE,sizeof(int));
+	tempHmati	= (int *) calloc((unsigned)hrows+1,sizeof(int));
+	iw			= (int *) calloc((unsigned)HMATSIZE,sizeof(int));
+
+
+	/* copy rightmost block of H to rightBlock */
+	job=1; i1=1; i2=hrows;
+	ztol=ZERO_TOLERANCE ;
+	j1=hcols-hrows+1; j2=hcols;
+
+	extractSubmatrix (
+		&hrows, &job, &i1, &i2, &j1, &j2, hmat, hmatj, hmati,
+		&resRows, &resColumns, rightBlock, rightBlockj, rightBlocki
+	);
+
+	/* QR decomposition of rightmost block of H.  results returned in annihilator (q),
+	rmat (r), and prow and pcol  */
 	time0 = cputime() ; /* rwt */
 
-
-	/* ----------------------------------- */
-	/* 1. autoRegression                   */
-	/* ----------------------------------- */
-
-	/* -----------------------------------------------------------------------------------
-	In addition to the number of auxiliary initial conditions, the call to
-	autoRegression() returns several sparse matrices:
-
-		newHmat, newHmatj, newHmati
-			The transformed structural coefficients matrix.
-			The algorithm constructs a matrix with a non-singular right-hand block.
-
-		annihilator, annihilatorj, annihilatori
-			The Q matrix in the final rank determining QR-Decomposition.
-
-		rmat, rmatj, rmati
-				The R matrix in the final rank determining QR-Decomposition.
-
-	The routine also returns the row and column permutations used in the QR-Decomposition
-	(prow and pcol).  Subsequent routines use the QR-Decomposition matrix to avoid
-	computing the inverse of the right-hand block of the transformed structural
-	coefficients matrix.
-	------------------------------------------------------------------------------------- */
-
-	*returnCode=0;
-	*auxiliaryInitialConditions=autoRegression(
-
-		maxNumberOfHElements,returnCode,
-        hrows,hcols,
-        hmat,hmatj,hmati,
-        qmat,qmatj,qmati,
-        newHmat,newHmatj,newHmati,
-        annihilator,annihilatorj,annihilatori,
-        rmat,rmatj,rmati,
-        prow,pcol
-
+	rnk=constructQRDecomposition(
+		(int)RBLOCKSIZE, hrows, hrows, rightBlock, rightBlockj, rightBlocki,
+		annihilator, annihilatorj, annihilatori,
+		rmat, rmatj, rmati,
+		prow, pcol
 	);
-	if (*returnCode) return ;
+	time_constructQRDecomposition += cputime() - time0 ; /* rwt */
 
-	/* record max space actually used and reset limit to original value */
-	bumpSparseAMA(*maxNumberOfHElements);
-	*maxNumberOfHElements=originalMaxHElements;
+	/* zero means zero ... */
+	ztol=ZERO_TOLERANCE; job=1; len=HMATSIZE; ierr=0;
+/*
+	dropSmallElements (
+		&hrows, &job, &ztol, &len,
+		annihilator, annihilatorj, annihilatori,
+		annihilator, annihilatorj, annihilatori, &ierr
+	);
+*/
 
-	time_autoregression = cputime() - time0 ; /* rwt */
+	/* calculate ordering of new H by rows depending on rank (?).  nb first row number zero not one */
+	for(i=0;i<hrows;i++) {
+		if(i>=rnk) {
+			perm[prow[i]]=i-rnk+1;
+		} else {
+			perm[prow[i]]=i+hrows-rnk+1;
+		}
+	}
 
-
-
-	/* --------------------------------------- */
-	/* 2. augmentQmatWithInvariantSpaceVectors */
-	/* --------------------------------------- */
-
-	/* -----------------------------------------------------------------------------------
-	In addition to returning the number of rows in the asymptotic constraint matrix,
-	the call to augmentQmatWithInvariantSpaceVectors returns several matrices:
-
-		qmat, qmatj, qmati 	matrix of asymptotic constraints in CSR format
-		amat				transition matrix in dense format
-		rootr				real part of the eignvalues
-		rooti				imaginary part of the eignvalues
-		js					a vector indicating which columns of the original structural
-							coefficients matrix correspond to the columns of the transition matrix.
-		essential			dimension of the transition matrix
-   -------------------------------------------------------------------------------------- */
-
-	constraintsNeeded=leads*hrows;
+	/* premultiply H by q from QR decomposition to create zero rows, results in newHmat */
 	time0 = cputime() ; /* rwt */
-	*rowsInQ=augmentQmatWithInvariantSpaceVectors(
+	nzmax=HMATSIZE;
 
-		maxNumberOfHElements,returnCode,discreteTime,
-      	hrows,hcols,
-      	hmat,hmatj,hmati,
-      	annihilator,annihilatorj,annihilatori,
-      	rmat,rmatj,rmati,
-      	prow,pcol,
-      	*auxiliaryInitialConditions,
-      	constraintsNeeded,
-      	qmat,qmatj,qmati,
-      	essential,
-      	rootr,rooti
-
+	sparseMult (
+		&hrows, &hcols, &nzmax, iw, &job,
+		annihilator, annihilatorj, annihilatori,
+		hmat, hmatj, hmati,
+		newHmat, newHmatj, newHmati, &ierr
 	);
-	if (*returnCode) return ;
+	time_sparseMult += cputime()-time0 ; /* rwt */
+	sparseAMAAssert(ierr==0, nzmaxTooSmallAnnihilateRows);
+	if (*returnCode) return (-1) ;
+	bumpSparseAMA((newHmati[hrows]-newHmati[0]));
 
-	/* record max space actually used and reset limit to original value */
-	bumpSparseAMA(*maxNumberOfHElements);
-	*maxNumberOfHElements=originalMaxHElements;
+	/* reorder rows of new Hmat using permutation calculated above, store in tempHmat */
 
-	time_augmentQ = cputime() - time0 ; /* rwt */
-
-
-	/* save max space used where user can find it */
- 	*maxNumberOfHElements = maxHElementsEncountered;
-
-	free(annihilator);
-	free(annihilatorj);
-	free(annihilatori);
-	free(rmat);
-	free(rmatj);
-	free(rmati);
-	free(prow);
-	free(pcol);
+	permuteRows(&hrows,newHmat,newHmatj,newHmati,tempHmat,tempHmatj,tempHmati,perm,&job);
+	bumpSparseAMA((tempHmati[hrows]-tempHmati[0]));
 
 
-}	/* sparseAMA */
+	/* zero out numerically small elements in right block of tempHmat */
+	for(i=0;i<hrows-rnk;i++) {
+		for(j=tempHmati[i];j<tempHmati[i+1];j++) {
+			if(((tempHmatj[j-1]>hcols-hrows)))
+				tempHmat[j-1]=0.0;
+		}
+	}
+
+	/* and save new H matrix for next time */
+	len=HMATSIZE;
+	dropSmallElements(&hrows,&job,&ztol,&len,tempHmat,tempHmatj,tempHmati,newHmat,newHmatj,newHmati,&ierr);
+
+	free(perm);
+	free(iw);
+	free(tempHmat);
+	free(tempHmatj);
+	free(tempHmati);
+	free(rightBlock);
+	free(rightBlockj);
+	free(rightBlocki);
+
+	sparseAMAAssert(validCSRMatrix(hrows,hmat,hmatj,hmati), annihilateRowsPostValidH);
+	if (*returnCode) return (-1) ;
+
+	*maxNumberOfHElements=maxHElementsEncountered;
+
+	return(rnk);
+
+}	/* annihilateRows */
+
 
 
 /* --------------------------------------------------------------- */
@@ -461,7 +492,7 @@ void sparseAMA (
 ------------------------------------------------------------------------- */
 
 static int autoRegression(
-	int *maxNumberOfHElements,
+	long unsigned int *maxNumberOfHelements,
     int *returnCode,
     int hrows,int hcols,
     double * hmat,int * hmatj,int * hmati,
@@ -476,7 +507,7 @@ static int autoRegression(
 	double time0, time_annihilateRows, time_shiftRightAndRecord ; /* rwt */
 	int count_ARloop ; /* rwt */
 	int originalMaxHElements;
-	int aOne;int swapped;int i;static int maxHElementsEncountered=0;
+	int aOne;int swapped;int i;static long unsigned int maxHElementsEncountered=0;
 	int len;int ierr;double ztol;int job;
 	int rowsInQ,rnk;
 	int * tmpHmati;int * tmpHmatj;
@@ -603,355 +634,491 @@ static int autoRegression(
 
 
 /* --------------------------------------------------------------- */
-/* !shiftRighttAndRecord                                           */
+/* !identifyEssential                                              */
 /* --------------------------------------------------------------- */
-
-/* -----------------------------------------------------------------------------
-
-	shift rows of H right one block at a time until no row ends in a zero block.
-	for each shift, add row to Q to form auxiliary initial conditions.
-	return total number of rows in Q.
+/* ------------------------------------------------------------------
+	compute dimension of transition matrix.  Loosely speaking, that's
+	the number of nonzero columns in H ...
 
 	arguments
 
-		maxNumberOfHElements 		space allocated for Q matrix
-		returnCode 					used by sparseAMAAssert
-		dim  						number of columns in block to check for zero
-		rowsInQ 					number of rows in Q matrix
-		qmat, qmatj, qmati			Q matrix in CSR format
-		hrows, hcols				number of rows, columns in H matrix
-		hmat, hmatj, hmati			H matrix in CSR format
+		neq						number of rows in H matrix
+		hcols					number of cols in H
+		hmat, hmatj, hmati		H matrix in CSR format
+		js						vector masking nonzero columns in H
 
 
------------------------------------------------------------------------------ */
-
-static int shiftRightAndRecord (
-	int *maxNumberOfHElements,
-    int *returnCode,
-    int dim,
-    int rowsInQ,
-    double * qmat,int * qmatj,int * qmati,
-    int hrows,int hcols,
-    double * hmat,int * hmatj,int * hmati
+------------------------------------------------------------------ */
+static int identifyEssential(
+	int neq,
+	int hcols,
+    double *hmat, int *hmatj, int *hmati,
+    int * js
 )
 {
-	int i, j, qextent, zeroRow ;
-	static int maxHElementsEncountered=0;		/* bumpSparseAMA */
+   	int i, j, ia, norm;
+   	double * diag, epsi;
 
-	/* check for zero rows in H matrix -- can't shift right if all zeros */
-	/* (if row has no nonzero values, adjacent row pointers will be equal) */
-	zeroRow=FALSE;
-	i = 1 ;
-	while (i <= hrows && !zeroRow) {
-		zeroRow = (hmati[i-1]==hmati[i]) ;
-		i++ ;
-	}
+	/* write column norms of H (max abs values) into 'diag'  */
+	diag=(double *)calloc((unsigned)hcols,sizeof(double));
+	norm=0;
+   	cnrms_(&neq, &norm, hmat, hmatj, hmati, diag) ;
 
+	/* set js to indicate nonzero columns */
+	epsi=ZERO_TOLERANCE;
+   	for (i = 0; i < hcols-neq; ++i)
+      	if (diag[i]>epsi)
+         	for (j=i; j<hcols-neq; j=j+neq)
+            	js[j] = 1;
 
-    sparseAMAAssert (zeroRow==FALSE, shiftRightAndRecordPreZeroRow);
-	if (*returnCode) return (-1) ;
+	/* dimension is the number of nonzeros in js */
+   	ia = 0;
+   	for (i=0; i<hcols-neq; ++i)
+      	if (js[i]>0)
+         	js[i] = ++ia;
 
-	/* keep track of space used in Q */
- 	qextent=qmati[rowsInQ]-qmati[0];
-	bumpSparseAMA((qextent));
+	free(diag);
+   	return(ia);
 
-	/* loop through rows of H */
-	for(i=1; i<=hrows; i++) {
-
-		/* while row ends in zero block, add row to Q and shift right in H */
-		while (rowEndsInZeroBlock(i, dim, hmat, hmatj, hmati, hcols)) {
-
-			/* add a row to Q */
-			rowsInQ ++ ;
-			qmati[rowsInQ-1]=qextent+1;
-
-			/* loop through nonzeros in this row of H */
-			for(j=hmati[i-1]; j<hmati[i]; j++){
-
-				/* copy H value into Q */
-				qmat[qextent]=hmat[j-1];
-				qmatj[qextent]=hmatj[j-1];
-				qextent++;
-
-				/* make sure we've got enough space (tighten up vis-a-vis original) */
-			   	/* sparseAMAAssert((qextent <= *maxNumberOfHElements+1), qextentTooBig); */
-			   	sparseAMAAssert((qextent < *maxNumberOfHElements), qextentTooBig);
-				if (*returnCode) return (-1) ;
-
-				/* shift H value right one block.  (Zeros are just ignored.) */
-				hmatj[j-1] += dim;
-
-			}
-		}
-	}
-
-	/* keep track of space used in Q */
-	qmati[rowsInQ]=qextent+1;
-	bumpSparseAMA((qextent));
-	*maxNumberOfHElements=maxHElementsEncountered;
-
-
-	/* that's it */
-	return(rowsInQ);
-
-}	/* shiftRightAndRecord */
+} 	/* identifyEssential */
 
 
 /* --------------------------------------------------------------- */
-/* !annihilateRows                                                 */
-/* rwt add profiling, ztol                                         */
-/* --------------------------------------------------------------- */
-
-/* ----------------------------------------------------------------------------------------
-    compute QR decomposition of rightmost block of H matrix (H-theta), then premultiply H
-    by resulting q and reorder matrix by rows so that the bottom rows of the right block are
-    zeroed out.  return result in newHmat, along with QR decomposition and pivot vectors.
-
-	arguments
-
-		maxNumberOfHElements						max space used
-	    returnCode									used in sparseAMAAssert
-	    hrows, hcols								rows and cols in H
-	    hmat, hmatj, hmati,							H matrix in CSR format
-	    newHmat, newHmatj, newHmati,				transformed H matrix in CSR format
-	    annihilator, annihilatorj, annihilatori,	q matrix from QR decomposition of H-theta
-	    rmat, rmatj, rmati,							r matrix from QR decomposition of H-theta
-	    prow										reordering of H matrix by rows (?)
-	    pcol										column pivots from QR decomposition
-
------------------------------------------------------------------------------------------ */
-
-static int annihilateRows(
-	int *maxNumberOfHElements,
-    int *returnCode,
-    int hrows,int hcols,
-    double * hmat,int * hmatj,int * hmati,
-    double * newHmat,int * newHmatj,int * newHmati,
-    double * annihilator,int * annihilatorj,int * annihilatori,
-    double * rmat,int * rmatj,int * rmati,
-    int * prow,int * pcol
-)
-{
-	int i,j;static int maxHElementsEncountered=0;
-	double ztol;int rnk;int len;int * perm;
-	double * rightBlock;int * rightBlockj;int * rightBlocki;
-	double * tempHmat;int * tempHmatj;int * tempHmati;
-	int job,i1,i2,j1,j2,resRows,resColumns,ierr,nzmax;
-	int * iw;
-	double time0 ;
-
-	/* allocate space */
-	perm		= (int *) calloc((unsigned)hrows,sizeof(int));
-	rightBlock	= (double *) calloc(RBLOCKSIZE,sizeof(double));
-	rightBlockj	= (int *) calloc(RBLOCKSIZE,sizeof(int));
-	rightBlocki = (int *) calloc((unsigned)hrows+1,sizeof(int));
-	tempHmat	= (double *) calloc(HMATSIZE,sizeof(double));
-	tempHmatj	= (int *) calloc(HMATSIZE,sizeof(int));
-	tempHmati	= (int *) calloc((unsigned)hrows+1,sizeof(int));
-	iw			= (int *) calloc((unsigned)HMATSIZE,sizeof(int));
-
-
-	/* copy rightmost block of H to rightBlock */
-	job=1; i1=1; i2=hrows;
-	ztol=ZERO_TOLERANCE ;
-	j1=hcols-hrows+1; j2=hcols;
-
-	extractSubmatrix (
-		&hrows, &job, &i1, &i2, &j1, &j2, hmat, hmatj, hmati,
-		&resRows, &resColumns, rightBlock, rightBlockj, rightBlocki
-	);
-
-	/* QR decomposition of rightmost block of H.  results returned in annihilator (q),
-	rmat (r), and prow and pcol  */
-	time0 = cputime() ; /* rwt */
-
-	rnk=constructQRDecomposition(
-		(int)RBLOCKSIZE, hrows, hrows, rightBlock, rightBlockj, rightBlocki,
-		annihilator, annihilatorj, annihilatori,
-		rmat, rmatj, rmati,
-		prow, pcol
-	);
-	time_constructQRDecomposition += cputime() - time0 ; /* rwt */
-
-	/* zero means zero ... */
-	ztol=ZERO_TOLERANCE; job=1; len=HMATSIZE; ierr=0;
-/*
-	dropSmallElements (
-		&hrows, &job, &ztol, &len,
-		annihilator, annihilatorj, annihilatori,
-		annihilator, annihilatorj, annihilatori, &ierr
-	);
-*/
-
-	/* calculate ordering of new H by rows depending on rank (?).  nb first row number zero not one */
-	for(i=0;i<hrows;i++) {
-		if(i>=rnk) {
-			perm[prow[i]]=i-rnk+1;
-		} else {
-			perm[prow[i]]=i+hrows-rnk+1;
-		}
-	}
-
-	/* premultiply H by q from QR decomposition to create zero rows, results in newHmat */
-	time0 = cputime() ; /* rwt */
-	nzmax=HMATSIZE;
-
-	sparseMult (
-		&hrows, &hcols, &nzmax, iw, &job,
-		annihilator, annihilatorj, annihilatori,
-		hmat, hmatj, hmati,
-		newHmat, newHmatj, newHmati, &ierr
-	);
-	time_sparseMult += cputime()-time0 ; /* rwt */
-	sparseAMAAssert(ierr==0, nzmaxTooSmallAnnihilateRows);
-	if (*returnCode) return (-1) ;
-	bumpSparseAMA((newHmati[hrows]-newHmati[0]));
-
-	/* reorder rows of new Hmat using permutation calculated above, store in tempHmat */
-
-	permuteRows(&hrows,newHmat,newHmatj,newHmati,tempHmat,tempHmatj,tempHmati,perm,&job);
-	bumpSparseAMA((tempHmati[hrows]-tempHmati[0]));
-
-
-	/* zero out numerically small elements in right block of tempHmat */
-	for(i=0;i<hrows-rnk;i++) {
-		for(j=tempHmati[i];j<tempHmati[i+1];j++) {
-			if(((tempHmatj[j-1]>hcols-hrows)))
-				tempHmat[j-1]=0.0;
-		}
-	}
-
-	/* and save new H matrix for next time */
-	len=HMATSIZE;
-	dropSmallElements(&hrows,&job,&ztol,&len,tempHmat,tempHmatj,tempHmati,newHmat,newHmatj,newHmati,&ierr);
-
-	free(perm);
-	free(iw);
-	free(tempHmat);
-	free(tempHmatj);
-	free(tempHmati);
-	free(rightBlock);
-	free(rightBlockj);
-	free(rightBlocki);
-
-	sparseAMAAssert(validCSRMatrix(hrows,hmat,hmatj,hmati), annihilateRowsPostValidH);
-	if (*returnCode) return (-1) ;
-
-	*maxNumberOfHElements=maxHElementsEncountered;
-
-	return(rnk);
-
-}	/* annihilateRows */
-
-
-/* --------------------------------------------------------------- */
-/* !constructQRDecomposition                                       */
+/* !constructA                                                     */
 /* rwt add profiling                                               */
 /* --------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------
-	QR decomposition of matrix A.  return results as q and r, plus
-	permutation vectors prow and pcol.  calls LAPACK routines dgeqp3
-	and dorqpr, which operate on dense matrices.
+/* ------------------------------------------------------------------
+	construct A == [ 0   I ]
+	               [ gamma ]
 
-http://www.netlib.org/lapack/lapack-3.1.1/html/dgeqp3.f.html
+    where gamma == [ H-theta inverse * H ]
 
+	use QR decomposition from autoRegression above to avoid inverting
+	H-theta.
 
---------------------------------------------------------------------------- */
-void	dgeqp3_(int * nr,int * nc,double * denseA,
-		int * nr2,int * pcol,double * tau,
-		double * work,int *lwork,int * info);
+	arguments
 
-static int constructQRDecomposition (
-	int matSize, int nr, int nc,
-	double * a, int * ja, int * ia,
-    double * q, int * jq, int * iq,
-    double * r, int * jr, int * ir,
-    int * prow, int * pcol
+		maxNumberOfHElements	   		max size parameter
+		returnCode				   		ptr to global return code
+		hrows, hcols			   		rows, columns in H matrix
+		ia						   		?
+		js						   		pointers to nonzero cols in gamma
+		hmat, hmatj, hmati		   		H matrix in CSR format
+		qmat, qmatj, qmati		   		Q matrix in CSR format
+		rmat, rmatj, rmati		   		r matrix from QR decomposition of H-theta
+		prow, pcol				   		row and column permutations of H-theta (?)
+		damat					   		dense version of A ??? used in call to dgeesx
+
+------------------------------------------------------------------- */
+static void constructA (
+	long unsigned int *maxNumberOfHelements,
+	int *returnCode,
+	int hrows,int hcols,int ia,int * js,
+	double * hmat,int * hmatj,int * hmati,
+	double * qmat,int * qmatj,int * qmati,
+	double * rmat,int * rmatj,int * rmati,
+	int * prow,int * pcol,
+	double * damat
+
 )
 {
-	int info;
-	int lwork;
+	double ztol;static long unsigned int maxHElementsEncountered=0;
+	double val;
 	int nzmax;
-	int i;
-	int * jpvt;
-	double * denseA;
-	double * tau;
-	double * work;
-	int rank;
-	int norm;
-	double * diag;
+	int ierr;int * iw;
+	int i;int job;int j;
+	int * perm;int rowNow;
+	int len;int ioff;int nr;int nc;int aOne;int ndns;int i1,i2,j1,j2;
+	int * idiag;double * diag;
+	double * xo;int * ixo;int * jxo;double * x;double * y;
+	double * gmat;int * gmatj;int * gmati;
+	double * tempHmat;int * tempHmatj;int * tempHmati;
+	double * tempRmat;int * tempRmatj;int * tempRmati;
 	double time0 ;
+/*	int originalMaxHElements;
 
-	denseA = (double *) calloc((unsigned)nr*nc,sizeof(double));
-	tau= (double *) calloc((unsigned)nr,sizeof(double));
-	jpvt= (int *) calloc((unsigned)nr,sizeof(int));
-	diag= (double *) calloc((unsigned)nr,sizeof(double));
-	lwork = 3*nr+1;
-	work = (double *) calloc((unsigned)lwork,sizeof(double));
-	rank=0;
+	originalMaxHElements=*maxNumberOfHElements;*/
 
-	nzmax=matSize;
+	/* allocate space */
+	perm=(int *)calloc((unsigned)hrows,sizeof(int));
+	iw =(int *)calloc((unsigned)hcols,sizeof(int));
+	xo=(double *)calloc((unsigned)hrows,sizeof(double));
+	ixo=(int *)calloc((unsigned)hrows+1,sizeof(int));
+	jxo=(int *)calloc((unsigned)hrows,sizeof(int));
+	x=(double *)calloc((unsigned)hrows * ia,sizeof(double));
+	y=(double *)calloc((unsigned)hrows * ia,sizeof(double));
+	tempHmat=(double *)calloc(HMATSIZE,sizeof(double));
+	tempHmatj=(int *)calloc(HMATSIZE,sizeof(int));
+	tempHmati=(int *)calloc((unsigned)hrows+1,sizeof(int));
+	tempRmat=(double *)calloc(RBLOCKSIZE,sizeof(double));
+	tempRmatj=(int *)calloc(RBLOCKSIZE,sizeof(int));
+	tempRmati=(int *)calloc((unsigned)hrows+1,sizeof(int));
+	gmat=(double *)calloc(HMATSIZE,sizeof(double));
+	gmatj=(int *)calloc(HMATSIZE,sizeof(int));
+	gmati=(int *)calloc((unsigned)hrows+1,sizeof(int));
+	diag=(double *)calloc((unsigned)hrows,sizeof(double));
+	idiag=(int *)calloc((unsigned)hrows,sizeof(int));
 
-
-
-	/* convert source matrix to dense for LAPACK routines, init pivot vectors */
-	csrToDns(&nr,&nr,a,ja,ia,denseA,&nr,&info);
-	for(i=0;i<nr;i++) {pcol[i]=0;}
-	for(i=0;i<nr;i++) {prow[i]=i;}
-
-
-	/* dgeqp3 computes QR factorization with column pivoting of denseA */
-	/* rwt profile QR decomposition */
-	time0 = cputime() ; /* rwt */
-	dgeqp3_(&nr,&nc,denseA,&nr,pcol,tau,work,&lwork,&info);
-
-	qr_sec += cputime()-time0 ; /* rwt */
-
-	/* upper triangle of denseA has r of qr decomposition, convert to CSR */
-	dnsToCsr(&nr,&nr,&nzmax,denseA,&nr,r,jr,ir,&info);
+	*returnCode=0;
 
 
-	getUpperTriangular(&nr,r,jr,ir,r,jr,ir);
+	/* construct sparse representation of squeezed a matrix */
+	/* first for rows above gamma */
 
-	/* lower triangle and tau have info for constructing q */
-	time0 = cputime() ; /* rwt */
+	/* multiply Q by H, store in tempHmat.  (is this gamma?) */
+	job=1;
+	nzmax=HMATSIZE;
+	time0 = cputime() ;
+	time_sparseMult = 0 ;
+	sparseMult (&hrows, &hcols, &nzmax, iw, &job, qmat, qmatj, qmati,
+		hmat, hmatj, hmati, tempHmat, tempHmatj, tempHmati, &ierr
+	);
+	time_sparseMult += cputime()-time0 ;
+	sparseAMAAssert(ierr == 0, nzmaxTooSmallConstructA);
+	if (*returnCode) return ;
+	bumpSparseAMA((tempHmati[hrows]-tempHmati[0]));
+	ztol=ZERO_TOLERANCE;len=HMATSIZE;
+	dropSmallElements(&hrows,&job,&ztol,&len,tempHmat,tempHmatj,tempHmati,tempHmat,tempHmatj,tempHmati,&ierr);
 
-	dorgqr_(&nr,&nc,&nr,denseA,&nr,tau,work,&lwork,&info);
-	/*	printf("dorgqr returned %d \n",info);*/
 
-	qr_sec += cputime()-time0 ; /* rwt */
-	qr_count ++ ;  /* rwt */
+	/* permute rows of r (from QR decomposition of H) and H to form gmat=gamma? */
+	/* first row number zero not one*/
+	for(i=0;i<hrows;i++)
+		perm[prow[i]]=i+1;
+	permuteRows(&hrows,rmat,rmatj,rmati,tempRmat,tempRmatj,tempRmati,perm,&job);
+	permuteRows(&hrows,tempHmat,tempHmatj,tempHmati,gmat,gmatj,gmati,perm,&job);
+	for(i=0;i<hrows;i++)
+		perm[pcol[i]]=i+1;
+	/* this line commented out on purpose ... */
+	/*permuteCols(&hrows,tempRmat,tempRmatj,tempRmati,tempRmat,tempRmatj,tempRmati,perm,&job);*/
 
-	/* convert q to CSR and transpose (use denseA for workspace) */
-	dnsToCsr(&nr,&nr,&nzmax,denseA,&nr,q,jq,iq,&info);
+
+	/* diagonal elements of permuted r matrix */
+	job=0;
+	ioff=0;
+	getDiagonalElements (&hrows, &hcols, &job, tempRmat, tempRmatj, tempRmati, &len, diag, idiag, &ioff) ;
 
 
-	inPlaceTranspose(&nr,&nr,q,jq,iq,denseA,&info);
+	/* invert diagonal elements and multiply by R and gmat to make the unit upper triangular for usol_ */
+	for(i=0;i<hrows;i++)diag[i]=1/diag[i];
+	job=0;
+	diagMatTimesSparseMat (&hrows, &job, diag, tempRmat, tempRmatj, tempRmati, tempRmat, tempRmatj, tempRmati);
+	diagMatTimesSparseMat (&hrows, &job, diag, gmat, gmatj, gmati, gmat, gmatj, gmati);
 
 
-	for(i=0;i<nr;i++) {pcol[i]--;}
+	/* extract nonzero columns of gmat for backsolving to get components of gamma */
+	job=1;
+	i1=1; i2=hrows; aOne=1; ndns=hrows; rowNow=0;
+	time_extract = 0 ; 		/* rwt */
+	time_backsolve = 0 ; 	/* rwt */
+	count_constructA = 0 ; 	/* rwt */
+	for(i=0; i<hcols-hrows; i++) {
+		if(js[i]) {
+  			j1=j2=i+1;
+			count_constructA ++ ; /* rwt */
+			time0 = cputime() ; /* rwt */
+			extractSubmatrix(&hrows,&job,&i1,&i2,&j1,&j2,gmat,gmatj,gmati,&nr,&nc,xo,jxo,ixo);
+			time_extract += cputime()-time0 ; /* rwt */
+			csrToDns(&hrows,&aOne,xo,jxo,ixo,y+(rowNow*hrows),&ndns,&ierr);
+			sparseAMAAssert(ierr == 0, ndnsTooSmall);
+			if (*returnCode) return ;
 
-	/* find rank of r matrix */
-	norm=0;
-	normsByRow(&nr, &norm, r, jr, ir, diag);
-	rank=0;
-	for(i=0;i<nr;i++) {
-		if(diag[i]/diag[0] > ZERO_TOLERANCE)
-			rank++;
+			time0 = cputime() ;
+			backSolveUnitUpperTriangular (&hrows, tempRmat, tempRmatj, tempRmati,
+				x+(rowNow*hrows), y+(rowNow*hrows)
+			);
+			time_backsolve += cputime() - time0 ;
+			rowNow++;
+		}
 	}
 
-	/* and we're done */
-	free(denseA);
-	free(tau);
-	free(jpvt);
+
+	/* finally, build A matrix.  Build in dense form, needed by dgeesx */
+	for(i=0;i<ia*ia;i++)
+		*(damat+i)=0.0;
+
+	for(i=0;i<hcols-2*hrows;i++) {
+	  	if(js[i]) {
+	    	*(damat+((js[i+hrows]-1))+(js[i]-1)*ia)=1;
+		}
+	}
+
+	for(i=hcols-2*hrows;i<hcols-hrows;i++) {
+	  	if(js[i]) {
+			for(j=0;j<hcols-hrows;j++) {
+				if(js[j] ) {
+					val= -1* *(x+(js[j]-1)*hrows+perm[i-(hcols-2*hrows)]-1);
+					if (fabs(val) > ZERO_TOLERANCE) {
+		    			*(damat+((js[i]-1)*ia)+js[j]-1)=val;
+					}
+				}
+			}
+	    }
+	}
+
+	/* all done */
+	free(x);
+	free(y);
+	free(xo);
+	free(ixo);
+	free(jxo);
 	free(diag);
-	free(work);
+	free(idiag);
+	free(iw);
+	free(perm);
+	free(tempHmat);
+	free(tempHmatj);
+	free(tempHmati);
+	free(tempRmat);
+	free(tempRmatj);
+	free(tempRmati);
+	free(gmat);
+	free(gmatj);
+	free(gmati);
+
+	*maxNumberOfHElements=maxHElementsEncountered;
+
+}	/* constructA */
 
 
-	return(rank);
 
-}	/* constructQRDecomposition */
+/* --------------------------------------------------------------- */
+/* !useArpack                                                      */
+/* rwt add profiling                                               */
+/* --------------------------------------------------------------- */
+
+/* ------------------------------------------------------------------
+	wrapper function to call arpack routines to compute eigenvectors
+	and eigen values for matrix A.  returns arpack error code.
+	computes number of large roots if global TESTBLANCHARDKAHN=true
+
+	arguments
+
+		maxNumberOfHElements				max size parameter
+		maxnev								number of eigenvalues to calculate
+		nroot								dimension of eigenproblem
+		amat, amatj, amati					A matrix in CSR format
+		spanVecs							array of eigenvectors
+		rootr, rooti						vectors of real and imaginary roots
+		&nlarge								ptr to number of large roots
+------------------------------------------------------------------------- */
+static int useArpack(
+	long unsigned int *maxNumberOfHelements, int maxnev, int nroot,
+	double * amat,int * amatj,int * amati,
+	double * spanVecs,double * rootr,double * rooti,
+	int *nlarge
+)
+{
+	int ishfts=1;
+	int maxitr=300;
+	int model=1;
+	int ido;int lworkl;int info;
+	int rvec=1;
+	double tol=0;
+	char  bmat[1]={'I'};
+	char  huhmat[1]={'A'};
+	char  which[2]={'L','M'};
+	int * iparam;int * ipntr;int * select;
+	double * workd;double sigmar;double sigmai;
+	double * ax;double * d;double * v; double * workev;double * workl;
+	double * resid;int maxn;int ldv;int maxncv;
+	double time0 ;
+	int i, lowpos;
+	double thisroot, lowroot, realpart, imagpart ;
+/*	unsigned int ONE=1,WO=2*/
+	int original_maxnev ;
+
+	time_arpack = 0.0 ;				/* declared in sparseAMA() */
+	time_sparseMatTimesVec = 0.0 ;	/* declared in sparseAMA() */
+
+	ldv=maxn=nroot;
+	ido=0;info=0;
+
+	/* bump maxnev so we get one extra root to check B-K conditions */
+	original_maxnev = maxnev ;
+	if (TESTBLANCHARDKAHN) {
+		maxnev += 1 ;
+	}
+
+	/* number of columns in spanvecs, or something */
+	if(2* maxnev+1<maxn) {
+		maxncv=2*maxnev+1;
+	} else {
+		maxncv=maxn-1;
+	}
+
+	/* allocate space for dnaupd */
+	lworkl = 3*maxncv*maxncv+6*maxncv;
+	iparam=(int *)calloc((unsigned)11,sizeof(int));
+	ipntr=(int *)calloc((unsigned)14,sizeof(int));
+	select=(int *)calloc((unsigned)maxncv,sizeof(int));
+	ax=(double *)calloc((unsigned)maxn,sizeof(double));
+	d=(double *)calloc((unsigned)maxncv*3,sizeof(double));
+	resid=(double *)calloc((unsigned)maxn,sizeof(double));
+	v=(double *)calloc((unsigned)ldv*maxncv,sizeof(double));
+	workev=(double *)calloc((unsigned)3*maxncv,sizeof(double));
+	workl=(double *)calloc((unsigned)lworkl,sizeof(double));
+	workd=(double *)calloc((unsigned)3*maxn,sizeof(double));
+
+	ishfts=1;
+	maxitr=3000;
+	model=1;
+	iparam[0]=ishfts;iparam[2]=maxitr;iparam[6]=model;
+
+	/* initialize dnaupd */
+	tol=ZERO_TOLERANCE;
+		tol=1.0e-17;
+		/*	fflush (stdout);*/
+
+	time0 = cputime() ;
+/* Fortran calls in Win32 require hidden args for string length */
+/* strings are char arrays, so don't take addresses when calling */
+/* #ifdef WIN32
+	dnaupd_( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
+		iparam, ipntr, workd, workl, &lworkl, &info
+	);
+*/
+//#else
+	dnaupd_( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
+		iparam, ipntr, workd, workl, &lworkl, &info
+	);
+
+	/*	fflush (stdout);*/
+//#endif
+	time_arpack += (cputime() - time0) ;
+	if (info != 0) {
+		printf ("error return from dnaupd, ierr=%d\n", info) ;
+		return(-1) ;
+	}
+
+	/* iterate on candidate eigenvectors until convergence */
+   	count_useArpack = 0 ;
+	while(ido==1||ido==(-1)){
+
+		time0 = cputime() ;
+	    sparseMatTimesVec(&maxn,&maxn,amat,amatj,amati, workd+ipntr[0]-1, workd+ipntr[1]-1);
+		time_sparseMatTimesVec += (cputime() - time0) ;
+
+		time0 = cputime() ;
+/* Fortran calls in Win32 require hidden args for string length */
+/* strings are char arrays, so don't take addresses when calling */
+/* #ifdef WIN32
+	    dnaupd_( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
+	    	iparam, ipntr, workd, workl, &lworkl, &info
+	    );
+*/
+// #else
+	    dnaupd_( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
+	    	iparam, ipntr, workd, workl, &lworkl, &info
+	    );
+// #endif
+		time_arpack += (cputime() - time0) ;
+		if (info != 0) {
+			printf ("error return from dnaupd, ierr=%d\n", info) ;
+			return(-1) ;
+		}
+
+		count_useArpack ++ ;
+	}
+
+	/* call dneupd to retrive eigenvectors and values */
+	time0 = cputime() ;
+/* Fortran calls in Win32 require hidden args for string length */
+/* strings are char arrays, so don't take addresses when calling */
+/*#ifdef WIN32
+	dneupd_( &rvec, huhmat, ONE, select, rootr, rooti, spanVecs, &ldv,
+	         &sigmar, &sigmai, workev, bmat, ONE, &maxn, which, TWO, &maxnev, &tol,
+	         resid, &maxncv, spanVecs, &ldv, iparam, ipntr, workd, workl,
+	         &lworkl, &info
+	);
+#else
+*/
+
+/*		printf ("calling dneupd, tol=%e\n", tol) ;*/
+
+	dneupd_( &rvec, huhmat, select, rootr, rooti, spanVecs, &ldv,
+	         &sigmar, &sigmai, workev, bmat, &maxn, which, &maxnev, &tol,
+	         resid, &maxncv, spanVecs, &ldv, iparam, ipntr, workd, workl,
+	         &lworkl, &info
+	);
+// #endif
+	time_arpack += (cputime() - time0) ;
+	if (info != 0) {
+		printf ("error return from dneupd, ierr=%d\n", info) ;
+		return(-1) ;
+	}
+
+	/* compute number of large roots; find row num of smallest root (may have been added for B-K test) */
+	*nlarge = 0 ;
+	lowroot = 0.0 ;
+
+	/* loop through roots */
+   	for (i=0; i<maxnev; i++) {
+
+		/* magnitude of this root */
+		realpart = rootr[i];
+		imagpart = rooti[i];
+       	thisroot = sqrt(realpart*realpart + imagpart*imagpart);
+
+		/* count large roots */
+		if (thisroot > 1+ZERO_TOL1)
+			*nlarge = *nlarge + 1 ;
+
+		/* keep track of smallest root */
+       	if (i == 0 || thisroot < lowroot) {
+	  		lowroot = thisroot;
+	  		lowpos = i;
+        }
+
+	} /* end for */
+
+	/* if testing Blanchard-Kahn conditions, and if smallest root is not large,
+	   delete row we added for test.  If smallest root is large, B-K conditions
+	   fail and we want to report extra large root to user.  If smallest root is
+	   not large, B-K conditions may be satisfied, and we don't want the extra
+	   row in the matrix.
+	*/
+#define BKFIXUP 0
+	if (BKFIXUP && TESTBLANCHARDKAHN && lowroot <= 1+ZERO_TOL1) {
+
+		printf ("useArpack:  deleting row %d\n", lowpos+1) ;
+		deleteRow (lowpos+1, rootr, maxnev, 1) ;
+		deleteRow (lowpos+1, rooti, maxnev, 1) ;
+		deleteRow (lowpos+1, spanVecs, maxnev, nroot) ;
+
+		/* the extra root might have been a conjugate pair, in which case dneupd would
+		have increased maxnev by one and added one more row.  Delete that one, too */
+		if (maxnev-original_maxnev >= 2) {
+			printf ("useArpack:  deleting conjugate row %d\n", lowpos+1) ;
+			deleteRow (lowpos+1, rootr, maxnev, 1) ;
+			deleteRow (lowpos+1, rooti, maxnev, 1) ;
+			deleteRow (lowpos+1, spanVecs, maxnev, nroot) ;
+		}
+
+
+	}	/* TESTBLANCHARDKAHN */
+
+
+
+
+	free(iparam);
+	free(ipntr);
+	free(select);
+	free(ax);
+	free(d);
+	free(resid);
+	free(v);
+	free(workev);
+	free(workl);
+	free(workd);
+
+	return (0) ;
+
+} /* use Arpack */
+
+
+
 
 
 /* --------------------------------------------------------------- */
@@ -999,8 +1166,7 @@ static int constructQRDecomposition (
 ------------------------------------------------------------------------------------ */
 
 static int augmentQmatWithInvariantSpaceVectors (
-
-	int *maxNumberOfHElements,
+	long unsigned int *maxNumberOfHelements,
 	int *returnCode,
 	int discreteTime,
 	int hrows,int hcols,
@@ -1015,7 +1181,7 @@ static int augmentQmatWithInvariantSpaceVectors (
 	double * rootr,double * rooti
 )
 {
-	static int maxHElementsEncountered=0;
+	static long unsigned int maxHElementsEncountered=0;
 	int originalMaxHElements;
 	int nzmax;
 	double rconde;double rcondv;
@@ -1306,493 +1472,6 @@ static int augmentQmatWithInvariantSpaceVectors (
 
 
 /* --------------------------------------------------------------- */
-/* !identifyEssential                                              */
-/* --------------------------------------------------------------- */
-/* ------------------------------------------------------------------
-	compute dimension of transition matrix.  Loosely speaking, that's
-	the number of nonzero columns in H ...
-
-	arguments
-
-		neq						number of rows in H matrix
-		hcols					number of cols in H
-		hmat, hmatj, hmati		H matrix in CSR format
-		js						vector masking nonzero columns in H
-
-
------------------------------------------------------------------- */
-static int identifyEssential(
-	int neq,
-	int hcols,
-    double *hmat, int *hmatj, int *hmati,
-    int * js
-)
-{
-   	int i, j, ia, norm;
-   	double * diag, epsi;
-
-	/* write column norms of H (max abs values) into 'diag'  */
-	diag=(double *)calloc((unsigned)hcols,sizeof(double));
-	norm=0;
-   	cnrms_(&neq, &norm, hmat, hmatj, hmati, diag) ;
-
-	/* set js to indicate nonzero columns */
-	epsi=ZERO_TOLERANCE;
-   	for (i = 0; i < hcols-neq; ++i)
-      	if (diag[i]>epsi)
-         	for (j=i; j<hcols-neq; j=j+neq)
-            	js[j] = 1;
-
-	/* dimension is the number of nonzeros in js */
-   	ia = 0;
-   	for (i=0; i<hcols-neq; ++i)
-      	if (js[i]>0)
-         	js[i] = ++ia;
-
-	free(diag);
-   	return(ia);
-
-} 	/* identifyEssential */
-
-
-
-/* --------------------------------------------------------------- */
-/* !constructA                                                     */
-/* rwt add profiling                                               */
-/* --------------------------------------------------------------- */
-
-/* ------------------------------------------------------------------
-	construct A == [ 0   I ]
-	               [ gamma ]
-
-    where gamma == [ H-theta inverse * H ]
-
-	use QR decomposition from autoRegression above to avoid inverting
-	H-theta.
-
-	arguments
-
-		maxNumberOfHElements	   		max size parameter
-		returnCode				   		ptr to global return code
-		hrows, hcols			   		rows, columns in H matrix
-		ia						   		?
-		js						   		pointers to nonzero cols in gamma
-		hmat, hmatj, hmati		   		H matrix in CSR format
-		qmat, qmatj, qmati		   		Q matrix in CSR format
-		rmat, rmatj, rmati		   		r matrix from QR decomposition of H-theta
-		prow, pcol				   		row and column permutations of H-theta (?)
-		damat					   		dense version of A ??? used in call to dgeesx
-
-------------------------------------------------------------------- */
-static void constructA (
-
-	int *maxNumberOfHElements,
-	int *returnCode,
-	int hrows,int hcols,int ia,int * js,
-	double * hmat,int * hmatj,int * hmati,
-	double * qmat,int * qmatj,int * qmati,
-	double * rmat,int * rmatj,int * rmati,
-	int * prow,int * pcol,
-	double * damat
-
-)
-{
-	double ztol;static int maxHElementsEncountered=0;
-	double val;
-	int nzmax;
-	int ierr;int * iw;
-	int i;int job;int j;
-	int * perm;int rowNow;
-	int len;int ioff;int nr;int nc;int aOne;int ndns;int i1,i2,j1,j2;
-	int * idiag;double * diag;
-	double * xo;int * ixo;int * jxo;double * x;double * y;
-	double * gmat;int * gmatj;int * gmati;
-	double * tempHmat;int * tempHmatj;int * tempHmati;
-	double * tempRmat;int * tempRmatj;int * tempRmati;
-	double time0 ;
-/*	int originalMaxHElements;
-
-	originalMaxHElements=*maxNumberOfHElements;*/
-
-	/* allocate space */
-	perm=(int *)calloc((unsigned)hrows,sizeof(int));
-	iw =(int *)calloc((unsigned)hcols,sizeof(int));
-	xo=(double *)calloc((unsigned)hrows,sizeof(double));
-	ixo=(int *)calloc((unsigned)hrows+1,sizeof(int));
-	jxo=(int *)calloc((unsigned)hrows,sizeof(int));
-	x=(double *)calloc((unsigned)hrows * ia,sizeof(double));
-	y=(double *)calloc((unsigned)hrows * ia,sizeof(double));
-	tempHmat=(double *)calloc(HMATSIZE,sizeof(double));
-	tempHmatj=(int *)calloc(HMATSIZE,sizeof(int));
-	tempHmati=(int *)calloc((unsigned)hrows+1,sizeof(int));
-	tempRmat=(double *)calloc(RBLOCKSIZE,sizeof(double));
-	tempRmatj=(int *)calloc(RBLOCKSIZE,sizeof(int));
-	tempRmati=(int *)calloc((unsigned)hrows+1,sizeof(int));
-	gmat=(double *)calloc(HMATSIZE,sizeof(double));
-	gmatj=(int *)calloc(HMATSIZE,sizeof(int));
-	gmati=(int *)calloc((unsigned)hrows+1,sizeof(int));
-	diag=(double *)calloc((unsigned)hrows,sizeof(double));
-	idiag=(int *)calloc((unsigned)hrows,sizeof(int));
-
-	*returnCode=0;
-
-
-	/* construct sparse representation of squeezed a matrix */
-	/* first for rows above gamma */
-
-	/* multiply Q by H, store in tempHmat.  (is this gamma?) */
-	job=1;
-	nzmax=HMATSIZE;
-	time0 = cputime() ;
-	time_sparseMult = 0 ;
-	sparseMult (&hrows, &hcols, &nzmax, iw, &job, qmat, qmatj, qmati,
-		hmat, hmatj, hmati, tempHmat, tempHmatj, tempHmati, &ierr
-	);
-	time_sparseMult += cputime()-time0 ;
-	sparseAMAAssert(ierr == 0, nzmaxTooSmallConstructA);
-	if (*returnCode) return ;
-	bumpSparseAMA((tempHmati[hrows]-tempHmati[0]));
-	ztol=ZERO_TOLERANCE;len=HMATSIZE;
-	dropSmallElements(&hrows,&job,&ztol,&len,tempHmat,tempHmatj,tempHmati,tempHmat,tempHmatj,tempHmati,&ierr);
-
-
-	/* permute rows of r (from QR decomposition of H) and H to form gmat=gamma? */
-	/* first row number zero not one*/
-	for(i=0;i<hrows;i++)
-		perm[prow[i]]=i+1;
-	permuteRows(&hrows,rmat,rmatj,rmati,tempRmat,tempRmatj,tempRmati,perm,&job);
-	permuteRows(&hrows,tempHmat,tempHmatj,tempHmati,gmat,gmatj,gmati,perm,&job);
-	for(i=0;i<hrows;i++)
-		perm[pcol[i]]=i+1;
-	/* this line commented out on purpose ... */
-	/*permuteCols(&hrows,tempRmat,tempRmatj,tempRmati,tempRmat,tempRmatj,tempRmati,perm,&job);*/
-
-
-	/* diagonal elements of permuted r matrix */
-	job=0;
-	ioff=0;
-	getDiagonalElements (&hrows, &hcols, &job, tempRmat, tempRmatj, tempRmati, &len, diag, idiag, &ioff) ;
-
-
-	/* invert diagonal elements and multiply by R and gmat to make the unit upper triangular for usol_ */
-	for(i=0;i<hrows;i++)diag[i]=1/diag[i];
-	job=0;
-	diagMatTimesSparseMat (&hrows, &job, diag, tempRmat, tempRmatj, tempRmati, tempRmat, tempRmatj, tempRmati);
-	diagMatTimesSparseMat (&hrows, &job, diag, gmat, gmatj, gmati, gmat, gmatj, gmati);
-
-
-	/* extract nonzero columns of gmat for backsolving to get components of gamma */
-	job=1;
-	i1=1; i2=hrows; aOne=1; ndns=hrows; rowNow=0;
-	time_extract = 0 ; 		/* rwt */
-	time_backsolve = 0 ; 	/* rwt */
-	count_constructA = 0 ; 	/* rwt */
-	for(i=0; i<hcols-hrows; i++) {
-		if(js[i]) {
-  			j1=j2=i+1;
-			count_constructA ++ ; /* rwt */
-			time0 = cputime() ; /* rwt */
-			extractSubmatrix(&hrows,&job,&i1,&i2,&j1,&j2,gmat,gmatj,gmati,&nr,&nc,xo,jxo,ixo);
-			time_extract += cputime()-time0 ; /* rwt */
-			csrToDns(&hrows,&aOne,xo,jxo,ixo,y+(rowNow*hrows),&ndns,&ierr);
-			sparseAMAAssert(ierr == 0, ndnsTooSmall);
-			if (*returnCode) return ;
-
-			time0 = cputime() ;
-			backSolveUnitUpperTriangular (&hrows, tempRmat, tempRmatj, tempRmati,
-				x+(rowNow*hrows), y+(rowNow*hrows)
-			);
-			time_backsolve += cputime() - time0 ;
-			rowNow++;
-		}
-	}
-
-
-	/* finally, build A matrix.  Build in dense form, needed by dgeesx */
-	for(i=0;i<ia*ia;i++)
-		*(damat+i)=0.0;
-
-	for(i=0;i<hcols-2*hrows;i++) {
-	  	if(js[i]) {
-	    	*(damat+((js[i+hrows]-1))+(js[i]-1)*ia)=1;
-		}
-	}
-
-	for(i=hcols-2*hrows;i<hcols-hrows;i++) {
-	  	if(js[i]) {
-			for(j=0;j<hcols-hrows;j++) {
-				if(js[j] ) {
-					val= -1* *(x+(js[j]-1)*hrows+perm[i-(hcols-2*hrows)]-1);
-					if (fabs(val) > ZERO_TOLERANCE) {
-		    			*(damat+((js[i]-1)*ia)+js[j]-1)=val;
-					}
-				}
-			}
-	    }
-	}
-
-	/* all done */
-	free(x);
-	free(y);
-	free(xo);
-	free(ixo);
-	free(jxo);
-	free(diag);
-	free(idiag);
-	free(iw);
-	free(perm);
-	free(tempHmat);
-	free(tempHmatj);
-	free(tempHmati);
-	free(tempRmat);
-	free(tempRmatj);
-	free(tempRmati);
-	free(gmat);
-	free(gmatj);
-	free(gmati);
-
-	*maxNumberOfHElements=maxHElementsEncountered;
-
-}	/* constructA */
-
-
-/* --------------------------------------------------------------- */
-/* !useArpack                                                      */
-/* rwt add profiling                                               */
-/* --------------------------------------------------------------- */
-
-/* ------------------------------------------------------------------
-	wrapper function to call arpack routines to compute eigenvectors
-	and eigen values for matrix A.  returns arpack error code.
-	computes number of large roots if global TESTBLANCHARDKAHN=true
-
-	arguments
-
-		maxNumberOfHElements				max size parameter
-		maxnev								number of eigenvalues to calculate
-		nroot								dimension of eigenproblem
-		amat, amatj, amati					A matrix in CSR format
-		spanVecs							array of eigenvectors
-		rootr, rooti						vectors of real and imaginary roots
-		&nlarge								ptr to number of large roots
-------------------------------------------------------------------------- */
-static int useArpack(
-	int *maxNumberOfHElements, int maxnev, int nroot,
-	double * amat,int * amatj,int * amati,
-	double * spanVecs,double * rootr,double * rooti,
-	int *nlarge
-)
-{
-	int ishfts=1;
-	int maxitr=300;
-	int model=1;
-	int ido;int lworkl;int info;
-	int rvec=1;
-	double tol=0;
-	char  bmat[1]={'I'};
-	char  huhmat[1]={'A'};
-	char  which[2]={'L','M'};
-	int * iparam;int * ipntr;int * select;
-	double * workd;double sigmar;double sigmai;
-	double * ax;double * d;double * v; double * workev;double * workl;
-	double * resid;int maxn;int ldv;int maxncv;
-	double time0 ;
-	int i, lowpos;
-	double thisroot, lowroot, realpart, imagpart ;
-/*	unsigned int ONE=1,WO=2*/
-	int original_maxnev ;
-
-	time_arpack = 0.0 ;				/* declared in sparseAMA() */
-	time_sparseMatTimesVec = 0.0 ;	/* declared in sparseAMA() */
-
-	ldv=maxn=nroot;
-	ido=0;info=0;
-
-	/* bump maxnev so we get one extra root to check B-K conditions */
-	original_maxnev = maxnev ;
-	if (TESTBLANCHARDKAHN) {
-		maxnev += 1 ;
-	}
-
-	/* number of columns in spanvecs, or something */
-	if(2* maxnev+1<maxn) {
-		maxncv=2*maxnev+1;
-	} else {
-		maxncv=maxn-1;
-	}
-
-	/* allocate space for dnaupd */
-	lworkl = 3*maxncv*maxncv+6*maxncv;
-	iparam=(int *)calloc((unsigned)11,sizeof(int));
-	ipntr=(int *)calloc((unsigned)14,sizeof(int));
-	select=(int *)calloc((unsigned)maxncv,sizeof(int));
-	ax=(double *)calloc((unsigned)maxn,sizeof(double));
-	d=(double *)calloc((unsigned)maxncv*3,sizeof(double));
-	resid=(double *)calloc((unsigned)maxn,sizeof(double));
-	v=(double *)calloc((unsigned)ldv*maxncv,sizeof(double));
-	workev=(double *)calloc((unsigned)3*maxncv,sizeof(double));
-	workl=(double *)calloc((unsigned)lworkl,sizeof(double));
-	workd=(double *)calloc((unsigned)3*maxn,sizeof(double));
-
-	ishfts=1;
-	maxitr=3000;
-	model=1;
-	iparam[0]=ishfts;iparam[2]=maxitr;iparam[6]=model;
-
-	/* initialize dnaupd */
-	tol=ZERO_TOLERANCE;
-		tol=1.0e-17;
-		/*	fflush (stdout);*/
-
-	time0 = cputime() ;
-/* Fortran calls in Win32 require hidden args for string length */
-/* strings are char arrays, so don't take addresses when calling */
-/* #ifdef WIN32
-	dnaupd_( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
-		iparam, ipntr, workd, workl, &lworkl, &info
-	);
-*/
-//#else
-	dnaupd_( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
-		iparam, ipntr, workd, workl, &lworkl, &info
-	);
-
-	/*	fflush (stdout);*/
-//#endif
-	time_arpack += (cputime() - time0) ;
-	if (info != 0) {
-		printf ("error return from dnaupd, ierr=%d\n", info) ;
-		return(-1) ;
-	}
-
-	/* iterate on candidate eigenvectors until convergence */
-   	count_useArpack = 0 ;
-	while(ido==1||ido==(-1)){
-
-		time0 = cputime() ;
-	    sparseMatTimesVec(&maxn,&maxn,amat,amatj,amati, workd+ipntr[0]-1, workd+ipntr[1]-1);
-		time_sparseMatTimesVec += (cputime() - time0) ;
-
-		time0 = cputime() ;
-/* Fortran calls in Win32 require hidden args for string length */
-/* strings are char arrays, so don't take addresses when calling */
-/* #ifdef WIN32
-	    dnaupd_( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
-	    	iparam, ipntr, workd, workl, &lworkl, &info
-	    );
-*/
-// #else
-	    dnaupd_( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
-	    	iparam, ipntr, workd, workl, &lworkl, &info
-	    );
-// #endif
-		time_arpack += (cputime() - time0) ;
-		if (info != 0) {
-			printf ("error return from dnaupd, ierr=%d\n", info) ;
-			return(-1) ;
-		}
-
-		count_useArpack ++ ;
-	}
-
-	/* call dneupd to retrive eigenvectors and values */
-	time0 = cputime() ;
-/* Fortran calls in Win32 require hidden args for string length */
-/* strings are char arrays, so don't take addresses when calling */
-/*#ifdef WIN32
-	dneupd_( &rvec, huhmat, ONE, select, rootr, rooti, spanVecs, &ldv,
-	         &sigmar, &sigmai, workev, bmat, ONE, &maxn, which, TWO, &maxnev, &tol,
-	         resid, &maxncv, spanVecs, &ldv, iparam, ipntr, workd, workl,
-	         &lworkl, &info
-	);
-#else
-*/
-
-/*		printf ("calling dneupd, tol=%e\n", tol) ;*/
-
-	dneupd_( &rvec, huhmat, select, rootr, rooti, spanVecs, &ldv,
-	         &sigmar, &sigmai, workev, bmat, &maxn, which, &maxnev, &tol,
-	         resid, &maxncv, spanVecs, &ldv, iparam, ipntr, workd, workl,
-	         &lworkl, &info
-	);
-// #endif
-	time_arpack += (cputime() - time0) ;
-	if (info != 0) {
-		printf ("error return from dneupd, ierr=%d\n", info) ;
-		return(-1) ;
-	}
-
-	/* compute number of large roots; find row num of smallest root (may have been added for B-K test) */
-	*nlarge = 0 ;
-	lowroot = 0.0 ;
-
-	/* loop through roots */
-   	for (i=0; i<maxnev; i++) {
-
-		/* magnitude of this root */
-		realpart = rootr[i];
-		imagpart = rooti[i];
-       	thisroot = sqrt(realpart*realpart + imagpart*imagpart);
-
-		/* count large roots */
-		if (thisroot > 1+ZERO_TOL1)
-			*nlarge = *nlarge + 1 ;
-
-		/* keep track of smallest root */
-       	if (i == 0 || thisroot < lowroot) {
-	  		lowroot = thisroot;
-	  		lowpos = i;
-        }
-
-	} /* end for */
-
-	/* if testing Blanchard-Kahn conditions, and if smallest root is not large,
-	   delete row we added for test.  If smallest root is large, B-K conditions
-	   fail and we want to report extra large root to user.  If smallest root is
-	   not large, B-K conditions may be satisfied, and we don't want the extra
-	   row in the matrix.
-	*/
-#define BKFIXUP 0
-	if (BKFIXUP && TESTBLANCHARDKAHN && lowroot <= 1+ZERO_TOL1) {
-
-		printf ("useArpack:  deleting row %d\n", lowpos+1) ;
-		deleteRow (lowpos+1, rootr, maxnev, 1) ;
-		deleteRow (lowpos+1, rooti, maxnev, 1) ;
-		deleteRow (lowpos+1, spanVecs, maxnev, nroot) ;
-
-		/* the extra root might have been a conjugate pair, in which case dneupd would
-		have increased maxnev by one and added one more row.  Delete that one, too */
-		if (maxnev-original_maxnev >= 2) {
-			printf ("useArpack:  deleting conjugate row %d\n", lowpos+1) ;
-			deleteRow (lowpos+1, rootr, maxnev, 1) ;
-			deleteRow (lowpos+1, rooti, maxnev, 1) ;
-			deleteRow (lowpos+1, spanVecs, maxnev, nroot) ;
-		}
-
-
-	}	/* TESTBLANCHARDKAHN */
-
-
-
-
-	free(iparam);
-	free(ipntr);
-	free(select);
-	free(ax);
-	free(d);
-	free(resid);
-	free(v);
-	free(workev);
-	free(workl);
-	free(workd);
-
-	return (0) ;
-
-} /* use Arpack */
-
-
-
-/* --------------------------------------------------------------- */
 /* !obtainSparseReducedForm                                        */
 /* rwt add profiling                                               */
 /* --------------------------------------------------------------- */
@@ -1804,7 +1483,7 @@ void obtainSparseReducedForm(
 
 )
 {
-	int maxHElementsEncountered=0;
+	long unsigned int maxHElementsEncountered=0;
 	double * nsSumC;int ierr;double * x;
 	int nzmaxLeft;double aSmallDouble;
 	int cmatsExtent;int i;int cColumns;
@@ -2050,8 +1729,7 @@ void applySparseReducedForm(
 /* rwt add profiling                                               */
 /* --------------------------------------------------------------- */
 int satisfiesLinearSystemQ (
-
-	int *maxNumberOfHElements,
+	long unsigned int *maxNumberOfHelements,
 	int hrows,int lags,	int leads,
 	double * hmat,int * hmatj,int * hmati,
 	int *  auxiliaryInitialConditions,
@@ -2078,7 +1756,7 @@ int satisfiesLinearSystemQ (
 	int ii;
 /*	int originalMaxHElements;*/
 
-	int maxHElementsEncountered=0;
+	long unsigned int maxHElementsEncountered=0;
 /*	originalMaxHElements=*maxNumberOfHElements;*/
 
 	wkspc=(double *)calloc(*maxNumberOfHElements,sizeof(double));
@@ -2504,6 +2182,331 @@ int deleteRow (int targetRow, double *mat, int nrows, int ncols) {
 	return (0) ;
 
 }	/* deleteRow */
+
+
+
+//#include "mex.h"
+
+/* --------------------------------------------------------------- */
+/* !sparseAMA                                                      */
+/* rwt add profiling                                               */
+/* --------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------------
+
+	Given the structural coefficients matrix, this routine computes
+	the statespace transition matrix, and its eigenvalues and constructs the asymptotic
+	constraints matrix.  Returns an int, the number of rows in the asymptotic constraint
+	matrix.
+
+
+Arguments
+---------
+
+	All args should be allocated and initialized by the caller as shown below.
+	In these comments,
+			qmax == maxNumberOfHElements
+	Arrays are assumed to be initialized to zero unless otherwise specified.
+
+	maxNumberOfHElements (input,output)
+
+		A pointer to a strictly positive int:  the number of elements to allocate
+		for sparse matrix storage. On output, the minimum value required to carry
+		out the computations for this function invocation.
+
+		Recommended initial guess is hrows*hcols.
+
+	discreteTime (input)
+
+		when non-zero, computes discrete time solutions
+		when 0 computes continuous time solutions.
+		The former case requires ruling out eigenvalues bigger than one in magnitude.
+		The latter case requires ruling out eigenvalues with positive real part.
+		The sparseAMA.h include file provides definitions for these int constants.
+
+	hrows (input)
+
+		a strictly positive int characterizing the number of rows in hmat
+		also equal to the number of equations in the model, referred to here as neq
+
+	hcols (input)
+
+		a strictly positive int characterizing the number of columns in hmat
+
+	leads (input)
+
+		a strictly positive int characterizing the number of leads
+
+	hmat, hmatj, hmati (input)
+
+		structural coefficients matrix in `compressed sparse row' (CSR) format.
+		The CSR data structure consists of three arrays:
+
+			A real array A containing the real values a_{i,j} stored row by row,
+			from row 1 to N. The length of A is NNZ.
+
+			An integer array JA containing the column indices of the elements a_{i,j}
+			as stored in the array $A$.  The length of JA is NNZ.
+
+			An integer array IA containing the pointers to the beginning of each row
+			in the arrays A and JA. The content of IA(i) is the position in arrays A and JA
+			where the i-th row starts.  The length of IA is N+1 with IA(N+1) containing the
+			number IA(1)+NNZ, i.e., the address in A and JA of the beginning of a fictitious
+			row N+1.
+
+		allocate as:
+
+			double *hmat[qmax]
+			int *hmatj[qmax]
+			int *hmati[hrows+1]
+
+	newHmat, newHmatj, newHmati (output)
+
+		transformed structural coefficients matrix in CSR format. Leading block non-singular.
+		allocate as:
+
+			double *newHmat[qmax]
+			int *newHmatj[qmax]
+			int *newHmati[hrows+1]
+
+	auxiliaryInitialConditions (input,output)
+
+		a non-negative int indicating the number of auxiliary initial conditions
+		set to zero on input unless user is pre-initializing Q with aux conditions.
+
+	rowsInQ (input,output)
+
+		a non-negative int indicating the number of rows in qmat.
+		set to zero on input (unless aux conditions set on input?)
+
+	qmat, qmatj, qmati (input,output)
+
+		asymptotic constraint matrix in CSR format.
+		allocate as:
+			double *qmat[qmax]
+			int *qmatj[qmax]
+			int *qmati[hrows*(nleads+nlags+1)+1]
+		where nleads == max number of leads, nlags = max number of lags
+
+	essential (output)
+
+		a non-negative int indicating the number of elements in rootr and rooti.
+
+	rootr (output)
+
+		real part of transition matrix eigenvalues
+		allocate as:
+			double *rootr[qcols]
+		where qcols == neq*(nlags+nleads)
+
+	rooti (output)
+
+		imaginary part of transition matrix eigenvalues
+		allocate as:
+			double *rooti[qcols]
+		where qcols == neq*(nlags+nleads)
+
+	returnCode (output)
+
+		ASYMPTOTIC_LINEAR_CONSTRAINTS_AVAILABLE 0
+		STACKED_SYSTEM_NOT_FULL_RANK 2000
+		sparseAMA_PRECONDITIONS_VIOLATED 2001
+		autoRegression_POSTCONDITIONS_VIOLATED 2002
+		augmentQmatWithInvariantSpaceVectors_PRECONDITIONS_VIOLATED 2003
+		augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED 2004
+		shiftRightAndRecord_PRECONDITIONS_VIOLATED 2005
+		annihilateRows_POSTCONDITIONS_VIOLATED 2006
+		HELEMS_TOO_SMALL 2007
+		AMAT_TOO_LARGE 2008
+
+
+		not used in the default implementation.
+
+
+	'global' variables
+
+		double ZERO_TOLERANCE
+		double ZERO_TOL1
+		int USEARPACK
+		int TESTBLANCHARDKAHN
+
+	must all be declared and set in the calling program.
+
+
+
+---------------------------------------------------------------------------------- */
+
+void sparseAMA (
+
+    int discreteTime,
+    int hrows,int hcols,
+    int leads,
+    double * hmat,int * hmatj,int * hmati,
+    double * newHmat,int * newHmatj,int * newHmati,
+    int *  auxiliaryInitialConditions,
+    int *  rowsInQ,
+    double * qmat,int * qmatj,int * qmati,
+    int * essential,
+    double * rootr,double * rooti,
+    int *returnCode
+)
+{
+	static long unsigned int maxHElementsEncountered=0;
+	int originalMaxHElements;
+	double * annihilator;int * annihilatorj;int * annihilatori;
+	double * rmat;int * rmatj;int * rmati;
+	int * prow;int * pcol;
+	int constraintsNeeded;
+	int i;
+	double time0 ;
+
+	/* Check Inputs*/
+	//cPrintSparse(hrows,hmat,hmatj,hmati);
+
+	/* save maxspace parameter -- original will be overwritten by actual */
+	originalMaxHElements=*maxNumberOfHElements;
+
+	/* rwt                                                     */
+	/*totcpusec = oldcpusec = 0 is initialized in main program */
+	tmpcpusec = alloc_sec = assert_sec = qr_sec = 0.0 ; /* rwt */
+	alloc_count = assert_count = qr_count = 0 ;	 /* rwt */
+	time_rightMostAllZeroQ = 0 ; /* rwt */
+	count_rightMostAllZeroQ = 0 ; /* rwt */
+	time_autoregression = time_augmentQ = 0 ;
+
+	sparseAMAAssert(*maxNumberOfHElements > 0, sparseAMAPreMaxNumberOfHElementsLEZero);
+    sparseAMAAssert(hrows > 0, sparseAMAPreHrows);
+    sparseAMAAssert((hcols > 0)&&(hcols>=hrows)&&((hcols%hrows) == 0), sparseAMAPreHcolsHrows);
+    sparseAMAAssert(leads > 0, sparseAMAPreLeads);
+ 	sparseAMAAssert(validCSRMatrix(hrows,hmat,hmatj,hmati), sparseAMAPreHmat);
+	sparseAMAAssert(hmati[hrows]-hmati[0]<=*maxNumberOfHElements, sparseAMAPreHmatTotElems);
+    sparseAMAAssert(*auxiliaryInitialConditions >= 0, sparseAMAPreAuxRows);
+    sparseAMAAssert(*rowsInQ>=*auxiliaryInitialConditions,sparseAMAPreRowsInQ);
+	sparseAMAAssert(*rowsInQ==0||validCSRMatrix(*rowsInQ,qmat,qmatj,qmati),sparseAMAPreQmat);
+	if (*returnCode) return ;
+
+	annihilator=(double *) calloc((unsigned)RBLOCKSIZE,sizeof(double));
+	annihilatorj=(int *) calloc((unsigned)RBLOCKSIZE,sizeof(int));
+	annihilatori=(int *) calloc((unsigned)hrows+1,sizeof(int));
+	rmat=(double *)calloc((unsigned)RBLOCKSIZE,sizeof(double));
+	rmatj=(int *)calloc((unsigned)RBLOCKSIZE,sizeof(int));
+	rmati=(int *)calloc((unsigned)hrows+1,sizeof(int));
+	prow=(int *) calloc((unsigned)hrows,sizeof(int));
+	pcol=(int *) calloc((unsigned)hrows,sizeof(int));
+	/* originalMaxHElements=*maxNumberOfHElements; just did this above */
+
+	for(i=0;i<=hrows;i++) {
+		rmati[i]=annihilatori[i]=1;
+	}
+
+	qmati[0]=1;
+	time0 = cputime() ; /* rwt */
+
+
+	/* ----------------------------------- */
+	/* 1. autoRegression                   */
+	/* ----------------------------------- */
+
+	/* -----------------------------------------------------------------------------------
+	In addition to the number of auxiliary initial conditions, the call to
+	autoRegression() returns several sparse matrices:
+
+		newHmat, newHmatj, newHmati
+			The transformed structural coefficients matrix.
+			The algorithm constructs a matrix with a non-singular right-hand block.
+
+		annihilator, annihilatorj, annihilatori
+			The Q matrix in the final rank determining QR-Decomposition.
+
+		rmat, rmatj, rmati
+				The R matrix in the final rank determining QR-Decomposition.
+
+	The routine also returns the row and column permutations used in the QR-Decomposition
+	(prow and pcol).  Subsequent routines use the QR-Decomposition matrix to avoid
+	computing the inverse of the right-hand block of the transformed structural
+	coefficients matrix.
+	------------------------------------------------------------------------------------- */
+
+	*returnCode=0;
+	*auxiliaryInitialConditions=autoRegression(
+		maxNumberOfHElements,returnCode,
+        hrows,hcols,
+        hmat,hmatj,hmati,
+        qmat,qmatj,qmati,
+        newHmat,newHmatj,newHmati,
+        annihilator,annihilatorj,annihilatori,
+        rmat,rmatj,rmati,
+        prow,pcol
+
+	);
+	if (*returnCode) return ;
+
+	/* record max space actually used and reset limit to original value */
+	bumpSparseAMA(*maxNumberOfHElements);
+	*maxNumberOfHElements=originalMaxHElements;
+	time_autoregression = cputime() - time0 ; /* rwt */
+
+
+
+	/* --------------------------------------- */
+	/* 2. augmentQmatWithInvariantSpaceVectors */
+	/* --------------------------------------- */
+
+	/* -----------------------------------------------------------------------------------
+	In addition to returning the number of rows in the asymptotic constraint matrix,
+	the call to augmentQmatWithInvariantSpaceVectors returns several matrices:
+
+		qmat, qmatj, qmati 	matrix of asymptotic constraints in CSR format
+		amat				transition matrix in dense format
+		rootr				real part of the eignvalues
+		rooti				imaginary part of the eignvalues
+		js					a vector indicating which columns of the original structural
+							coefficients matrix correspond to the columns of the transition matrix.
+		essential			dimension of the transition matrix
+   -------------------------------------------------------------------------------------- */
+
+	constraintsNeeded=leads*hrows;
+	time0 = cputime() ; /* rwt */
+	*rowsInQ=augmentQmatWithInvariantSpaceVectors(
+
+		maxNumberOfHElements,returnCode,discreteTime,
+      	hrows,hcols,
+      	hmat,hmatj,hmati,
+      	annihilator,annihilatorj,annihilatori,
+      	rmat,rmatj,rmati,
+      	prow,pcol,
+      	*auxiliaryInitialConditions,
+      	constraintsNeeded,
+      	qmat,qmatj,qmati,
+      	essential,
+      	rootr,rooti
+
+	);
+	if (*returnCode) return ;
+
+	/* record max space actually used and reset limit to original value */
+	bumpSparseAMA(*maxNumberOfHElements);
+	*maxNumberOfHElements=originalMaxHElements;
+
+	time_augmentQ = cputime() - time0 ; /* rwt */
+
+
+	/* save max space used where user can find it */
+ 	*maxNumberOfHElements = maxHElementsEncountered;
+
+	free(annihilator);
+	free(annihilatorj);
+	free(annihilatori);
+	free(rmat);
+	free(rmatj);
+	free(rmati);
+	free(prow);
+	free(pcol);
+
+
+}	/* sparseAMA */
+
+
 
 
 
