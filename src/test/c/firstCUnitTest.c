@@ -53,25 +53,25 @@ static FILE* temp_file = NULL;
  * Returns zero on success, non-zero otherwise.
  */
 
-int maxSize;
+unsigned int maxSize;
 double hmat[MAXELEMSA]=
 {-0.1167899999999999, -0.2842153439999999, 0.098180323, -0.697197378, 
     -0.1357490219999999, 1, -0.024790419, 0.024790419, -0.024790419, 
     0.024790419, -0.024790419, 0.251999689, 0.024790419, -0.024790419, 
     -1.158861192, 0.024790419, 1, -0.32, 1, -2.62};
-int hmatj[MAXELEMSA]=
+unsigned int hmatj[MAXELEMSA]=
 {1, 4, 7, 10, 11, 13, 1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 14, 12, 15, 37};
-int hmati[4]={1, 7, 18,21 };
-double * newHmat;int * newHmatj;int * newHmati;
-int aux;
-int rowsInQ;
-double * qmat;int * qmatj;int * qmati;
-double * bmat;int * bmatj;int * bmati;
-int essential;
+unsigned int hmati[4]={1, 7, 18,21 };
+double * newHmat;unsigned int * newHmatj;unsigned int * newHmati;
+unsigned int aux;
+unsigned int rowsInQ;
+double * qmat;unsigned int * qmatj;unsigned int * qmati;
+double * bmat;unsigned int * bmatj;unsigned int * bmati;
+unsigned int essential;
 double * rootr;
 double * rooti;
-int retCode;
-int i;
+unsigned int retCode;
+unsigned int i;
 
 #define HROWS 3
 
@@ -86,14 +86,14 @@ int init_suite1(void)
 {
 
 newHmat=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));
-newHmatj=(int *)calloc((unsigned)MAXELEMSA,sizeof(int));
-newHmati=(int *)calloc((unsigned)MAXELEMSA,sizeof(int));
+newHmatj=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));
+newHmati=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));
 qmat=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));
-qmatj=(int *)calloc((unsigned)MAXELEMSA,sizeof(int));
-qmati=(int *)calloc((unsigned)MAXELEMSA,sizeof(int));
+qmatj=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));
+qmati=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));
 bmat=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));
-bmatj=(int *)calloc((unsigned)MAXELEMSA,sizeof(int));
-bmati=(int *)calloc((unsigned)MAXELEMSA,sizeof(int));
+bmatj=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));
+bmati=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));
 rootr=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));
 rooti=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));
 rowsInQ=aux=0;

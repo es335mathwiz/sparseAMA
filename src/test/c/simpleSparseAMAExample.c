@@ -3,10 +3,10 @@
 #include "useSparseAMA.h"
 
 
-#define MAXELEMS 381
-#define HROWS 3
-#define HCOLS 39
-#define LEADS 8
+#define MAXELEMS 381u
+#define HROWS 3u
+#define HCOLS 39u
+#define LEADS 8u
 
 
 

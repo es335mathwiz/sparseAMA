@@ -14,7 +14,7 @@ endif
 
 ifeq ($(UNAME),Darwin)
 #compilers
-CC = gcc-6
+CC = gcc
 FCFLAGS = -c -O2 -I./src/main/include   -I /Users/garyanderson/myUsr/include/
 FCFLAGS = -c -Wall -g -I./src/main/include   -I /Users/garyanderson/myUsr/include/
 #lapack
@@ -24,7 +24,11 @@ endif
 
 #compilers
 FC = gfortran
-
+.PHONY: Build
+Build: firstCUnitTest simpleSparseAMAExample
+	@echo hello
+	$(FC) firstCUnitTest.o -o firstCUnitTest $(CUNITLIBS) -L ./ -lsparseAMA $(LAPACKLIBS)
+	
 libsparseAMA.a:	sparseAMA.o sparskit2.o ma50ad.o
 	ar -cvq libsparseAMA.a sparseAMA.o sparskit2.o ma50ad.o
 
@@ -52,4 +56,4 @@ firstCUnitTest.o: ./src/test/c/firstCUnitTest.c
 	$(CC)  $(FCFLAGS) ./src/test/c/firstCUnitTest.c
 
 firstCUnitTest: firstCUnitTest.o libsparseAMA.a
-	$(FC) firstCUnitTest.o -o firstCUnitTest $(CUNITLIBS) -L ./ -lsparseAMA $(LAPACKLIBS)
+	$(FC) firstCUnitTest.o -o firstCUnitTest $(CUNITLIBS) -L ./ -lsparseAMA $(LAPACKLIBS)	

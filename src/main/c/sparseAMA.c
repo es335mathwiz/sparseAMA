@@ -104,6 +104,82 @@ double time_autoregression, time_augmentQ;
 /*                                                                   */
 /* ----------------------------------------------------------------- */
 
+
+static int lineNumberToViolation(unsigned int lineNo)
+{
+unsigned int result;
+switch(lineNo)
+{
+case  sparseAMAPreMaxNumberOfHElementsLEZero: result=
+  sparseAMA_PRECONDITIONS_VIOLATED; break;
+case  sparseAMAPreHrows: result=
+  sparseAMA_PRECONDITIONS_VIOLATED; break;
+case  sparseAMAPreHcolsHrows: result=
+  sparseAMA_PRECONDITIONS_VIOLATED; break;
+case  sparseAMAPreLeads: result=
+  sparseAMA_PRECONDITIONS_VIOLATED; break;
+case  sparseAMAPreHmat: result=
+  sparseAMA_PRECONDITIONS_VIOLATED; break;
+case  sparseAMAPreAuxRows: result=
+  sparseAMA_PRECONDITIONS_VIOLATED; break;
+case  sparseAMAPreRowsInQ: result=
+  sparseAMA_PRECONDITIONS_VIOLATED; break;
+case  sparseAMAPreQmat: result=
+  sparseAMA_PRECONDITIONS_VIOLATED; break;
+case  autoRegressionPostValidQ: result=
+  autoRegression_POSTCONDITIONS_VIOLATED; break;
+case  autoRegressionPostValidH: result=
+  autoRegression_POSTCONDITIONS_VIOLATED; break;
+case  autoRegressionPostValidAnnihilator: result=
+  autoRegression_POSTCONDITIONS_VIOLATED; break;
+case  autoRegressionPostValidR: result=
+  autoRegression_POSTCONDITIONS_VIOLATED; break;
+case  autoRegressionPostValidJs: result=
+  autoRegression_POSTCONDITIONS_VIOLATED; break;
+case  augmentQmatWithInvariantSpaceVectorsPreConstraints: result=
+  augmentQmatWithInvariantSpaceVectors_PRECONDITIONS_VIOLATED; break;
+case  augmentQmatWithInvariantSpaceVectorsPreAuxiliary: result=
+  augmentQmatWithInvariantSpaceVectors_PRECONDITIONS_VIOLATED; break;
+case  augmentQmatWithInvariantSpaceVectorsPostValidQ: result=
+  augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED; break;
+case  augmentQmatWithInvariantSpaceVectorsPostValidRealRoot: result=
+  augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED; break;
+case  augmentQmatWithInvariantSpaceVectorsPostValidImagRoot: result=
+  augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED; break;
+case  augmentQmatWithInvariantSpaceVectorsPostValidA: result=
+  augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED; break;
+case  augmentQmatWithInvariantSpaceVectorsPostADim: result=
+  augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED; break;
+case  augmentQmatWithInvariantSpaceVectorsPostValidJs: result=
+  augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED; break;
+case  shiftRightAndRecordPreZeroRow: result=
+  STACKED_SYSTEM_NOT_FULL_RANK; break;
+case  annihilateRowsPostValidH: result=
+  annihilateRows_POSTCONDITIONS_VIOLATED; break;
+case nzmaxTooSmallConstructA: result=
+  HELEMS_TOO_SMALL; break;
+case nzmaxTooSmallAugmentQ: result=
+  HELEMS_TOO_SMALL; break;
+case nzmaxTooSmallAnnihilateRows: result=
+  HELEMS_TOO_SMALL; break;
+case ndnsTooSmall: result=
+  AMAT_TOO_LARGE; break;
+case qextentTooBig: result=
+  HELEMS_TOO_SMALL; break;
+case errorReturnFromUseArpack: result=
+  augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED; break;
+case tooManyLargeRoots: result=
+  TOO_MANY_LARGE_ROOTS; break;
+case tooFewLargeRoots: result=
+  TOO_FEW_LARGE_ROOTS; break;
+default: result=
+  99;break;
+}
+return(result);
+}
+
+
+
 static char * lineNumberToString(int lineNo)
 {
 char * result;
@@ -359,7 +435,7 @@ int continuousSelect(double * realPart,double * imagPart){
 ----------------------------------------------------------------------------- */
 
 static unsigned int shiftRightAndRecord (
-	unsigned int *maxNumberOfHelements,
+	unsigned int *maxNumberOfHElements,
     unsigned int *returnCode,
 unsigned     int dim,
 unsigned int rowsInQ,
@@ -405,8 +481,8 @@ unsigned 	int i, j, qextent, zeroRow ;
 				qmat[qextent]=hmat[j-1];
 				qmatj[qextent]=hmatj[j-1];
 				qextent++;
-
-				/* make sure we've got enough space (tighten up vis-a-vis original) */
+                   
+                       /* make sure we've got enough space (tighten up vis-a-vis original) */
 			   	/* sparseAMAAssert((qextent <= *maxNumberOfHElements+1), qextentTooBig); */
 			   	sparseAMAAssert((qextent < *maxNumberOfHElements), qextentTooBig);
 				if (*returnCode) return (BADRC) ;
@@ -568,7 +644,7 @@ static unsigned int constructQRDecomposition (
 ----------------------------------------------------------------------------------------- */
 
 static unsigned int annihilateRows(
-	unsigned int *maxNumberOfHelements,
+	unsigned int *maxNumberOfHElements,
    unsigned int *returnCode,
    unsigned int hrows,unsigned int hcols,
     double * hmat,unsigned int * hmatj,unsigned int * hmati,
@@ -727,7 +803,7 @@ static unsigned int annihilateRows(
 ------------------------------------------------------------------------- */
 
 static unsigned int autoRegression(
-	unsigned int *maxNumberOfHelements,
+	unsigned int *maxNumberOfHElements,
     unsigned int *returnCode,
     unsigned int hrows,unsigned int hcols,
     double * hmat,unsigned int * hmatj,unsigned int * hmati,
@@ -750,8 +826,10 @@ static unsigned int autoRegression(
 	unsigned int valid;
 
 	/* save original maxspace parameter */
-	static unsigned int originalMaxHElements;
-	originalMaxHElements=*maxNumberOfHElements;
+	unsigned int originalMaxHElements;
+	
+
+originalMaxHElements=*maxNumberOfHElements;
 
 	time_shiftRightAndRecord = 0 ;  /* rwt */
 	time_annihilateRows = 0 ;  		/* rwt */
@@ -1138,7 +1216,7 @@ static void constructA (
 		&nlarge								ptr to number of large roots
 ------------------------------------------------------------------------- */
 static unsigned int useArpack(
-	unsigned int *maxNumberOfHelements, unsigned int maxnev, unsigned int nroot,
+	unsigned int *maxNumberOfHElements, unsigned int maxnev, unsigned int nroot,
 	double * amat,unsigned int * amatj,unsigned int * amati,
 	double * spanVecs,double * rootr,double * rooti,
 	unsigned int *nlarge
@@ -1400,7 +1478,7 @@ static unsigned int useArpack(
 ------------------------------------------------------------------------------------ */
 
 static unsigned int augmentQmatWithInvariantSpaceVectors (
-	unsigned int *maxNumberOfHelements,
+	unsigned int *maxNumberOfHElements,
 	unsigned int *returnCode,
 	unsigned int discreteTime,
 	unsigned int hrows,unsigned int hcols,
@@ -1964,7 +2042,7 @@ void applySparseReducedForm(
 /* rwt add profiling                                               */
 /* --------------------------------------------------------------- */
 int satisfiesLinearSystemQ (
-	unsigned int *maxNumberOfHelements,
+	unsigned int *maxNumberOfHElements,
 	unsigned int hrows,unsigned int lags,	unsigned int leads,
 	double * hmat,unsigned int * hmatj,unsigned int * hmati,
 	unsigned int *  auxiliaryInitialConditions,
@@ -2031,7 +2109,7 @@ int satisfiesLinearSystemQ (
 	extractSubmatrix(&neqTimesTheta,&aOne,&firstRow,&lastRow,&aOne,&neqTimesTau,
 		bmat,bmatj,bmati,&resRows,&resCols,partB,partBj,partBi
 	);
-	printf("here 1\n");
+	
 	if(lags>0) {
 		for(ii=0;ii<(lags-1)*hrows;ii++) {
 			bTrans[ii]=1;bTransj[ii]=hrows+ii+1;bTransi[ii]=ii+1;
@@ -2077,7 +2155,7 @@ cPrintSparse(hrows,forHMult,forHMultj,forHMulti);
 	bumpSparseAMA(forHMulti[hrows]-forHMulti[0]);
 	if(ierr!=0){printf("*************ran out of space****************\n");return(1);}
 	normsByRow(&hrows,&aTwo,forHMult,forHMultj,forHMulti,normVec);
-	printf("here\n");
+	
 cPrintMatrixNonZero(hrows,1,normVec,1.0e-8);
 	free(wkspc);
 	free(forHMult);
