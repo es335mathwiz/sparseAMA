@@ -75,6 +75,10 @@
 #include <time.h>
 #include <sys/time.h>
 #endif
+double ZERO_TOLERANCE;
+double ZERO_TOL1;
+unsigned int USEARPACK, TESTBLANCHARDKAHN ;
+
 #define BADRC 99u
 #define cputime() (( (double)clock() ) / CLOCKS_PER_SEC)
 double totcpusec, tmpcpusec, oldcpusec, alloc_sec, assert_sec, qr_sec ;

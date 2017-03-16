@@ -4,11 +4,8 @@
 /* ------------------------------------------------------------------------------------------------ */
 /* rwt version of sparseAMA.h.  Numerous changes, including insert code from top of old sparseAMA.c */
 /* ------------------------------------------------------------------------------------------------ */
-unsigned int  *maxNumberOfHElements;
+
 #include <stdio.h>
-double ZERO_TOLERANCE;
-double ZERO_TOL1;
-unsigned int USEARPACK, TESTBLANCHARDKAHN ;
 
 /*#include <stdio.h>*/
 #include <stdlib.h>
@@ -172,7 +169,7 @@ void transp_();
 void rnrms_();
 
 int satisfiesLinearSystemQ (
-	unsigned int *maxNumberOfHelements,
+	unsigned int *maxNumberOfHElements,
 	unsigned int hrows,unsigned int lags,	unsigned int leads,
 	double * hmat,unsigned int * hmatj,unsigned int * hmati,
 	unsigned int *  auxiliaryInitialConditions,
@@ -268,7 +265,7 @@ bMat,bMatj,bMati) \
 (diamua_(numRows,job,aMat,aMatj,aMati,diagElems, \
 bMat,bMatj,bMati))
 
-#define sparseMatTimesVec(numRows,numCols, \
+#define sparseMatTimesVec(numRows, \
 aMat,aMatj,aMati,xVec,yVec) \
 (amux_(numRows,xVec,yVec,aMat,aMatj,aMati))
 

@@ -28,7 +28,8 @@ FC = gfortran
 Build: firstCUnitTest simpleSparseAMAExample
 	@echo hello
 	$(FC) firstCUnitTest.o -o firstCUnitTest $(CUNITLIBS) -L ./ -lsparseAMA $(LAPACKLIBS)
-	
+
+
 libsparseAMA.a:	sparseAMA.o sparskit2.o ma50ad.o
 	ar -cvq libsparseAMA.a sparseAMA.o sparskit2.o ma50ad.o
 
@@ -38,7 +39,7 @@ simpleSparseAMAExample:simpleSparseAMAExample.o libsparseAMA.a
 #src/main/c/sparseAMA.c : sparseAMA.w
 #	nuweb -t sparseAMA.w
 
-sparseAMA.o: ./src/main/c/sparseAMA.c sparskit2.o
+sparseAMA.o: ./src/main/c/sparseAMA.c sparskit2.o ./src/main/include/useSparseAMA.h
 	$(CC) $(FCFLAGS)   ./src/main/c/sparseAMA.c 
 
 ma50ad.o: ./src/main/fortran/ma50ad.f
