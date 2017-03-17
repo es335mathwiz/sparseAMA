@@ -1313,7 +1313,7 @@ static unsigned int useArpack(
 	while(ido==1||ido==(-1)){
 
 		time0 = cputime() ;
-	    sparseMatTimesVec(&maxn,&maxn,amat,amatj,amati, workd+ipntr[0]-1, workd+ipntr[1]-1);
+	    sparseMatTimesVec(&maxn,amat,amatj,amati, workd+ipntr[0]-1, workd+ipntr[1]-1);
 		time_sparseMatTimesVec += (cputime() - time0) ;
 
 		time0 = cputime() ;
@@ -2027,7 +2027,7 @@ void applySparseReducedForm(
 		deviations[i]=initialX[i]-fp[(rowDim+i)%rowDim];
 	}
 
-	sparseMatTimesVec(&rowDim,&colDim,bmat,bmatj,bmati,deviations,resultX);
+	sparseMatTimesVec(&rowDim,bmat,bmatj,bmati,deviations,resultX);
 
 	for(i=0;i<rowDim;i++){
 		resultX[i]=resultX[i]+fp[(rowDim+i)%rowDim]+intercept[i];
