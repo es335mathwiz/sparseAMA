@@ -237,7 +237,8 @@ unsigned int *maxNumberOfHElements,
     double * rootr,double * rooti,
     unsigned int *returnCode
 		);
-
+int aplb_(int * nrow, int * ncol, int * job, double * a, int * ja, int * ia, double * b, int * jb, int * ib, double *c, int * jc, int * ic, 
+	int * nzmax, int * iw, int * ierr);
 
 #define sparseAdd(numRows,numCols,spaceAllocated, \
 workSpace,job, \
@@ -245,9 +246,9 @@ aMat,aMatj,aMati, \
 bMat,bMatj,bMati, \
 cMat,cMatj,cMati, \
 errCode) \
-(aplb_(numRows,numCols,job,aMat,aMatj,aMati, \
-bMat,bMatj,bMati,cMat,cMatj,cMati, \
-spaceAllocated,workSpace,errCode))
+(aplb_((int *)numRows,(int *)numCols,(int *)job,(double  *)aMat,(int *)aMatj,(int *)aMati, \
+(double *)bMat,(int *)bMatj,(int *)bMati,(double *)cMat,(int *)cMatj,(int *)cMati, \
+(int *)spaceAllocated,(int *)workSpace,(int *)errCode))
 
 #define sparseMult(numRows,numCols,spaceAllocated, \
 workSpace,job, \
