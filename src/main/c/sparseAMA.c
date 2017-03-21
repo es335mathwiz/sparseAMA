@@ -583,7 +583,7 @@ static unsigned int constructQRDecomposition (
 	/* lower triangle and tau have info for constructing q */
 	time0 = cputime() ; /* rwt */
 
-	dorgqr_(&nr,&nc,&nr,denseA,&nr,tau,work,&lwork,&info);
+	sparseAMAQRD(&nr,&nc,&nr,denseA,&nr,tau,work,&lwork,&info);
 	/*	printf("dorgqr returned %d \n",info);*/
 
 	qr_sec += cputime()-time0 ; /* rwt */

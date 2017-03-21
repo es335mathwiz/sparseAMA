@@ -1,0 +1,32 @@
+\documentclass{article}
+\textwidth10.0in
+\usepackage{xr}
+\externaldocument{sparseAim}
+\usepackage{pstricks,pstcol,pst-node,pst-tree}
+\usepackage[graph]{xy}
+\pagestyle{empty}
+\begin{document}
+   \fbox{
+\parbox{\textheight}{
+ \[
+ \xygraph{
+ [] *{\psovalbox{\txt{sparseAim\\ (See \ref{sec:sparseAimGuts})}}}
+ (
+ : [ddll] *{\psovalbox{\txt{autoRegression\\ (See \ref{sec:autoRegression})}}}
+ (
+: [ddll] *{\psovalbox{\txt{shiftRightAndRecord\\ (See \ref{sec:shiftRightAndRecord})}}}
+: [dd] *{\psovalbox{\txt{rightMostAllZeroQ\\ (See \ref{sec:rightMostAllZeroQ})}}}
+,
+: [ddrr ]*{\psovalbox{\txt{annihilateRows\\ (See \ref{sec:annihilateRows})}}}
+),
+: [drrrr] *{\psovalbox{\txt{augmentQmatWithInvariantSpaceVectors\\ (See \ref{sec:augmentQmatWithInvariantSpaceVectors})}}}
+(: [ddll] *{\psovalbox{\txt{identifyEssential\\ (See \ref{sec:identifyEssential})}}},
+: [ddrr] *{\psovalbox{\txt{constructA\\ (See \ref{sec:constructA})}}}
+)
+ )
+ }
+ \]
+} 
+}
+
+\end{document}

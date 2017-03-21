@@ -1,0 +1,30 @@
+SetTrack none
+Down 0
+Oval
+		Begin
+SetTrack arrow
+Choice . . No Yes 
+		Model Linear?
+Tag
+Box 10 2.5
+		Compute Unconstrained Autoregressive 
+		Representation($\Gamma$) and Auxiliary 
+		Initial Conditions($Q_0$),
+		$\begin{CD}H @>>>\{\Gamma,Q_0\}\end{CD}$
+Box  2.7
+		Compute Convergence Constraint
+		$\begin{CD}\Gamma@>>>Q_1\end{CD}$
+Box 11 3
+		Compute Constrained Autoregressive 
+		Representation($B$),
+		$\begin{CD}\{Q_0,Q_1\}@>>>B\end{CD}$
+Oval
+		End
+ToTag
+Right 8
+Down 3
+Box 4 2
+		Nonlinear Stuff
+Down
+Box 5 2
+		More Nonlinear Stuff

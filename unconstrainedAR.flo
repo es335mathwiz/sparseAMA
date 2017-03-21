@@ -1,0 +1,38 @@
+SetTrack none
+Down 0
+Oval 5 2
+		Begin
+SetTrack arrow
+Box 4 2
+		$k:=0$
+Box 10 2.5
+		Initialize Auxiliary Initial Conditions:
+		$\mZ^0:=\varnothing$
+		Initialize Equivalent Linear Sytem
+		$\mH^0:=H$
+Choice . . Yes No 8 4
+		$\mH^k_\theta$ Full Rank 
+		or
+		$rows(\mZ^{k+1}) \ge L(\tau+\theta)$
+Tag
+Right 1
+Oval 8 2
+		Return
+		$\{\begin{bmatrix}\mH^k_-\tau&\ldots&\mH^k_{\theta}\end{bmatrix},(\Gamma,\text{ or }\varnothing),\mZ^k\}$
+ToTag
+Down
+Box 10 2.5
+		Determine a Non-singular matrix
+		$U^k:=\begin{bmatrix}U^k_Z\\U^k_N\end{bmatrix}$
+		that annihilates $L-r(\mH^k_\theta)$ Rows of $\mH^k_\theta$
+Box
+		Shift Rows Right
+		Set $\mH^{k+1}:= \longExpH$
+Box
+		Augment Auxiliary Initial Conditions
+		Set $\mZ^{k+1}:= \longExpQ$
+Box 4 2
+		$k:=k+1$
+Left 4
+Up 14.5
+Right 2 *

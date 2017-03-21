@@ -128,6 +128,7 @@ extern void MA50CD();
 /* sun format is lower case, with underscore (default in source code)
 #else
 */
+/*
 extern void dorgqr_();
 extern void dnaupd_();
 extern void dneupd_();
@@ -137,6 +138,7 @@ extern void ma50id_();
 extern void ma50ad_();
 extern void ma50bd_();
 extern void ma50cd_();
+*/
 // #endif
 
 unsigned int validCSRMatrix( unsigned int numRows,double * mata,unsigned int * matj,unsigned int *mati);
@@ -147,16 +149,14 @@ int validVector(unsigned int numRows,double * vec);
 long getpid();
 void * calloc(unsigned amt,unsigned size);
 */
-
+/*
 void submat_();
 void free();
-void amub_();
 void copmat_();
 void rperm_();
 void filter_();
 void cnrms_();
 void getdia_();
-void diamua_();
 void csrdns_();
 void csrcsc_();
 void dnscsr_();
@@ -167,7 +167,7 @@ extern void amux_();
 void getu_();
 void transp_();
 void rnrms_();
-
+*/
 int satisfiesLinearSystemQ (
 	unsigned int *maxNumberOfHElements,
 	unsigned int hrows,unsigned int lags,	unsigned int leads,
@@ -239,6 +239,119 @@ unsigned int *maxNumberOfHElements,
 		);
 int aplb_(int * nrow, int * ncol, int * job, double * a, int * ja, int * ia, double * b, int * jb, int * ib, double *c, int * jc, int * ic, 
 	int * nzmax, int * iw, int * ierr);
+int amub_(int * nrow, int * ncol, int * job, double * a, int * ja, int * ia, double * b, int * jb, int * ib, double *c, int * jc, int * ic, 
+	int * nzmax, int * iw, int * ierr);
+int diamua_(int * nrow,  int * job, double * a, int * ja, int * ia, double * diag, double *b, int * jb, int * ib); 
+
+int csrdns_(int* nrow,int* ncol,double* a,int * ja,int * ia,double * dns,int * ndns, int* ierr);
+
+int getu_(int *n, double *a,int *ja,int *ia,double *ao,int *jao,int* iao);
+
+int dnscsr_(int *nrow,int *ncol,int* nzmax,double * dns,int * ndns,double * a,int * ja,int * ia,int * ierr);
+
+
+void dorgqr_(int *m,int * n,int * k,double * a,int * lda,double * tau,double * work,int * lwork,int * info );
+
+void transp_(int *numRows,int *numCols,double *aMat,int *aMatj,int *aMati,int *workSpace,int *errCode);
+/*
+rnrms_
+int rnrms_(nrow, nrm, a, ja, ia, diag)
+integer *nrow, *nrm;
+doublereal *a;
+integer *ja, *ia;
+doublereal *diag;
+
+submat_
+int submat_(n, job, i1, i2, j1, j2, a, ja, ia, nr, nc, ao, 
+	jao, iao)
+
+integer *n;
+integer *job, *i1, *i2, *j1, *j2;
+doublereal *a;
+integer *ja, *ia, *nr, *nc;
+doublereal *ao;
+integer *jao, *iao;
+
+rperm_
+int rperm_(nrow, a, ja, ia, ao, jao, iao, perm, job)
+integer *nrow;
+doublereal *a;
+integer *ja, *ia;
+doublereal *ao;
+integer *jao, *iao, *perm, *job;
+
+filter_
+int filter_(n, job, drptol, a, ja, ia, b, jb, ib, len, ierr)
+integer *n, *job;
+doublereal *drptol, *a;
+integer *ja, *ia;
+doublereal *b;
+integer *jb, *ib, *len, *ierr;
+
+copmat_
+int copmat_(nrow, a, ja, ia, ao, jao, iao, ipos, job)
+integer *nrow;
+doublereal *a;
+integer *ja, *ia;
+doublereal *ao;
+integer *jao, *iao, *ipos, *job;
+
+cnrms_
+int cnrms_(nrow, nrm, a, ja, ia, diag)
+integer *nrow, *nrm;
+doublereal *a;
+integer *ja, *ia;
+doublereal *diag;
+
+getdia_
+int getdia_(nrow, ncol, job, a, ja, ia, len, diag, idiag, 
+	ioff)
+integer *nrow, *ncol, *job;
+doublereal *a;
+integer *ja, *ia, *len;
+doublereal *diag;
+integer *idiag, *ioff;
+
+usol_
+int usol_(n, x, y, au, jau, iau)
+integer *n;
+doublereal *x, *y, *au;
+integer *jau, *iau;
+
+dnaupd_
+amux_
+int amux_(n, x, y, a, ja, ia)
+integer *n;
+doublereal *x, *y, *a;
+integer *ja, *ia;
+
+dneupd_
+
+csrcsc2_
+int csrcsc2_();
+    csrcsc2_(n, n, job, ipos, &a[1], &ja[1], &ia[1], &ao[1], &jao[1], &iao[1])
+
+dgeesx_
+
+csrcsc_
+int csrcsc_(n, job, ipos, a, ja, ia, ao, jao, iao)
+integer *n, *job, *ipos;
+doublereal *a;
+integer *ja, *ia;
+doublereal *ao;
+integer *jao, *iao;
+
+ma50id_
+ma50ad_
+ma50bd_
+ma50cd_
+*/
+
+
+#define sparseAMAQRD(m,n,k,a,lda,tau,work,lwork,info )\
+(dorgqr_((int *)m,(int *) n,(int *) k,(double *) a,(int *) lda,(double *) tau,(double *) work,(int *) lwork,(int *) info ))
+
+
 
 #define sparseAdd(numRows,numCols,spaceAllocated, \
 workSpace,job, \
@@ -256,15 +369,15 @@ aMat,aMatj,aMati, \
 bMat,bMatj,bMati, \
 cMat,cMatj,cMati, \
 errCode) \
-(amub_(numRows,numCols,job,aMat,aMatj,aMati, \
-bMat,bMatj,bMati,cMat,cMatj,cMati, \
-spaceAllocated,workSpace,errCode))
+(amub_((int *)numRows,(int *)numCols,(int *)job,(double *)aMat,(int *)aMatj,(int *)aMati, \
+(double *)bMat,(int *)bMatj,(int *)bMati,(double *)cMat,(int *)cMatj,(int *)cMati, \
+(int *)spaceAllocated,(int *)workSpace,(int *)errCode))
 
 #define diagMatTimesSparseMat(numRows,job, \
 diagElems,aMat,aMatj,aMati, \
 bMat,bMatj,bMati) \
-(diamua_(numRows,job,aMat,aMatj,aMati,diagElems, \
-bMat,bMatj,bMati))
+(diamua_((int *)numRows,(int *)job,(double *)aMat,(int *)aMatj,(int *)aMati,(double *)diagElems, \
+(double *)bMat,(int *)bMatj,(int *)bMati))
 
 #define sparseMatTimesVec(numRows, \
 aMat,aMatj,aMati,xVec,yVec) \
@@ -293,7 +406,7 @@ bMat,bMatj,bMati))
 
 #define inPlaceTranspose(numRows,numCols, \
 aMat,aMatj,aMati,workSpace,errCode) \
-(transp_(numRows,numCols,aMat,aMatj,aMati,workSpace,errCode))
+(transp_((int *)numRows,(int *)numCols,(double *)aMat,(int *)aMatj,(int *)aMati,(int *)workSpace,(int *)errCode))
 
 #define copyMatrix(numRows,job, \
 aMat,aMatj,aMati,copyToPos, \
@@ -306,7 +419,7 @@ copyToPos,job))
 (getdia_(nrow,ncol,job,a,ja,ia,len,diag,idiag,ioff))
 
 #define getUpperTriangular(n,a,ja,ia,ao,jao,iao)\
-(getu_(n,a,ja,ia,ao,jao,iao))
+(getu_((int *)n,(double *)a,(int *)ja,(int *)ia,(double *)ao,(int *)jao,(int *)iao))
 
 #define permuteRows(nrow,a,ja,ia,ao,jao,iao,perm,job) \
 (rperm_(nrow,a,ja,ia,ao,jao,iao,perm,job))
@@ -324,10 +437,10 @@ copyToPos,job))
 (csrcsc2_(n,n2,job,ipos,a,ja,ia,ao,jao,iao))
 
 #define dnsToCsr(nrow,ncol,nzmax,dns,ndns,a,ja,ia,ierr)\
-(dnscsr_(nrow,ncol,nzmax,dns,ndns,a,ja,ia,ierr))
+(dnscsr_((int *)nrow,(int *)ncol,(int *)nzmax,(double *)dns,(int *)ndns,(double *)a,(int *)ja,(int *)ia,(int *)ierr))
 
 #define csrToDns(nrow,ncol,a,ja,ia,dns,ndns,ierr) \
-(csrdns_(nrow,ncol,a,ja,ia,dns,ndns,ierr) )
+(csrdns_((int *)nrow,(int *)ncol,(double *)a,(int *)ja,(int *)ia,(double *)dns,(int *)ndns,(int *)ierr) )
 
 
 /*LAPACK -- dgeqp3*/

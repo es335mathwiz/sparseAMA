@@ -1,0 +1,21 @@
+SetTrack none
+Down 0
+Oval
+		Begin
+SetTrack arrow
+Box 10 3.4
+		Compute Unconstrained Autoregressive
+		Representation($H^{\sharp,\ast},H^{\flat,\ast}$) and Auxiliary 
+		Initial Conditions($Z^{\sharp,\ast},Z^{\flat,\ast}$),
+		(See Section \ref{sec:arzgev})
+		$\begin{CD}H @>>>\{H^{\sharp,\ast},H^{\flat,\ast},Z^{\sharp,\ast},Z^{\flat,\ast}\}\end{CD}$
+Box  2.7
+		Compute Convergence Constraint($V$)
+		(See Section \ref{sec:invariantSpace})
+		$\begin{CD}\{ H^{\sharp,\ast},Z^{\sharp,\ast},Z^{\flat,\ast} \}@>>>V\end{CD}$
+Box 11 3
+		Compute Asymptotic Constraints ($Q$),
+		(See Section \ref{sec:invariantSpace})
+		$\begin{CD}\{Z^{\sharp,\ast},V\}@>>>Q\end{CD}$
+Oval
+		End

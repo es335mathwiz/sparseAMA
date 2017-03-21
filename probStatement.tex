@@ -1,0 +1,76 @@
+Anderson and Moore \cite{ANDER:AIM2} outlines a procedure that computes solutions for structural models of the form
+\begin{gather}
+\sum_{i= - \tau}^\theta { H_i ~ x_{ t + i } }= 0~,~ t \geq 0 \label{eq:canonical}\\ \intertext{ with initial conditions, if any, given by constraints of the form}
+x_t ~ = ~ x^{data}_t ~ , ~ t = ~ - \tau~, \ldots ,~ -1\\ \intertext{where both $\tau$ and $\theta$ are non-negative, and $x_t$ is an L dimensional vector with}
+\lim_{ t \rightarrow \infty } x_t ~ = ~ 0
+\end{gather}
+
+The algorithm determines whether
+the model \ref{eq:canonical} has a unique solution, an infinity of
+ solutions or no solutions at all.
+
+The specification \ref{eq:canonical} is not restrictive.
+One can handle inhomogeneous version  of equation \ref{eq:canonical}
+by recasting the problem in terms of  deviations from a steady state value or
+by adding a new variable for each non-zero right hand side with an equation
+guaranteeing the  value always equals  
+the inhomogeneous value($x^{con}_t =x^{con}_{t-1}$ and $x^{con}_{t-1} = x^{RHS}$).
+
+
+
+Saddle point problems combine initial conditions and asymptotic 
+convergence to identify their solutions.
+The uniqueness of solutions to 
+system  \ref{eq:canonical} requires that
+the transition matrix characterizing the linear system have an appropriate
+number of explosive and stable eigenvalues\cite{blanchard80},
+and that the asymptotic linear constraints 
+are linearly independent of explicit and implicit initial 
+conditions\cite{ANDER:AIM2}.
+
+The solution methodology entails 
+\begin{enumerate}
+\item using equation \ref{eq:canonical} to
+compute a state space transition matrix.
+\item Computinging the eigenvalues and the invariant space associated with
+large eigenvalues
+\item Combining the constraints provided by:
+  \begin{enumerate}
+  \item the
+initial conditions,
+\item  auxiliary initial conditions identified in the computation of the transisiton matrix and 
+\item the invariant space vectors
+  \end{enumerate}
+\end{enumerate}
+
+Figure \ref{fig:overview} presents a flow chart  summarizing the
+algorithm. 
+%For a description of a parallel implementation see \cite{ANDER:PARA}
+%For a description of a continuous application see \cite{anderson97}.
+
+\begin{figure}[htbp]
+  \begin{center}
+\includegraphics[width=8cm]{overallGraph.eps}
+%   \caption{Algorithm Overview}
+    \label{fig:overview}
+  \end{center}
+\end{figure}
+
+%Anderson and Moore \cite{ANDER:AIM2} demonstrates that 
+
+
+
+%Given the coefficient matrix
+%\begin{gather*}
+%\matob{H_{-\tau}}{H_\theta}
+%\end{gather*}
+%the procedure computes the reduced form coefficient matrix
+%\begin{gather*}
+%\matob{B_{-\tau}}{ B_{-1}}
+%\end{gather*}
+%for any model satisfying assumptions \ref{asmone} and \ref{asmtwo}.  If the model does not satisfy assumptions \ref{asmone} and \ref{asmtwo}, the procedure indicates whether there are no convergent solutions or a multiplicity of convergent solutions.
+
+
+
+  
+

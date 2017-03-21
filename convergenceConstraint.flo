@@ -1,0 +1,25 @@
+SetTrack none
+Down 0
+Oval 4 2
+		Begin
+SetTrack arrow
+Box 10 4
+		Construct State Space Transition Matrix
+		$A=\begin{bmatrix}0&I&&\\ \vdots&&\ddots&\\0&&&I\\\multicolumn{4}{c}{\Gamma}\end{bmatrix}$
+Box 8 2
+		Eliminate Inessential Lags
+		$a=S A S^T$
+Box 8 4
+		Compute Vectors Spanning
+		Left Invariant Space of($a$)
+		Associated With Large Roots,($q$)
+		with $q^Ta = t q$
+Box 8 4
+		Expand Vectors to
+		Left Invariant Space of $A$
+		Associated With Large Roots
+		$Q_1= q S^T$
+		with $Q^T_1A = T Q_1$
+Oval 4 2
+		Return $Q_1$
+

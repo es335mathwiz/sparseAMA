@@ -1,0 +1,44 @@
+
+\setlength{\unitlength}{2em}
+\newenvironment{exmpl}{
+  \color{blue}\em
+{ AN EXAMPLE:   }
+}
+{
+}
+
+
+{\theoremstyle{plain}\theorembodyfont{\bfseries}
+\newtheorem{algrthm}{Algorithm}
+\newtheorem{thrm}{Theorem}
+\newtheorem{crrlry}{Corrolary}
+\newtheorem{dfntn}{Definition}
+}
+
+
+\newcommand{\mH}{\mathcal{H}}
+\newcommand{\mQ}{\mathcal{Q}}
+\newcommand{\mZ}{\mathcal{Z}}
+\newcommand{\anAmp}{ & }
+
+
+\newcommand{\hmats}{H_{-\tau}&\hspace{0.25in}&\dots&\hspace{0.25in}&H_{\theta}}
+\newcommand{\hsh}{H^{\sharp\ast}_{-\tau}&\hspace{0.25in}&\dots&\hspace{0.25in}&H^{\sharp\ast}_{\theta}}
+\newcommand{\hshShort}{H^{\sharp\ast}_{-\tau}&\hspace{0.25in}&\dots&\hspace{0.25in}&H^{\sharp\ast}_{\theta-1}}
+\newcommand{\hsht}{
+  \begin{bmatrix}
+    I&0
+  \end{bmatrix}
+H^{\sharp\ast}_{-\tau}&\hspace{0.25in}&\dots&\hspace{0.25in}&  \begin{bmatrix}
+    I&0
+  \end{bmatrix}H^{\sharp\ast}_{\theta}}
+\newcommand{\zsh}{Z^{\sharp\ast}_{-\tau}&\hspace{0.25in}&\dots&Z^{\sharp\ast}_{\theta-1}}
+\newcommand{\hfl}{H^{\flat\ast}_{-\tau}&\hspace{0.25in}&\dots&\hspace{0.25in}&H^{\flat\ast}_{\theta}}
+
+\newcommand{\longExpH}{\begin{bmatrix}
+0&U^k_Z \mH^k_\tau&\ldots&U^k_Z \mH^k_{\theta-1}\\
+U^k_N \mH^k_\tau&\multicolumn{2}{c}{\ldots}&U^k_N \mH^k_\theta
+\end{bmatrix}}
+\newcommand{\longExpQ}{\begin{bmatrix}\multicolumn{3}{c}{\mQ^k}\\U^k_Z \mH^k_\tau&\ldots&U^k_Z \mH^k_{\theta-1}\end{bmatrix}}
+
+\definecolor{anewcolor}{rgb}{.30,.20,.60}
