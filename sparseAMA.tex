@@ -2491,7 +2491,7 @@ routine to provide support.
 \mbox{}\verb@                bumpSparseAMA(qrows);@\\
 \mbox{}\verb@                if(ierr!=0){printf("*************ran out of space****************\n");return;}@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@                ma50cd_(&qrows,&qrows,icntl,qrmati,np,&trans,@\\
+\mbox{}\verb@                useMA50CD(&qrows,&qrows,icntl,qrmati,np,&trans,@\\
 \mbox{}\verb@                        lfact,fact,irnf,iptrl,iptru,@\\
 \mbox{}\verb@                        nsSumC,x,w,info@\\
 \mbox{}\verb@                );@\\
@@ -3214,47 +3214,6 @@ routine to provide support.
 \mbox{}\verb@#define TOO_MANY_LARGE_ROOTS 2010@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@/* declare library fns used by sparseAMA */@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@/* fortran routines get special treatment */@\\
-\mbox{}\verb@/* windows format is upper case names, no underscore */@\\
-\mbox{}\verb@/*6/29/10: compiled on windows with gfortran, and so underscore is indeed needed */@\\
-\mbox{}\verb@/*#ifdef WIN32@\\
-\mbox{}\verb@extern void DORGQR();@\\
-\mbox{}\verb@extern void DNAUPD();@\\
-\mbox{}\verb@extern void DNEUPD();@\\
-\mbox{}\verb@extern void DGEESX();@\\
-\mbox{}\verb@extern void DGEQPF();@\\
-\mbox{}\verb@extern void MA50ID();@\\
-\mbox{}\verb@extern void MA50AD();@\\
-\mbox{}\verb@extern void MA50BD();@\\
-\mbox{}\verb@extern void MA50CD();@\\
-\mbox{}\verb@#define dorgqr_ DORGQR@\\
-\mbox{}\verb@#define dnaupd_ DNAUPD@\\
-\mbox{}\verb@#define dneupd_ DNEUPD@\\
-\mbox{}\verb@#define dgeesx_ DGEESX@\\
-\mbox{}\verb@#define dgeqpf_ DGEQPF@\\
-\mbox{}\verb@#define ma50id_ MA50ID@\\
-\mbox{}\verb@#define ma50ad_ MA50AD@\\
-\mbox{}\verb@#define ma50bd_ MA50BD@\\
-\mbox{}\verb@#define ma50cd_ MA50CD@\\
-\mbox{}\verb@#define finite(x) _finite(x)@\\
-\mbox{}\verb@*/@\\
-\mbox{}\verb@/* sun format is lower case, with underscore (default in source code)@\\
-\mbox{}\verb@#else@\\
-\mbox{}\verb@*/@\\
-\mbox{}\verb@/*@\\
-\mbox{}\verb@extern void dorgqr_();@\\
-\mbox{}\verb@extern void dnaupd_();@\\
-\mbox{}\verb@extern void dneupd_();@\\
-\mbox{}\verb@extern void dgeesx_();@\\
-\mbox{}\verb@extern void dgeqpf_();@\\
-\mbox{}\verb@extern void ma50id_();@\\
-\mbox{}\verb@extern void ma50ad_();@\\
-\mbox{}\verb@extern void ma50bd_();@\\
-\mbox{}\verb@extern void ma50cd_();@\\
-\mbox{}\verb@*/@\\
-\mbox{}\verb@// #endif@\\
-\mbox{}\verb@@\\
 \mbox{}\verb@unsigned int validCSRMatrix( unsigned int numRows,double * mata,unsigned int * matj,unsigned int *mati);@\\
 \mbox{}\verb@int validVector(unsigned int numRows,double * vec);@\\
 \mbox{}\verb@@\\
@@ -3368,9 +3327,14 @@ routine to provide support.
 \mbox{}\verb@@\\
 \mbox{}\verb@void transp_(int *numRows,int *numCols,double *aMat,int *aMatj,int *aMati,int *workSpace,int *errCode);@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@int rnrms_(int * nrow,int * nrm,double* a,int * ja,int * ia,double * diag)@\\
+\mbox{}\verb@int rnrms_(int * nrow,int * nrm,double* a,int * ja,int * ia,double * diag);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@void ma50cd_(int *m,int *n,int * k,int *icntl,int * np,int *trans,\@\\
+\mbox{}\verb@int * lfact,double *fact,int *irnf,int *iptrl,int *iptru,\@\\
+\mbox{}\verb@double *b,double *x,double *w,int *info);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@/*@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@submat_@\\
 \mbox{}\verb@int submat_(n, job, i1, i2, j1, j2, a, ja, ia, nr, nc, ao, @\\
@@ -3457,6 +3421,8 @@ routine to provide support.
 \mbox{}\verb@ma50bd_@\\
 \mbox{}\verb@ma50cd_@\\
 \mbox{}\verb@*/@\\
+\mbox{}\verb@#define useMA50CD(m,n,k,icntl,np,trans,lfact,fact,irnf,iptrl,iptru,b,x,w,info)\@\\
+\mbox{}\verb@void ma50cd_((int *)m,(int *)n,(int *)k,(int *)icntl,(int *) np,(int *)trans,(int *) lfact,(double *)fact,(int *)irnf,(int *)iptrl,(int *)iptru,(double *)b,(double *)x,(double *)w,(int *)info)@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@#define sparseAMAQRD(m,n,k,a,lda,tau,work,lwork,info )\@\\
@@ -3539,7 +3505,7 @@ routine to provide support.
 \mbox{}\verb@(cperm_(nrow,a,ja,ia,ao,jao,iao,perm,job))@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@#define normsByRow(nrow, nrm, a, ja, ia, diag) \@\\
-\mbox{}\verb@(rnrms_(nrow, nrm, a, ja, ia, diag))@\\
+\mbox{}\verb@(rnrms_((int *)nrow,(int *) nrm,(double *) a,(int *) ja,(int *) ia,(double *) diag))@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@#define csrToCsc(n,job,ipos,a,ja,ia,ao,jao,iao) \@\\
 \mbox{}\verb@ (csrcsc_(n,job,ipos,a,ja,ia,ao,jao,iao))@\\

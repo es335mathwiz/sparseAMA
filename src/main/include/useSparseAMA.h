@@ -1,5 +1,5 @@
 
-#line 2548 "sparseAMA.w"
+#line 3025 "sparseAMA.w"
 
 /*
  * sparseAMA.h
@@ -103,47 +103,6 @@ then signal process, which calls fn termination_handler() */
 #define TOO_MANY_LARGE_ROOTS 2010
 
 /* declare library fns used by sparseAMA */
-
-/* fortran routines get special treatment */
-/* windows format is upper case names, no underscore */
-/*6/29/10: compiled on windows with gfortran, and so underscore is indeed needed */
-/*#ifdef WIN32
-extern void DORGQR();
-extern void DNAUPD();
-extern void DNEUPD();
-extern void DGEESX();
-extern void DGEQPF();
-extern void MA50ID();
-extern void MA50AD();
-extern void MA50BD();
-extern void MA50CD();
-#define dorgqr_ DORGQR
-#define dnaupd_ DNAUPD
-#define dneupd_ DNEUPD
-#define dgeesx_ DGEESX
-#define dgeqpf_ DGEQPF
-#define ma50id_ MA50ID
-#define ma50ad_ MA50AD
-#define ma50bd_ MA50BD
-#define ma50cd_ MA50CD
-#define finite(x) _finite(x)
-*/
-/* sun format is lower case, with underscore (default in source code)
-#else
-*/
-/*
-extern void dorgqr_();
-extern void dnaupd_();
-extern void dneupd_();
-extern void dgeesx_();
-extern void dgeqpf_();
-extern void ma50id_();
-extern void ma50ad_();
-extern void ma50bd_();
-extern void ma50cd_();
-*/
-// #endif
-
 unsigned int validCSRMatrix( unsigned int numRows,double * mata,unsigned int * matj,unsigned int *mati);
 int validVector(unsigned int numRows,double * vec);
 
@@ -256,13 +215,15 @@ int dnscsr_(int *nrow,int *ncol,int* nzmax,double * dns,int * ndns,double * a,in
 void dorgqr_(int *m,int * n,int * k,double * a,int * lda,double * tau,double * work,int * lwork,int * info );
 
 void transp_(int *numRows,int *numCols,double *aMat,int *aMatj,int *aMati,int *workSpace,int *errCode);
+
+int rnrms_(int * nrow,int * nrm,double* a,int * ja,int * ia,double * diag);
+
+void ma50cd_(int *m,int *n,int * k,int *icntl,int * np,int *trans,\
+int * lfact,double *fact,int *irnf,int *iptrl,int *iptru,\
+double *b,double *x,double *w,int *info);
+
 /*
-rnrms_
-int rnrms_(nrow, nrm, a, ja, ia, diag)
-integer *nrow, *nrm;
-doublereal *a;
-integer *ja, *ia;
-doublereal *diag;
+
 
 submat_
 int submat_(n, job, i1, i2, j1, j2, a, ja, ia, nr, nc, ao, 
@@ -349,6 +310,8 @@ ma50ad_
 ma50bd_
 ma50cd_
 */
+#define useMA50CD(m,n,k,icntl,np,trans,lfact,fact,irnf,iptrl,iptru,b,x,w,info)\
+void ma50cd_((int *)m,(int *)n,(int *)k,(int *)icntl,(int *) np,(int *)trans,(int *) lfact,(double *)fact,(int *)irnf,(int *)iptrl,(int *)iptru,(double *)b,(double *)x,(double *)w,(int *)info)
 
 
 #define sparseAMAQRD(m,n,k,a,lda,tau,work,lwork,info )\
@@ -431,7 +394,7 @@ copyToPos,job))
 (cperm_(nrow,a,ja,ia,ao,jao,iao,perm,job))
 
 #define normsByRow(nrow, nrm, a, ja, ia, diag) \
-(rnrms_(nrow, nrm, a, ja, ia, diag))
+(rnrms_((int *)nrow,(int *) nrm,(double *) a,(int *) ja,(int *) ia,(double *) diag))
 
 #define csrToCsc(n,job,ipos,a,ja,ia,ao,jao,iao) \
  (csrcsc_(n,job,ipos,a,ja,ia,ao,jao,iao))
