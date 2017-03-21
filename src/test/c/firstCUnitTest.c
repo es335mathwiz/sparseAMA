@@ -80,8 +80,6 @@ double normVec[HROWS];
 
 
 
-
-
 int init_suite1(void)
 {
 
@@ -130,6 +128,99 @@ free(rootr);free(rooti);
  * whether the expected number of bytes were written.
  */
 void testSparseAMA(void)
+{
+sparseAMA(&maxSize,
+   DISCRETE_TIME,
+   HROWS,HCOLS,LEADS,
+   hmat,hmatj,hmati,
+   newHmat,newHmatj,newHmati,
+   &aux,&rowsInQ,qmat,qmatj,qmati,
+   &essential,
+   rootr,rooti,&retCode
+   );
+     CU_ASSERT(MAXELEMSA  == maxSize)
+     CU_ASSERT(0 == retCode)
+maxSize=MAXELEMSB;
+obtainSparseReducedForm(
+  &maxSize,
+  HROWS*LEADS,(HCOLS-HROWS),qmat,qmatj,qmati,
+  bmat, bmatj, bmati
+);
+
+satisfiesLinearSystemQ (
+	&maxSize,
+   HROWS,HCOLS,LEADS,
+	hmat,hmatj,hmati,
+	&aux,
+	&rowsInQ,
+	bmat, bmatj, bmati,
+	&essential,
+	rootr,rooti,normVec
+);
+
+}
+
+int init_suite2(void)
+{
+
+double hmat2[MAXELEMSA]={-1., 0.1, 1., -0.5, -0.5, -0.5, -0.5, 1., -0.3, -1., 1., -0.2, 1.,  1.};
+unsigned int hmat2j[MAXELEMSA]=
+{7, 8, 9, 10, 15, 4, 9, 10, 3, 6, 8, 10, 6, 7};
+unsigned int hmat2i[6]={1, 6, 9, 13, 14, 15};
+
+
+double zmat2[MAXELEMSA]={-0.5, -0.5, 1., -0.3, -1., 1., -0.2, 1., 1.};
+unsigned int zmat2j[MAXELEMSA]=
+{4, 9, 10, 3, 6, 8, 10, 6, 7};
+unsigned int zmat2i[5]={1, 4, 8, 9, 10};
+
+
+
+newHmat=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));
+newHmatj=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));
+newHmati=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));
+qmat=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));
+qmatj=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));
+qmati=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));
+bmat=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));
+bmatj=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));
+bmati=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));
+rootr=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));
+rooti=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));
+rowsInQ=aux=0;
+qmati[0]=1;
+maxSize=MAXELEMSA;
+   if (NULL == (temp_file = fopen("temp.txt", "w+"))) {
+      return -1;
+   }
+   else {
+      return 0;
+   }
+}
+
+
+int clean_suite2(void)
+{
+free(newHmat);free(newHmatj);free(newHmati);
+free(qmat);free(qmatj);free(qmati);
+free(bmat);free(bmatj);free(bmati);
+free(rootr);free(rooti);
+
+
+   if (0 != fclose(temp_file)) {
+      return -1;
+   }
+   else {
+      temp_file = NULL;
+      return 0;
+   }
+}
+
+/* Simple test of sparseAMA().
+ * Writes test data to the temporary file and checks
+ * whether the expected number of bytes were written.
+ */
+void testSparseAMA2(void)
 {
 sparseAMA(&maxSize,
    DISCRETE_TIME,

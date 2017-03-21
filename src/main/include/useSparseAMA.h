@@ -1,3 +1,6 @@
+
+#line 2548 "sparseAMA.w"
+
 /*
  * sparseAMA.h
  */
@@ -36,19 +39,19 @@ then signal process, which calls fn termination_handler() */
 #define sparseAMAAssert(expression) /*do nothing*/
 #else
 /*#define sparseAMAAssert(expression)  \
-   	if(!(expression))\
-    	__sparseAMAAssert (expression, __FILE__, __LINE__);
+        if(!(expression))\
+        __sparseAMAAssert (expression, __FILE__, __LINE__);
 #define __sparseAMAAssert(expression, file, lineno)  \
-  	{printf("sparseAMAAssert: processid=%ld\n",getpid());\
-   	printf ("%s:%u: failed assertion\n", file, lineno);\
-  	printf("%s\n",lineNumberToString(lineno));\
-  	printf("violation number=%d\n",(*returnCode=lineNumberToViolation(lineno)));\
+        {printf("sparseAMAAssert: processid=%ld\n",getpid());\
+        printf ("%s:%u: failed assertion\n", file, lineno);\
+        printf("%s\n",lineNumberToString(lineno));\
+        printf("violation number=%d\n",(*returnCode=lineNumberToViolation(lineno)));\
     ignoreReturnedValue=kill(getpid(),SIGUSR2);}
 */
 #define sparseAMAAssert(expression,errcode) if(!(expression)){ \
-	   	printf ("%s:%u: failed assertion\n",__FILE__, __LINE__);\
-	  	printf("%s\n",lineNumberToString(errcode));\
-  		printf("violation number=%d\n",(*returnCode=lineNumberToViolation(errcode)));}
+                printf ("%s:%u: failed assertion\n",__FILE__, __LINE__);\
+                printf("%s\n",lineNumberToString(errcode));\
+                printf("violation number=%d\n",(*returnCode=lineNumberToViolation(errcode)));}
 #endif
 
 /* line number aliases, used by lineNumberToViolation() and lineNumberToString() */
@@ -169,14 +172,14 @@ void transp_();
 void rnrms_();
 */
 int satisfiesLinearSystemQ (
-	unsigned int *maxNumberOfHElements,
-	unsigned int hrows,unsigned int lags,	unsigned int leads,
-	double * hmat,unsigned int * hmatj,unsigned int * hmati,
-	unsigned int *  auxiliaryInitialConditions,
-	unsigned int *  rowsInQ,
-	double * bmat, unsigned int * bmatj, unsigned int * bmati,
-	unsigned int * essential,
-	double * rootr,double * rooti,double * normVec
+        unsigned int *maxNumberOfHElements,
+        unsigned int hrows,unsigned int lags,   unsigned int leads,
+        double * hmat,unsigned int * hmatj,unsigned int * hmati,
+        unsigned int *  auxiliaryInitialConditions,
+        unsigned int *  rowsInQ,
+        double * bmat, unsigned int * bmatj, unsigned int * bmati,
+        unsigned int * essential,
+        double * rootr,double * rooti,double * normVec
 );
 void obtainSparseReducedForm(
 
@@ -201,19 +204,19 @@ int deleteRow (int targetRow, double *mat, int nrows, int ncols) ;
 any fn using this macro must declare static int maxHElementsEncountered=0; */
 #ifdef DEBUG
 #define bumpSparseAMA(potentialMaxValue) \
-   	if(potentialMaxValue>maxHElementsEncountered) \
-	maxHElementsEncountered=(unsigned int))(potentialMaxValue);	\	printf("bumpSparseAMA stuff(%d,%d) at line %d\n", \
-	potentialMaxValue,maxHElementsEncountered,__LINE__);
+        if(potentialMaxValue>maxHElementsEncountered) \
+        maxHElementsEncountered=(unsigned int))(potentialMaxValue);     \       printf("bumpSparseAMA stuff(%d,%d) at line %d\n", \
+        potentialMaxValue,maxHElementsEncountered,__LINE__);
 #else
 #define bumpSparseAMA(potentialMaxValue) \
    if(potentialMaxValue>maxHElementsEncountered) \
      maxHElementsEncountered=(unsigned int)(potentialMaxValue);
 #endif
 #define wordyBumpSparseAMA(potentialMaxValue) \
-   	if(potentialMaxValue>maxHElementsEncountered) \
+        if(potentialMaxValue>maxHElementsEncountered) \
 maxHElementsEncountered=(unsigned int)(potentialMaxValue);\
-	printf("bumpSparseAMA stuff(%d,%d) at line %d\n",\
-	potentialMaxValue,maxHElementsEncountered,__LINE__);
+        printf("bumpSparseAMA stuff(%d,%d) at line %d\n",\
+        potentialMaxValue,maxHElementsEncountered,__LINE__);
 
 void free(void * ptr);
 void cPrintMatrixNonZero(unsigned int nrows,unsigned int ncols,double *matrix,double zerotol);
@@ -224,7 +227,7 @@ void cPrintMatrix(unsigned int nrows,unsigned int ncols,double * matrix);
 
 
 void sparseAMA (
-unsigned int *maxNumberOfHElements,		
+unsigned int *maxNumberOfHElements,             
     unsigned int discreteTime,
     unsigned int hrows,unsigned int hcols,
     unsigned int leads,
@@ -236,11 +239,11 @@ unsigned int *maxNumberOfHElements,
     unsigned int * essential,
     double * rootr,double * rooti,
     unsigned int *returnCode
-		);
+                );
 int aplb_(int * nrow, int * ncol, int * job, double * a, int * ja, int * ia, double * b, int * jb, int * ib, double *c, int * jc, int * ic, 
-	int * nzmax, int * iw, int * ierr);
+        int * nzmax, int * iw, int * ierr);
 int amub_(int * nrow, int * ncol, int * job, double * a, int * ja, int * ia, double * b, int * jb, int * ib, double *c, int * jc, int * ic, 
-	int * nzmax, int * iw, int * ierr);
+        int * nzmax, int * iw, int * ierr);
 int diamua_(int * nrow,  int * job, double * a, int * ja, int * ia, double * diag, double *b, int * jb, int * ib); 
 
 int csrdns_(int* nrow,int* ncol,double* a,int * ja,int * ia,double * dns,int * ndns, int* ierr);
@@ -263,7 +266,7 @@ doublereal *diag;
 
 submat_
 int submat_(n, job, i1, i2, j1, j2, a, ja, ia, nr, nc, ao, 
-	jao, iao)
+        jao, iao)
 
 integer *n;
 integer *job, *i1, *i2, *j1, *j2;
@@ -305,7 +308,7 @@ doublereal *diag;
 
 getdia_
 int getdia_(nrow, ncol, job, a, ja, ia, len, diag, idiag, 
-	ioff)
+        ioff)
 integer *nrow, *ncol, *job;
 doublereal *a;
 integer *ja, *ia, *len;
@@ -456,6 +459,8 @@ copyToPos,job))
  *  Created on: Jun 4, 2013
  *      Author: m1gsa00
  */
+
+
 
 
 
