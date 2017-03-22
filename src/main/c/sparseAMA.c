@@ -1233,12 +1233,12 @@ static unsigned int useArpack(
 /* Fortran calls in Win32 require hidden args for string length */
 /* strings are char arrays, so don't take addresses when calling */
 /* #ifdef WIN32
-        dnaupd_( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
+        useDNAUPD( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
                 iparam, ipntr, workd, workl, &lworkl, &info
         );
 */
 //#else
-        dnaupd_( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
+        useDNAUPD( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
                 iparam, ipntr, workd, workl, &lworkl, &info
         );
 
@@ -1262,12 +1262,12 @@ static unsigned int useArpack(
 /* Fortran calls in Win32 require hidden args for string length */
 /* strings are char arrays, so don't take addresses when calling */
 /* #ifdef WIN32
-            dnaupd_( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
+            useDNAUPD( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
                 iparam, ipntr, workd, workl, &lworkl, &info
             );
 */
 // #else
-            dnaupd_( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
+            useDNAUPD( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
                 iparam, ipntr, workd, workl, &lworkl, &info
             );
 // #endif
@@ -1285,7 +1285,7 @@ static unsigned int useArpack(
 /* Fortran calls in Win32 require hidden args for string length */
 /* strings are char arrays, so don't take addresses when calling */
 /*#ifdef WIN32
-        dneupd_( &rvec, huhmat, ONE, select, rootr, rooti, spanVecs, &ldv,
+        useDNEUPD( &rvec, huhmat, ONE, select, rootr, rooti, spanVecs, &ldv,
                  &sigmar, &sigmai, workev, bmat, ONE, &maxn, which, TWO, &maxnev, &tol,
                  resid, &maxncv, spanVecs, &ldv, iparam, ipntr, workd, workl,
                  &lworkl, &info
@@ -1295,7 +1295,7 @@ static unsigned int useArpack(
 
 /*              printf ("calling dneupd, tol=%e\n", tol) ;*/
 
-        dneupd_( &rvec, huhmat, select, rootr, rooti, spanVecs, &ldv,
+        useDNEUPD( &rvec, huhmat, select, rootr, rooti, spanVecs, &ldv,
                  &sigmar, &sigmai, workev, bmat, &maxn, which, &maxnev, &tol,
                  resid, &maxncv, spanVecs, &ldv, iparam, ipntr, workd, workl,
                  &lworkl, &info
@@ -1599,8 +1599,8 @@ static unsigned int augmentQmatWithInvariantSpaceVectors (
                         dropSmallElements(&nroot,&job,&ztol,&len,a,ja,ia,a,ja,ia,&ierr);
 
                         /* transpose eigenvectors (not in place).  matrix won't be square, because we are only
-                        computing a subset of eigenvectors, so use csrToCscRectangular */
-                        csrToCscRectangular(&nroot,&nroot,&job,&job,a,ja,ia,ta,tja,tia);
+                        computing a subset of eigenvectors, so use useCSRCSC2 */
+                        useCSRCSC2(&nroot,&nroot,&job,&job,a,ja,ia,ta,tja,tia);
 
                 /* compute eigenvectors, eigenvalues using dgeesx (nonsparse, computes all eigenvectors) */
                 } else {
@@ -1613,7 +1613,7 @@ static unsigned int augmentQmatWithInvariantSpaceVectors (
 /* Fortran calls from C in Win32 require extra args for string length */
 /* nb strings are single chars, so take address when calling */
 /*#ifdef WIN32
-                                dgeesx_(
+                                useDGEESX(
                                 &jobvs,ONE,&sort,ONE,discreteSelect,&sense,ONE,&nroot,damat,&nroot,
                                 &sdim,rootr,rooti,
                                 beyondQmat,&nroot,&rconde,&rcondv,
@@ -1621,7 +1621,7 @@ static unsigned int augmentQmatWithInvariantSpaceVectors (
                                 &info
                                 );
 #else */
-                                dgeesx_(
+                                useDGEESX(
                                 &jobvs,&sort,discreteSelect,&sense,&nroot,damat,&nroot,
                                 &sdim,rootr,rooti,
                                 beyondQmat,&nroot,&rconde,&rcondv,
@@ -1633,14 +1633,14 @@ static unsigned int augmentQmatWithInvariantSpaceVectors (
 /* Fortran calls from C in Win32 require extra args for string length */
 /* nb strings are single chars, so take address when calling */
 /*#ifdef WIN32
-                                dgeesx_(
+                                useDGEESX(
                                 &jobvs,ONE,&sort,ONE,continuousSelect,&sense,ONE,&nroot,damat,&nroot,
                                 &sdim,rootr,rooti,
                                 beyondQmat,&nroot,&rconde,&rcondv,
                                 work,&lwork,anotheriwork,&liwork,bwork,
                                 &info);
 #else */
-                                dgeesx_(
+                                useDGEESX(
                                 &jobvs,&sort,continuousSelect,&sense,&nroot,damat,&nroot,
                                 &sdim,rootr,rooti,
                                 beyondQmat,&nroot,&rconde,&rcondv,
@@ -1902,7 +1902,7 @@ void obtainSparseReducedForm(
         dropSmallElements(&cColumns,&aOne,&aSmallDouble,&nzmax,tb,jtb,itb,tb,jtb,itb,&ierr);
         bumpSparseAMA(itb[cColumns]-itb[0]);
         if(ierr!=0){printf("*************ran out of space****************\n");return;}
-        csrToCscRectangular(&cColumns,&qrows,&aOne,&aOne,tb,jtb,itb,bmat,bmatj,bmati);
+        useCSRCSC2(&cColumns,&qrows,&aOne,&aOne,tb,jtb,itb,bmat,bmatj,bmati);
         /*change sign*/
         for(i=0;i<bmati[qrows]-bmati[0];i++)bmat[i]=(-1)*bmat[i];
 

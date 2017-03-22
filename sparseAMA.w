@@ -1783,12 +1783,12 @@ static unsigned int useArpack(
 /* Fortran calls in Win32 require hidden args for string length */
 /* strings are char arrays, so don't take addresses when calling */
 /* #ifdef WIN32
-	dnaupd_( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
+	useDNAUPD( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
 		iparam, ipntr, workd, workl, &lworkl, &info
 	);
 */
 //#else
-	dnaupd_( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
+	useDNAUPD( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
 		iparam, ipntr, workd, workl, &lworkl, &info
 	);
 
@@ -1812,12 +1812,12 @@ static unsigned int useArpack(
 /* Fortran calls in Win32 require hidden args for string length */
 /* strings are char arrays, so don't take addresses when calling */
 /* #ifdef WIN32
-	    dnaupd_( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
+	    useDNAUPD( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
 	    	iparam, ipntr, workd, workl, &lworkl, &info
 	    );
 */
 // #else
-	    dnaupd_( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
+	    useDNAUPD( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
 	    	iparam, ipntr, workd, workl, &lworkl, &info
 	    );
 // #endif
@@ -1835,7 +1835,7 @@ static unsigned int useArpack(
 /* Fortran calls in Win32 require hidden args for string length */
 /* strings are char arrays, so don't take addresses when calling */
 /*#ifdef WIN32
-	dneupd_( &rvec, huhmat, ONE, select, rootr, rooti, spanVecs, &ldv,
+	useDNEUPD( &rvec, huhmat, ONE, select, rootr, rooti, spanVecs, &ldv,
 	         &sigmar, &sigmai, workev, bmat, ONE, &maxn, which, TWO, &maxnev, &tol,
 	         resid, &maxncv, spanVecs, &ldv, iparam, ipntr, workd, workl,
 	         &lworkl, &info
@@ -1845,7 +1845,7 @@ static unsigned int useArpack(
 
 /*		printf ("calling dneupd, tol=%e\n", tol) ;*/
 
-	dneupd_( &rvec, huhmat, select, rootr, rooti, spanVecs, &ldv,
+	useDNEUPD( &rvec, huhmat, select, rootr, rooti, spanVecs, &ldv,
 	         &sigmar, &sigmai, workev, bmat, &maxn, which, &maxnev, &tol,
 	         resid, &maxncv, spanVecs, &ldv, iparam, ipntr, workd, workl,
 	         &lworkl, &info
@@ -2149,8 +2149,8 @@ static unsigned int augmentQmatWithInvariantSpaceVectors (
 			dropSmallElements(&nroot,&job,&ztol,&len,a,ja,ia,a,ja,ia,&ierr);
 
 			/* transpose eigenvectors (not in place).  matrix won't be square, because we are only
-			computing a subset of eigenvectors, so use csrToCscRectangular */
-			csrToCscRectangular(&nroot,&nroot,&job,&job,a,ja,ia,ta,tja,tia);
+			computing a subset of eigenvectors, so use useCSRCSC2 */
+			useCSRCSC2(&nroot,&nroot,&job,&job,a,ja,ia,ta,tja,tia);
 
 		/* compute eigenvectors, eigenvalues using dgeesx (nonsparse, computes all eigenvectors) */
 		} else {
@@ -2163,7 +2163,7 @@ static unsigned int augmentQmatWithInvariantSpaceVectors (
 /* Fortran calls from C in Win32 require extra args for string length */
 /* nb strings are single chars, so take address when calling */
 /*#ifdef WIN32
-			   	dgeesx_(
+			   	useDGEESX(
 			        &jobvs,ONE,&sort,ONE,discreteSelect,&sense,ONE,&nroot,damat,&nroot,
 			        &sdim,rootr,rooti,
 			        beyondQmat,&nroot,&rconde,&rcondv,
@@ -2171,7 +2171,7 @@ static unsigned int augmentQmatWithInvariantSpaceVectors (
 			        &info
 				);
 #else */
-			   	dgeesx_(
+			   	useDGEESX(
 			        &jobvs,&sort,discreteSelect,&sense,&nroot,damat,&nroot,
 			        &sdim,rootr,rooti,
 			        beyondQmat,&nroot,&rconde,&rcondv,
@@ -2183,14 +2183,14 @@ static unsigned int augmentQmatWithInvariantSpaceVectors (
 /* Fortran calls from C in Win32 require extra args for string length */
 /* nb strings are single chars, so take address when calling */
 /*#ifdef WIN32
-		   		dgeesx_(
+		   		useDGEESX(
 			        &jobvs,ONE,&sort,ONE,continuousSelect,&sense,ONE,&nroot,damat,&nroot,
 			        &sdim,rootr,rooti,
 			        beyondQmat,&nroot,&rconde,&rcondv,
 			        work,&lwork,anotheriwork,&liwork,bwork,
 			        &info);
 #else */
-		   		dgeesx_(
+		   		useDGEESX(
 			        &jobvs,&sort,continuousSelect,&sense,&nroot,damat,&nroot,
 			        &sdim,rootr,rooti,
 			        beyondQmat,&nroot,&rconde,&rcondv,
@@ -2452,7 +2452,7 @@ void obtainSparseReducedForm(
 	dropSmallElements(&cColumns,&aOne,&aSmallDouble,&nzmax,tb,jtb,itb,tb,jtb,itb,&ierr);
 	bumpSparseAMA(itb[cColumns]-itb[0]);
 	if(ierr!=0){printf("*************ran out of space****************\n");return;}
-	csrToCscRectangular(&cColumns,&qrows,&aOne,&aOne,tb,jtb,itb,bmat,bmatj,bmati);
+	useCSRCSC2(&cColumns,&qrows,&aOne,&aOne,tb,jtb,itb,bmat,bmatj,bmati);
 	/*change sign*/
 	for(i=0;i<bmati[qrows]-bmati[0];i++)bmat[i]=(-1)*bmat[i];
 @}
@@ -3229,6 +3229,8 @@ int diamua_(int * nrow,  int * job, double * a, int * ja, int * ia, double * dia
 
 int csrdns_(int* nrow,int* ncol,double* a,int * ja,int * ia,double * dns,int * ndns, int* ierr);
 
+int csrcsc_(int *n, int *job, int * ipos, double * a, int * ja, int * ia, double * ao, int * jao, int * iao);
+
 int getu_(int *n, double *a,int *ja,int *ia,double *ao,int *jao,int* iao);
 
 int dnscsr_(int *nrow,int *ncol,int* nzmax,double * dns,int * ndns,double * a,int * ja,int * ia,int * ierr);
@@ -3247,6 +3249,10 @@ double *b,double *x,double *w,int *info);
 void ma50bd_(int *M,int *N,int *NE,int *JOB,double*AA,int *IRNA,int *IPTRA,double*CNTL,int *ICNTL,int *IP,int *IQ,int *NP,int *LFACT,double*FACT,int *IRNF,int *IPTRL,int *IPTRU,double*W,int *IW,int *INFO,double*RINFO);
 
 void ma50ad_(int *M,int *N,int *NE,int *LA,double *A,int *IRN,int *JCN,int *IQ,double *CNTL,int *ICNTL,int *IP,int *NP,int*JFIRST,int *LENR,int *LASTR,int *NEXTR,int *IW,int *IFIRST,int *LENC,int *LASTC,int *NEXTC,int *INFO,double *RINFO);
+
+void ma50id_(double * CNTL,int *ICNTL);
+
+
 /*
 
 
@@ -3320,21 +3326,48 @@ csrcsc2_
 int csrcsc2_();
     csrcsc2_(n, n, job, ipos, &a[1], &ja[1], &ia[1], &ao[1], &jao[1], &iao[1])
 
-dgeesx_
 
-csrcsc_
-int csrcsc_(n, job, ipos, a, ja, ia, ao, jao, iao)
-integer *n, *job, *ipos;
-doublereal *a;
-integer *ja, *ia;
-doublereal *ao;
-integer *jao, *iao;
 
-ma50id_
-ma50ad_
-ma50bd_
-ma50cd_
+
 */
+int amux_(int * n,double * x,double *  y,double *  a,int *  ja,int *  ia);
+
+
+void dnaupd_(int * IDO,char *  BMAT,int *  N,char * WHICH,int * NEV,double * TOL,double * RESID,int * NCV,double * V,int* LDV,int * IPARAM,int * IPNTR,double * WORKD,double * WORKL, int *  LWORKL,int * INFO );
+
+#define useDNAUPD(IDO,  BMAT,  N, WHICH, NEV, TOL, RESID, NCV, V, LDV, IPARAM, IPNTR, WORKD, WORKL,  LWORKL, INFO )\
+(dnaupd_((int *) IDO,(char *)  BMAT,(int *)  N,(char *) WHICH,(int *) NEV,(double *) TOL,(double *) RESID,(int *) NCV,(double *) V,(int*) LDV,(int *) IPARAM,(int *) IPNTR,(double *) WORKD,(double *) WORKL,( int *)  LWORKL,(int *) INFO ))
+
+
+void dneupd_(int * RVEC,char * HOWMNY,int * SELECT,double * DR,double * DI,double * Z,int * LDZ,double * SIGMAR,double * SIGMAI, double * WORKEV,char *  BMAT,int *  N,char * WHICH,int * NEV,double * TOL,double * RESID,int * NCV,double * V,int* LDV,int * IPARAM,int * IPNTR,double * WORKD,double * WORKL, int *  LWORKL,int * INFO );
+
+#define useDNEUPD(RVEC, HOWMNY, SELECT, DR, DI, Z, LDZ, SIGMAR, SIGMAI, WORKEV,  BMAT,  N, WHICH, NEV, TOL, RESID, NCV, V, LDV, IPARAM, IPNTR, WORKD, WORKL,  LWORKL, INFO )\
+(dneupd_((int *) RVEC,(char *) HOWMNY,(int *) SELECT,(double *) DR,(double *) DI,(double *) Z,(int *) LDZ,(double *) SIGMAR,(double *) SIGMAI,( double *) WORKEV,(char *)  BMAT,(int *)  N,(char *) WHICH,(int *) NEV,(double *) TOL,(double *) RESID,(int *) NCV,(double *) V,(int*) LDV,(int *) IPARAM,(int *) IPNTR,(double *) WORKD,(double *) WORKL,( int *)  LWORKL,(int *) INFO ))
+
+int submat_(int *n, int *job,int * i1,int * i2,int * j1,int * j2,double * a,int * ja,int * ia,int * nr,int * nc,double * ao, int *	jao,int * iao);
+
+int rperm_(int *nrow,double * a, int *ja, int *ia, double *ao, int *jao, int *iao, int *perm, int *job);
+
+int filter_(int *n, int *job, double * drptol,double * a, int *ja, int *ia,double * b, int *jb, int *ib, int *len, int *ierr);
+
+int usol_(int* numRows,double *xVec,double *yVec,double *aMat,int*aMatj,int*aMati);
+
+int copmat_(int *nrow,double * a, int *ja, int *ia,double * ao, int *jao, int *iao, int *ipos, int *job);
+
+int cnrms_(int*nrow, int *nrm, double *a, int *ja, int * ia,double * diag);
+
+int getdia_(int* nrow, int*ncol, int*job,double * a, int*ja, int*ia, int*len,double * diag, int*idiag,int*ioff);
+
+int csrcsc2_(int *n,int * n2,int * job,int * ipos,double *  a,int *  ja,int * ia,double * ao,int *  jao,int *  iao);
+
+#define  useCSRCSC2(n, n2, job, ipos,  a,  ja, ia, ao,  jao,  iao)\
+(csrcsc2_((int *)n,(int *) n2,(int *) job,(int *) ipos,(double *)  a,(int *)  ja,(int *) ia,(double *) ao,(int *)  jao,(int *)  iao))
+
+void dgeesx_(char * JOBVS,char * SORT, int *SELECT,char * SENSE,int * N,double * A, int *LDA, int *SDIM,double *WR, double *WI,double * VS, int *LDVS,double * RCONDE,double * RCONDV, double *WORK, int *LWORK,int *IWORK, int *LIWORK,int * BWORK,int * INFO );
+
+
+#define useDGEESX(JOBVS,SORT,SELECT,SENSE,N,A,LDA,SDIM,WR,WI,VS,LDVS,RCONDE,RCONDV,WORK,LWORK,IWORK,LIWORK, BWORK, INFO )\
+dgeesx_((char * )JOBVS,(char *) SORT,( int *)SELECT,(char *) SENSE,(int *) N,(double *) A,( int *)LDA,( int *)SDIM,(double *)WR,( double *)WI,(double *) VS,( int *)LDVS,(double *) RCONDE,(double *) RCONDV,( double *)WORK,( int *)LWORK,(int *)IWORK,( int *)LIWORK,(int *) BWORK,(int *) INFO )
 
 
 #define sparseAMAQRD(m,n,k,a,lda,tau,work,lwork,info )\
@@ -3370,39 +3403,25 @@ bMat,bMatj,bMati) \
 
 #define sparseMatTimesVec(numRows, \
 aMat,aMatj,aMati,xVec,yVec) \
-(amux_(numRows,xVec,yVec,aMat,aMatj,aMati))
+(amux_((int *)numRows,(double *)xVec,(double *)yVec,(double *)aMat,(int *)aMatj,(int *)aMati))
 
 #define backSolveUnitUpperTriangular(numRows, \
 aMat,aMatj,aMati,xVec,yVec) \
-(usol_(numRows,xVec,yVec,aMat,aMatj,aMati))
+(usol_((int*)numRows,(double *)xVec,(double *)yVec,(double *)aMat,(int*)aMatj,(int*)aMati))
 
-#define dropSmallElements(numRows,job,dropTolerance, \
-spaceAllocated, \
-aMat,aMatj,aMati, \
-bMat,bMatj,bMati, \
-errCode) \
-(filter_(numRows,job,dropTolerance,aMat,aMatj,aMati, \
-bMat,bMatj,bMati, \
-spaceAllocated,errCode))
+#define dropSmallElements(n,job, drptol,len, a,ja,ia, b,jb,ib,ierr)\
+(filter_((int *)n,( int *)job,( double *) drptol,(double *) a,( int *)ja,( int *)ia,(double *) b,( int *)jb,( int *)ib,( int *)len,( int *)ierr))
 
-#define extractSubmatrix(numRows,job,firstRow,lastRow, \
-firstCol,lastCol, \
-aMat,aMatj,aMati,resultingRows,resultingCols, \
-bMat,bMatj,bMati) \
-(submat_(numRows,job,firstRow,lastRow,firstCol,lastCol, \
-aMat,aMatj,aMati, resultingRows,resultingCols,\
-bMat,bMatj,bMati))
+#define extractSubmatrix(n,job, i1, i2, j1, j2, a, ja, ia, nr, nc, ao,	jao, iao)\
+(submat_((int *)n,( int *)job,(int *) i1,(int *) i2,(int *) j1,(int *) j2,(double *) a,(int *) ja,(int *) ia,(int *) nr,(int *) nc,(double *) ao,( int *)	jao,(int *) iao))
+
 
 #define inPlaceTranspose(numRows,numCols, \
 aMat,aMatj,aMati,workSpace,errCode) \
 (transp_((int *)numRows,(int *)numCols,(double *)aMat,(int *)aMatj,(int *)aMati,(int *)workSpace,(int *)errCode))
 
-#define copyMatrix(numRows,job, \
-aMat,aMatj,aMati,copyToPos, \
-bMat,bMatj,bMati) \
-(copmat_(numRows,aMat,aMatj,aMati, \
-bMat,bMatj,bMati,\
-copyToPos,job))
+#define copyMatrix(nrow,job, a,ja,ia,ipos, ao,jao,iao)\
+(copmat_((int *)nrow,(double *) a,( int *)ja,( int *)ia,(double *) ao,( int *)jao,( int *)iao,( int *)ipos,( int *)job))
 
 #define getDiagonalElements(nrow,ncol,job,a,ja,ia,len,diag,idiag,ioff)\
 (getdia_(nrow,ncol,job,a,ja,ia,len,diag,idiag,ioff))
@@ -3420,10 +3439,8 @@ copyToPos,job))
 (rnrms_((int *)nrow,(int *) nrm,(double *) a,(int *) ja,(int *) ia,(double *) diag))
 
 #define csrToCsc(n,job,ipos,a,ja,ia,ao,jao,iao) \
- (csrcsc_(n,job,ipos,a,ja,ia,ao,jao,iao))
+ (csrcsc_((int *)n,(int *)job,(int *)ipos,(double *)a,(int *)ja,(int *)ia,(double *)ao,(int *)jao,(int *)iao))
 
-#define csrToCscRectangular(n,n2,job,ipos,a,ja,ia,ao,jao,iao)\
-(csrcsc2_(n,n2,job,ipos,a,ja,ia,ao,jao,iao))
 
 #define dnsToCsr(nrow,ncol,nzmax,dns,ndns,a,ja,ia,ierr)\
 (dnscsr_((int *)nrow,(int *)ncol,(int *)nzmax,(double *)dns,(int *)ndns,(double *)a,(int *)ja,(int *)ia,(int *)ierr))
@@ -3443,7 +3460,8 @@ copyToPos,job))
 #define useMA50AD(M,N,NE,LA,A,IRN,JCN,IQ,CNTL,ICNTL,IP,NP,JFIRST,LENR,LASTR,NEXTR,IW,IFIRST,LENC,LASTC,NEXTC,INFO,RINFO)\
 ma50ad_((int *)M,(int *)N,(int *)NE,(int *)LA,(double *)A,(int *)IRN,(int *)JCN,(int *)IQ,(double *)CNTL,(int *)ICNTL,(int *)IP,(int *)NP,(int*)JFIRST,(int *)LENR,(int *)LASTR,(int *)NEXTR,(int *)IW,(int *)IFIRST,(int *)LENC,(int *)LASTC,(int *)NEXTC,(int *)INFO,(double *)RINFO)
 
-
+#define useMA50ID(CNTL,ICNTL)\
+ma50id_((double *) CNTL,(int *)ICNTL)
 
 /*LAPACK -- dgeqp3*/
 

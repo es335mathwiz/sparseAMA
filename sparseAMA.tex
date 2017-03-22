@@ -1844,12 +1844,12 @@ routine to provide support.
 \mbox{}\verb@/* Fortran calls in Win32 require hidden args for string length */@\\
 \mbox{}\verb@/* strings are char arrays, so don't take addresses when calling */@\\
 \mbox{}\verb@/* #ifdef WIN32@\\
-\mbox{}\verb@        dnaupd_( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,@\\
+\mbox{}\verb@        useDNAUPD( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,@\\
 \mbox{}\verb@                iparam, ipntr, workd, workl, &lworkl, &info@\\
 \mbox{}\verb@        );@\\
 \mbox{}\verb@*/@\\
 \mbox{}\verb@//#else@\\
-\mbox{}\verb@        dnaupd_( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,@\\
+\mbox{}\verb@        useDNAUPD( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,@\\
 \mbox{}\verb@                iparam, ipntr, workd, workl, &lworkl, &info@\\
 \mbox{}\verb@        );@\\
 \mbox{}\verb@@\\
@@ -1873,12 +1873,12 @@ routine to provide support.
 \mbox{}\verb@/* Fortran calls in Win32 require hidden args for string length */@\\
 \mbox{}\verb@/* strings are char arrays, so don't take addresses when calling */@\\
 \mbox{}\verb@/* #ifdef WIN32@\\
-\mbox{}\verb@            dnaupd_( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,@\\
+\mbox{}\verb@            useDNAUPD( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,@\\
 \mbox{}\verb@                iparam, ipntr, workd, workl, &lworkl, &info@\\
 \mbox{}\verb@            );@\\
 \mbox{}\verb@*/@\\
 \mbox{}\verb@// #else@\\
-\mbox{}\verb@            dnaupd_( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,@\\
+\mbox{}\verb@            useDNAUPD( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,@\\
 \mbox{}\verb@                iparam, ipntr, workd, workl, &lworkl, &info@\\
 \mbox{}\verb@            );@\\
 \mbox{}\verb@// #endif@\\
@@ -1896,7 +1896,7 @@ routine to provide support.
 \mbox{}\verb@/* Fortran calls in Win32 require hidden args for string length */@\\
 \mbox{}\verb@/* strings are char arrays, so don't take addresses when calling */@\\
 \mbox{}\verb@/*#ifdef WIN32@\\
-\mbox{}\verb@        dneupd_( &rvec, huhmat, ONE, select, rootr, rooti, spanVecs, &ldv,@\\
+\mbox{}\verb@        useDNEUPD( &rvec, huhmat, ONE, select, rootr, rooti, spanVecs, &ldv,@\\
 \mbox{}\verb@                 &sigmar, &sigmai, workev, bmat, ONE, &maxn, which, TWO, &maxnev, &tol,@\\
 \mbox{}\verb@                 resid, &maxncv, spanVecs, &ldv, iparam, ipntr, workd, workl,@\\
 \mbox{}\verb@                 &lworkl, &info@\\
@@ -1906,7 +1906,7 @@ routine to provide support.
 \mbox{}\verb@@\\
 \mbox{}\verb@/*              printf ("calling dneupd, tol=%e\n", tol) ;*/@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@        dneupd_( &rvec, huhmat, select, rootr, rooti, spanVecs, &ldv,@\\
+\mbox{}\verb@        useDNEUPD( &rvec, huhmat, select, rootr, rooti, spanVecs, &ldv,@\\
 \mbox{}\verb@                 &sigmar, &sigmai, workev, bmat, &maxn, which, &maxnev, &tol,@\\
 \mbox{}\verb@                 resid, &maxncv, spanVecs, &ldv, iparam, ipntr, workd, workl,@\\
 \mbox{}\verb@                 &lworkl, &info@\\
@@ -2210,8 +2210,8 @@ routine to provide support.
 \mbox{}\verb@                        dropSmallElements(&nroot,&job,&ztol,&len,a,ja,ia,a,ja,ia,&ierr);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@                        /* transpose eigenvectors (not in place).  matrix won't be square, because we are only@\\
-\mbox{}\verb@                        computing a subset of eigenvectors, so use csrToCscRectangular */@\\
-\mbox{}\verb@                        csrToCscRectangular(&nroot,&nroot,&job,&job,a,ja,ia,ta,tja,tia);@\\
+\mbox{}\verb@                        computing a subset of eigenvectors, so use useCSRCSC2 */@\\
+\mbox{}\verb@                        useCSRCSC2(&nroot,&nroot,&job,&job,a,ja,ia,ta,tja,tia);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@                /* compute eigenvectors, eigenvalues using dgeesx (nonsparse, computes all eigenvectors) */@\\
 \mbox{}\verb@                } else {@\\
@@ -2224,7 +2224,7 @@ routine to provide support.
 \mbox{}\verb@/* Fortran calls from C in Win32 require extra args for string length */@\\
 \mbox{}\verb@/* nb strings are single chars, so take address when calling */@\\
 \mbox{}\verb@/*#ifdef WIN32@\\
-\mbox{}\verb@                                dgeesx_(@\\
+\mbox{}\verb@                                useDGEESX(@\\
 \mbox{}\verb@                                &jobvs,ONE,&sort,ONE,discreteSelect,&sense,ONE,&nroot,damat,&nroot,@\\
 \mbox{}\verb@                                &sdim,rootr,rooti,@\\
 \mbox{}\verb@                                beyondQmat,&nroot,&rconde,&rcondv,@\\
@@ -2232,7 +2232,7 @@ routine to provide support.
 \mbox{}\verb@                                &info@\\
 \mbox{}\verb@                                );@\\
 \mbox{}\verb@#else */@\\
-\mbox{}\verb@                                dgeesx_(@\\
+\mbox{}\verb@                                useDGEESX(@\\
 \mbox{}\verb@                                &jobvs,&sort,discreteSelect,&sense,&nroot,damat,&nroot,@\\
 \mbox{}\verb@                                &sdim,rootr,rooti,@\\
 \mbox{}\verb@                                beyondQmat,&nroot,&rconde,&rcondv,@\\
@@ -2244,14 +2244,14 @@ routine to provide support.
 \mbox{}\verb@/* Fortran calls from C in Win32 require extra args for string length */@\\
 \mbox{}\verb@/* nb strings are single chars, so take address when calling */@\\
 \mbox{}\verb@/*#ifdef WIN32@\\
-\mbox{}\verb@                                dgeesx_(@\\
+\mbox{}\verb@                                useDGEESX(@\\
 \mbox{}\verb@                                &jobvs,ONE,&sort,ONE,continuousSelect,&sense,ONE,&nroot,damat,&nroot,@\\
 \mbox{}\verb@                                &sdim,rootr,rooti,@\\
 \mbox{}\verb@                                beyondQmat,&nroot,&rconde,&rcondv,@\\
 \mbox{}\verb@                                work,&lwork,anotheriwork,&liwork,bwork,@\\
 \mbox{}\verb@                                &info);@\\
 \mbox{}\verb@#else */@\\
-\mbox{}\verb@                                dgeesx_(@\\
+\mbox{}\verb@                                useDGEESX(@\\
 \mbox{}\verb@                                &jobvs,&sort,continuousSelect,&sense,&nroot,damat,&nroot,@\\
 \mbox{}\verb@                                &sdim,rootr,rooti,@\\
 \mbox{}\verb@                                beyondQmat,&nroot,&rconde,&rcondv,@\\
@@ -2513,7 +2513,7 @@ routine to provide support.
 \mbox{}\verb@        dropSmallElements(&cColumns,&aOne,&aSmallDouble,&nzmax,tb,jtb,itb,tb,jtb,itb,&ierr);@\\
 \mbox{}\verb@        bumpSparseAMA(itb[cColumns]-itb[0]);@\\
 \mbox{}\verb@        if(ierr!=0){printf("*************ran out of space****************\n");return;}@\\
-\mbox{}\verb@        csrToCscRectangular(&cColumns,&qrows,&aOne,&aOne,tb,jtb,itb,bmat,bmatj,bmati);@\\
+\mbox{}\verb@        useCSRCSC2(&cColumns,&qrows,&aOne,&aOne,tb,jtb,itb,bmat,bmatj,bmati);@\\
 \mbox{}\verb@        /*change sign*/@\\
 \mbox{}\verb@        for(i=0;i<bmati[qrows]-bmati[0];i++)bmat[i]=(-1)*bmat[i];@\\
 \mbox{}\verb@@{\NWsep}
@@ -3318,6 +3318,8 @@ routine to provide support.
 \mbox{}\verb@@\\
 \mbox{}\verb@int csrdns_(int* nrow,int* ncol,double* a,int * ja,int * ia,double * dns,int * ndns, int* ierr);@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@int csrcsc_(int *n, int *job, int * ipos, double * a, int * ja, int * ia, double * ao, int * jao, int * iao);@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@int getu_(int *n, double *a,int *ja,int *ia,double *ao,int *jao,int* iao);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@int dnscsr_(int *nrow,int *ncol,int* nzmax,double * dns,int * ndns,double * a,int * ja,int * ia,int * ierr);@\\
@@ -3336,6 +3338,10 @@ routine to provide support.
 \mbox{}\verb@void ma50bd_(int *M,int *N,int *NE,int *JOB,double*AA,int *IRNA,int *IPTRA,double*CNTL,int *ICNTL,int *IP,int *IQ,int *NP,int *LFACT,double*FACT,int *IRNF,int *IPTRL,int *IPTRU,double*W,int *IW,int *INFO,double*RINFO);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@void ma50ad_(int *M,int *N,int *NE,int *LA,double *A,int *IRN,int *JCN,int *IQ,double *CNTL,int *ICNTL,int *IP,int *NP,int*JFIRST,int *LENR,int *LASTR,int *NEXTR,int *IW,int *IFIRST,int *LENC,int *LASTC,int *NEXTC,int *INFO,double *RINFO);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@void ma50id_(double * CNTL,int *ICNTL);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@/*@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
@@ -3409,21 +3415,48 @@ routine to provide support.
 \mbox{}\verb@int csrcsc2_();@\\
 \mbox{}\verb@    csrcsc2_(n, n, job, ipos, &a[1], &ja[1], &ia[1], &ao[1], &jao[1], &iao[1])@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@dgeesx_@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@csrcsc_@\\
-\mbox{}\verb@int csrcsc_(n, job, ipos, a, ja, ia, ao, jao, iao)@\\
-\mbox{}\verb@integer *n, *job, *ipos;@\\
-\mbox{}\verb@doublereal *a;@\\
-\mbox{}\verb@integer *ja, *ia;@\\
-\mbox{}\verb@doublereal *ao;@\\
-\mbox{}\verb@integer *jao, *iao;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@ma50id_@\\
-\mbox{}\verb@ma50ad_@\\
-\mbox{}\verb@ma50bd_@\\
-\mbox{}\verb@ma50cd_@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@*/@\\
+\mbox{}\verb@int amux_(int * n,double * x,double *  y,double *  a,int *  ja,int *  ia);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@void dnaupd_(int * IDO,char *  BMAT,int *  N,char * WHICH,int * NEV,double * TOL,double * RESID,int * NCV,double * V,int* LDV,int * IPARAM,int * IPNTR,double * WORKD,double * WORKL, int *  LWORKL,int * INFO );@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define useDNAUPD(IDO,  BMAT,  N, WHICH, NEV, TOL, RESID, NCV, V, LDV, IPARAM, IPNTR, WORKD, WORKL,  LWORKL, INFO )\@\\
+\mbox{}\verb@(dnaupd_((int *) IDO,(char *)  BMAT,(int *)  N,(char *) WHICH,(int *) NEV,(double *) TOL,(double *) RESID,(int *) NCV,(double *) V,(int*) LDV,(int *) IPARAM,(int *) IPNTR,(double *) WORKD,(double *) WORKL,( int *)  LWORKL,(int *) INFO ))@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@void dneupd_(int * RVEC,char * HOWMNY,int * SELECT,double * DR,double * DI,double * Z,int * LDZ,double * SIGMAR,double * SIGMAI, double * WORKEV,char *  BMAT,int *  N,char * WHICH,int * NEV,double * TOL,double * RESID,int * NCV,double * V,int* LDV,int * IPARAM,int * IPNTR,double * WORKD,double * WORKL, int *  LWORKL,int * INFO );@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define useDNEUPD(RVEC, HOWMNY, SELECT, DR, DI, Z, LDZ, SIGMAR, SIGMAI, WORKEV,  BMAT,  N, WHICH, NEV, TOL, RESID, NCV, V, LDV, IPARAM, IPNTR, WORKD, WORKL,  LWORKL, INFO )\@\\
+\mbox{}\verb@(dneupd_((int *) RVEC,(char *) HOWMNY,(int *) SELECT,(double *) DR,(double *) DI,(double *) Z,(int *) LDZ,(double *) SIGMAR,(double *) SIGMAI,( double *) WORKEV,(char *)  BMAT,(int *)  N,(char *) WHICH,(int *) NEV,(double *) TOL,(double *) RESID,(int *) NCV,(double *) V,(int*) LDV,(int *) IPARAM,(int *) IPNTR,(double *) WORKD,(double *) WORKL,( int *)  LWORKL,(int *) INFO ))@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@int submat_(int *n, int *job,int * i1,int * i2,int * j1,int * j2,double * a,int * ja,int * ia,int * nr,int * nc,double * ao, int *      jao,int * iao);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@int rperm_(int *nrow,double * a, int *ja, int *ia, double *ao, int *jao, int *iao, int *perm, int *job);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@int filter_(int *n, int *job, double * drptol,double * a, int *ja, int *ia,double * b, int *jb, int *ib, int *len, int *ierr);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@int usol_(int* numRows,double *xVec,double *yVec,double *aMat,int*aMatj,int*aMati);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@int copmat_(int *nrow,double * a, int *ja, int *ia,double * ao, int *jao, int *iao, int *ipos, int *job);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@int cnrms_(int*nrow, int *nrm, double *a, int *ja, int * ia,double * diag);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@int getdia_(int* nrow, int*ncol, int*job,double * a, int*ja, int*ia, int*len,double * diag, int*idiag,int*ioff);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@int csrcsc2_(int *n,int * n2,int * job,int * ipos,double *  a,int *  ja,int * ia,double * ao,int *  jao,int *  iao);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define  useCSRCSC2(n, n2, job, ipos,  a,  ja, ia, ao,  jao,  iao)\@\\
+\mbox{}\verb@(csrcsc2_((int *)n,(int *) n2,(int *) job,(int *) ipos,(double *)  a,(int *)  ja,(int *) ia,(double *) ao,(int *)  jao,(int *)  iao))@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@void dgeesx_(char * JOBVS,char * SORT, int *SELECT,char * SENSE,int * N,double * A, int *LDA, int *SDIM,double *WR, double *WI,double * VS, int *LDVS,double * RCONDE,double * RCONDV, double *WORK, int *LWORK,int *IWORK, int *LIWORK,int * BWORK,int * INFO );@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define useDGEESX(JOBVS,SORT,SELECT,SENSE,N,A,LDA,SDIM,WR,WI,VS,LDVS,RCONDE,RCONDV,WORK,LWORK,IWORK,LIWORK, BWORK, INFO )\@\\
+\mbox{}\verb@dgeesx_((char * )JOBVS,(char *) SORT,( int *)SELECT,(char *) SENSE,(int *) N,(double *) A,( int *)LDA,( int *)SDIM,(double *)WR,( double *)WI,(double *) VS,( int *)LDVS,(double *) RCONDE,(double *) RCONDV,( double *)WORK,( int *)LWORK,(int *)IWORK,( int *)LIWORK,(int *) BWORK,(int *) INFO )@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@#define sparseAMAQRD(m,n,k,a,lda,tau,work,lwork,info )\@\\
@@ -3459,39 +3492,25 @@ routine to provide support.
 \mbox{}\verb@@\\
 \mbox{}\verb@#define sparseMatTimesVec(numRows, \@\\
 \mbox{}\verb@aMat,aMatj,aMati,xVec,yVec) \@\\
-\mbox{}\verb@(amux_(numRows,xVec,yVec,aMat,aMatj,aMati))@\\
+\mbox{}\verb@(amux_((int *)numRows,(double *)xVec,(double *)yVec,(double *)aMat,(int *)aMatj,(int *)aMati))@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@#define backSolveUnitUpperTriangular(numRows, \@\\
 \mbox{}\verb@aMat,aMatj,aMati,xVec,yVec) \@\\
-\mbox{}\verb@(usol_(numRows,xVec,yVec,aMat,aMatj,aMati))@\\
+\mbox{}\verb@(usol_((int*)numRows,(double *)xVec,(double *)yVec,(double *)aMat,(int*)aMatj,(int*)aMati))@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@#define dropSmallElements(numRows,job,dropTolerance, \@\\
-\mbox{}\verb@spaceAllocated, \@\\
-\mbox{}\verb@aMat,aMatj,aMati, \@\\
-\mbox{}\verb@bMat,bMatj,bMati, \@\\
-\mbox{}\verb@errCode) \@\\
-\mbox{}\verb@(filter_(numRows,job,dropTolerance,aMat,aMatj,aMati, \@\\
-\mbox{}\verb@bMat,bMatj,bMati, \@\\
-\mbox{}\verb@spaceAllocated,errCode))@\\
+\mbox{}\verb@#define dropSmallElements(n,job, drptol,len, a,ja,ia, b,jb,ib,ierr)\@\\
+\mbox{}\verb@(filter_((int *)n,( int *)job,( double *) drptol,(double *) a,( int *)ja,( int *)ia,(double *) b,( int *)jb,( int *)ib,( int *)len,( int *)ierr))@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@#define extractSubmatrix(numRows,job,firstRow,lastRow, \@\\
-\mbox{}\verb@firstCol,lastCol, \@\\
-\mbox{}\verb@aMat,aMatj,aMati,resultingRows,resultingCols, \@\\
-\mbox{}\verb@bMat,bMatj,bMati) \@\\
-\mbox{}\verb@(submat_(numRows,job,firstRow,lastRow,firstCol,lastCol, \@\\
-\mbox{}\verb@aMat,aMatj,aMati, resultingRows,resultingCols,\@\\
-\mbox{}\verb@bMat,bMatj,bMati))@\\
+\mbox{}\verb@#define extractSubmatrix(n,job, i1, i2, j1, j2, a, ja, ia, nr, nc, ao,  jao, iao)\@\\
+\mbox{}\verb@(submat_((int *)n,( int *)job,(int *) i1,(int *) i2,(int *) j1,(int *) j2,(double *) a,(int *) ja,(int *) ia,(int *) nr,(int *) nc,(double *) ao,( int *)       jao,(int *) iao))@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@#define inPlaceTranspose(numRows,numCols, \@\\
 \mbox{}\verb@aMat,aMatj,aMati,workSpace,errCode) \@\\
 \mbox{}\verb@(transp_((int *)numRows,(int *)numCols,(double *)aMat,(int *)aMatj,(int *)aMati,(int *)workSpace,(int *)errCode))@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@#define copyMatrix(numRows,job, \@\\
-\mbox{}\verb@aMat,aMatj,aMati,copyToPos, \@\\
-\mbox{}\verb@bMat,bMatj,bMati) \@\\
-\mbox{}\verb@(copmat_(numRows,aMat,aMatj,aMati, \@\\
-\mbox{}\verb@bMat,bMatj,bMati,\@\\
-\mbox{}\verb@copyToPos,job))@\\
+\mbox{}\verb@#define copyMatrix(nrow,job, a,ja,ia,ipos, ao,jao,iao)\@\\
+\mbox{}\verb@(copmat_((int *)nrow,(double *) a,( int *)ja,( int *)ia,(double *) ao,( int *)jao,( int *)iao,( int *)ipos,( int *)job))@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@#define getDiagonalElements(nrow,ncol,job,a,ja,ia,len,diag,idiag,ioff)\@\\
 \mbox{}\verb@(getdia_(nrow,ncol,job,a,ja,ia,len,diag,idiag,ioff))@\\
@@ -3509,10 +3528,8 @@ routine to provide support.
 \mbox{}\verb@(rnrms_((int *)nrow,(int *) nrm,(double *) a,(int *) ja,(int *) ia,(double *) diag))@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@#define csrToCsc(n,job,ipos,a,ja,ia,ao,jao,iao) \@\\
-\mbox{}\verb@ (csrcsc_(n,job,ipos,a,ja,ia,ao,jao,iao))@\\
+\mbox{}\verb@ (csrcsc_((int *)n,(int *)job,(int *)ipos,(double *)a,(int *)ja,(int *)ia,(double *)ao,(int *)jao,(int *)iao))@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@#define csrToCscRectangular(n,n2,job,ipos,a,ja,ia,ao,jao,iao)\@\\
-\mbox{}\verb@(csrcsc2_(n,n2,job,ipos,a,ja,ia,ao,jao,iao))@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@#define dnsToCsr(nrow,ncol,nzmax,dns,ndns,a,ja,ia,ierr)\@\\
 \mbox{}\verb@(dnscsr_((int *)nrow,(int *)ncol,(int *)nzmax,(double *)dns,(int *)ndns,(double *)a,(int *)ja,(int *)ia,(int *)ierr))@\\
@@ -3532,7 +3549,8 @@ routine to provide support.
 \mbox{}\verb@#define useMA50AD(M,N,NE,LA,A,IRN,JCN,IQ,CNTL,ICNTL,IP,NP,JFIRST,LENR,LASTR,NEXTR,IW,IFIRST,LENC,LASTC,NEXTC,INFO,RINFO)\@\\
 \mbox{}\verb@ma50ad_((int *)M,(int *)N,(int *)NE,(int *)LA,(double *)A,(int *)IRN,(int *)JCN,(int *)IQ,(double *)CNTL,(int *)ICNTL,(int *)IP,(int *)NP,(int*)JFIRST,(int *)LENR,(int *)LASTR,(int *)NEXTR,(int *)IW,(int *)IFIRST,(int *)LENC,(int *)LASTC,(int *)NEXTC,(int *)INFO,(double *)RINFO)@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@@\\
+\mbox{}\verb@#define useMA50ID(CNTL,ICNTL)\@\\
+\mbox{}\verb@ma50id_((double *) CNTL,(int *)ICNTL)@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@/*LAPACK -- dgeqp3*/@\\
 \mbox{}\verb@@\\
