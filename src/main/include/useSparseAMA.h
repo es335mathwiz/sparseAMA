@@ -1,5 +1,5 @@
 
-#line 3025 "sparseAMA.w"
+#line 3249 "sparseAMA.w"
 
 /*
  * sparseAMA.h
@@ -178,6 +178,16 @@ maxHElementsEncountered=(unsigned int)(potentialMaxValue);\
         potentialMaxValue,maxHElementsEncountered,__LINE__);
 
 void free(void * ptr);
+
+int init_suite1(void);
+int init_suite2(void);
+int clean_suite1(void);
+int clean_suite2(void);
+void testSparseAMA(void);
+void testSparseAMA2(void);
+
+
+
 void cPrintMatrixNonZero(unsigned int nrows,unsigned int ncols,double *matrix,double zerotol);
 
 void cPrintSparse(unsigned int rows,double * a,unsigned int * aj,unsigned int * ai);
@@ -185,7 +195,7 @@ void cPrintSparse(unsigned int rows,double * a,unsigned int * aj,unsigned int * 
 void cPrintMatrix(unsigned int nrows,unsigned int ncols,double * matrix);
 
 
-void sparseAMA (
+void sparseAMA(
 unsigned int *maxNumberOfHElements,             
     unsigned int discreteTime,
     unsigned int hrows,unsigned int hcols,
