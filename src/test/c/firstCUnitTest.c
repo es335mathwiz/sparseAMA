@@ -54,12 +54,12 @@ int main()
 
    /* add the tests to the suite */
    /* NOTE - ORDER IS IMPORTANT - MUST TEST fread() AFTER sparseAMA() */
-   if ((NULL == CU_add_test(pSuite, "test of sparseAMA()", testSparseAMA)))
+/*   if ((NULL == CU_add_test(pSuite, "test of sparseAMA()", testSparseAMA)))
    {
       CU_cleanup_registry();
       return CU_get_error();
    }
-
+*/
 
 
    /* add a suite to the registry */
@@ -71,7 +71,7 @@ int main()
 
    /* add the tests to the suite */
    /* NOTE - ORDER IS IMPORTANT - MUST TEST fread() AFTER sparseAMA() */
-   if ((NULL == CU_add_test(pSuite, "test of sparseAMA()", testSparseAMA2)))
+   if ((NULL == CU_add_test(pSuite, "test of sparseAMASimplest()", testSparseAMASimplest)))
    {
       CU_cleanup_registry();
       return CU_get_error();

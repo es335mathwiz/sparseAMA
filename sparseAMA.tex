@@ -2344,7 +2344,6 @@ routine to provide support.
 \mbox{}\verb@/* rwt add profiling                                               */@\\
 \mbox{}\verb@/* --------------------------------------------------------------- */@\\
 \mbox{}\verb@void obtainSparseReducedForm(@\\
-\mbox{}\verb@@\\
 \mbox{}\verb@  unsigned int * maxNumberOfHElements,@\\
 \mbox{}\verb@  unsigned int qrows, unsigned int qcols,@\\
 \mbox{}\verb@  double * qmat, unsigned int * qmatj, unsigned int * qmati,@\\
@@ -3141,13 +3140,11 @@ routine to provide support.
 \mbox{}\verb@#include "useSparseAMA.h"@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@#define MAXELEMSA 381@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@#define HCOLS 39@\\
 \mbox{}\verb@#define LEADS 8@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@#define MAXELEMSB 592@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@/* Pointer to the file used by the tests. */@\\
 \mbox{}\verb@static FILE* temp_file = NULL;@\\
@@ -3163,26 +3160,6 @@ routine to provide support.
 \mbox{}\verb@ */@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@unsigned int maxSize;@\\
-\mbox{}\verb@double hmat[MAXELEMSA]=@\\
-\mbox{}\verb@{-0.1167899999999999, -0.2842153439999999, 0.098180323, -0.697197378, @\\
-\mbox{}\verb@    -0.1357490219999999, 1, -0.024790419, 0.024790419, -0.024790419, @\\
-\mbox{}\verb@    0.024790419, -0.024790419, 0.251999689, 0.024790419, -0.024790419, @\\
-\mbox{}\verb@    -1.158861192, 0.024790419, 1, -0.32, 1, -2.62};@\\
-\mbox{}\verb@unsigned int hmatj[MAXELEMSA]=@\\
-\mbox{}\verb@{1, 4, 7, 10, 11, 13, 1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 14, 12, 15, 37};@\\
-\mbox{}\verb@unsigned int hmati[4]={1, 7, 18,21 };@\\
-\mbox{}\verb@double hmat2[MAXELEMSA]={-1., 0.1, 1., -0.5, -0.5, -0.5, -0.5, 1., -0.3, -1., 1., -0.2, 1.,  1.};@\\
-\mbox{}\verb@unsigned int hmat2j[MAXELEMSA]=@\\
-\mbox{}\verb@{7, 8, 9, 10, 15, 4, 9, 10, 3, 6, 8, 10, 6, 7};@\\
-\mbox{}\verb@unsigned int hmat2i[6]={1, 6, 9, 13, 14, 15};@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@double zmat2[MAXELEMSA]={-0.5, -0.5, 1., -0.3, -1., 1., -0.2, 1., 1.};@\\
-\mbox{}\verb@unsigned int zmat2j[MAXELEMSA]=@\\
-\mbox{}\verb@{4, 9, 10, 3, 6, 8, 10, 6, 7};@\\
-\mbox{}\verb@unsigned int zmat2i[5]={1, 4, 8, 9, 10};@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
 \mbox{}\verb@double * newHmat;unsigned int * newHmatj;unsigned int * newHmati;@\\
 \mbox{}\verb@unsigned int aux;@\\
 \mbox{}\verb@unsigned int rowsInQ;@\\
@@ -3193,10 +3170,6 @@ routine to provide support.
 \mbox{}\verb@double * rooti;@\\
 \mbox{}\verb@unsigned int retCode;@\\
 \mbox{}\verb@unsigned int i;@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@#define HROWS 3@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@double normVec[HROWS];@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@unsigned int *prow;@\\
 \mbox{}\verb@unsigned int *pcol;@\\
@@ -3211,33 +3184,36 @@ routine to provide support.
 \mbox{}\verb@int init_suite1(void)@\\
 \mbox{}\verb@{@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@newHmat=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));@\\
-\mbox{}\verb@newHmatj=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));@\\
-\mbox{}\verb@newHmati=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));@\\
-\mbox{}\verb@qmat=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));@\\
-\mbox{}\verb@qmatj=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));@\\
-\mbox{}\verb@qmati=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));@\\
-\mbox{}\verb@bmat=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));@\\
-\mbox{}\verb@bmatj=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));@\\
-\mbox{}\verb@bmati=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));@\\
-\mbox{}\verb@rootr=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));@\\
-\mbox{}\verb@rooti=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@annihil=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));@\\
-\mbox{}\verb@annihilj=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));@\\
-\mbox{}\verb@annihili=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));@\\
+\mbox{}\verb@static const unsigned int maxelems=381;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@theR=(double *)calloc((unsigned)MAXELEMSA,sizeof(double));@\\
-\mbox{}\verb@theRj=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));@\\
-\mbox{}\verb@theRi=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));@\\
+\mbox{}\verb@newHmat=(double *)calloc((unsigned)maxelems,sizeof(double));@\\
+\mbox{}\verb@newHmatj=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@newHmati=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@qmat=(double *)calloc((unsigned)maxelems,sizeof(double));@\\
+\mbox{}\verb@qmatj=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@qmati=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@bmat=(double *)calloc((unsigned)maxelems,sizeof(double));@\\
+\mbox{}\verb@bmatj=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@bmati=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@rootr=(double *)calloc((unsigned)maxelems,sizeof(double));@\\
+\mbox{}\verb@rooti=(double *)calloc((unsigned)maxelems,sizeof(double));@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@prow=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));@\\
-\mbox{}\verb@pcol=(unsigned int *)calloc((unsigned)MAXELEMSA,sizeof(unsigned int));@\\
+\mbox{}\verb@annihil=(double *)calloc((unsigned)maxelems,sizeof(double));@\\
+\mbox{}\verb@annihilj=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@annihili=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@theR=(double *)calloc((unsigned)maxelems,sizeof(double));@\\
+\mbox{}\verb@theRj=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@theRi=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@prow=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@pcol=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@rowsInQ=aux=0;@\\
 \mbox{}\verb@qmati[0]=1;@\\
-\mbox{}\verb@maxSize=MAXELEMSA;@\\
+\mbox{}\verb@maxSize=maxelems;@\\
 \mbox{}\verb@   if (NULL == (temp_file = fopen("temp.txt", "w+"))) {@\\
 \mbox{}\verb@      return -1;@\\
 \mbox{}\verb@   }@\\
@@ -3270,27 +3246,43 @@ routine to provide support.
 \mbox{}\verb@ */@\\
 \mbox{}\verb@void testSparseAMA(void)@\\
 \mbox{}\verb@{@\\
+\mbox{}\verb@static const unsigned int hrows=3;@\\
+\mbox{}\verb@static const unsigned int hcols=39;@\\
+\mbox{}\verb@static const unsigned int leads=1;@\\
+\mbox{}\verb@static const unsigned int lags=1;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@double normVec[hrows];@\\
+\mbox{}\verb@double hmat[20]=@\\
+\mbox{}\verb@{-0.1167899999999999, -0.2842153439999999, 0.098180323, -0.697197378, @\\
+\mbox{}\verb@    -0.1357490219999999, 1, -0.024790419, 0.024790419, -0.024790419, @\\
+\mbox{}\verb@    0.024790419, -0.024790419, 0.251999689, 0.024790419, -0.024790419, @\\
+\mbox{}\verb@    -1.158861192, 0.024790419, 1, -0.32, 1, -2.62};@\\
+\mbox{}\verb@unsigned int hmatj[20]=@\\
+\mbox{}\verb@{1, 4, 7, 10, 11, 13, 1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 14, 12, 15, 37};@\\
+\mbox{}\verb@unsigned int hmati[4]={1, 7, 18,21 };@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@sparseAMA(&maxSize,@\\
 \mbox{}\verb@   DISCRETE_TIME,@\\
-\mbox{}\verb@   HROWS,HCOLS,LEADS,@\\
+\mbox{}\verb@   hrows,hcols,leads,@\\
 \mbox{}\verb@   hmat,hmatj,hmati,@\\
 \mbox{}\verb@   newHmat,newHmatj,newHmati,@\\
 \mbox{}\verb@   &aux,&rowsInQ,qmat,qmatj,qmati,@\\
 \mbox{}\verb@   &essential,@\\
 \mbox{}\verb@   rootr,rooti,&retCode@\\
 \mbox{}\verb@   );@\\
-\mbox{}\verb@     CU_ASSERT(MAXELEMSA  == maxSize)@\\
+\mbox{}\verb@/*%     CU_ASSERT(maxelems  == maxSize)*/@\\
 \mbox{}\verb@     CU_ASSERT(0 == retCode)@\\
-\mbox{}\verb@maxSize=MAXELEMSB;@\\
+\mbox{}\verb@/*@\\
 \mbox{}\verb@obtainSparseReducedForm(@\\
 \mbox{}\verb@  &maxSize,@\\
-\mbox{}\verb@  HROWS*LEADS,(HCOLS-HROWS),qmat,qmatj,qmati,@\\
+\mbox{}\verb@  hrows*leads,(hcols-hrows),qmat,qmatj,qmati,@\\
 \mbox{}\verb@  bmat, bmatj, bmati@\\
 \mbox{}\verb@);@\\
-\mbox{}\verb@@\\
+\mbox{}\verb@*/@\\
 \mbox{}\verb@satisfiesLinearSystemQ (@\\
 \mbox{}\verb@        &maxSize,@\\
-\mbox{}\verb@   HROWS,HCOLS,LEADS,@\\
+\mbox{}\verb@   hrows,hcols,leads,@\\
 \mbox{}\verb@        hmat,hmatj,hmati,@\\
 \mbox{}\verb@        &aux,@\\
 \mbox{}\verb@        &rowsInQ,@\\
@@ -3309,20 +3301,162 @@ routine to provide support.
 \mbox{}\verb@ */@\\
 \mbox{}\verb@void testSparseAMA2(void)@\\
 \mbox{}\verb@{@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@static const unsigned int hrows=1;@\\
+\mbox{}\verb@static const unsigned int hcols=3;@\\
+\mbox{}\verb@static const unsigned int leads=1;@\\
+\mbox{}\verb@static const unsigned int lags=1;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@  printf("testSparseAMA2:beginning\n");@\\
+\mbox{}\verb@double hmat[14]={-1., 0.1, 1., -0.5, -0.5, -0.5, -0.5, 1., -0.3, -1., 1., -0.2, 1.,  1.};@\\
+\mbox{}\verb@unsigned int hmatj[14]=@\\
+\mbox{}\verb@{7, 8, 9, 10, 15, 4, 9, 10, 3, 6, 8, 10, 6, 7};@\\
+\mbox{}\verb@unsigned int hmati[6]={1, 6, 9, 13, 14, 15};@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@double zmat[9]={-0.5, -0.5, 1., -0.3, -1., 1., -0.2, 1., 1.};@\\
+\mbox{}\verb@unsigned int zmatj[9]=@\\
+\mbox{}\verb@{4, 9, 10, 3, 6, 8, 10, 6, 7};@\\
+\mbox{}\verb@unsigned int zmati[5]={1, 4, 8, 9, 10};@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@printf("here's h\n");@\\
+\mbox{}\verb@cPrintSparse(5,   hmat,hmatj,hmati);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@sparseAMA(&maxSize,@\\
+\mbox{}\verb@   DISCRETE_TIME,@\\
+\mbox{}\verb@   hrows,hcols,leads,@\\
+\mbox{}\verb@   hmat,hmatj,hmati,@\\
+\mbox{}\verb@   newHmat,newHmatj,newHmati,@\\
+\mbox{}\verb@   &aux,&rowsInQ,qmat,qmatj,qmati,@\\
+\mbox{}\verb@   &essential,@\\
+\mbox{}\verb@   rootr,rooti,&retCode@\\
+\mbox{}\verb@   );@\\
+\mbox{}\verb@/*     CU_ASSERT(maxelems  == maxSize)*/@\\
+\mbox{}\verb@     CU_ASSERT(0 == retCode)@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@/*@\\
+\mbox{}\verb@obtainSparseReducedForm(@\\
+\mbox{}\verb@  &maxSize,@\\
+\mbox{}\verb@  hrows*leads,(hcols-hrows),qmat,qmatj,qmati,@\\
+\mbox{}\verb@  bmat, bmatj, bmati@\\
+\mbox{}\verb@);@\\
+\mbox{}\verb@*/@\\
+\mbox{}\verb@printf("here's newh\n");@\\
+\mbox{}\verb@cPrintSparse(5,   newHmat,newHmatj,newHmati);@\\
+\mbox{}\verb@printf("here's q\n");@\\
+\mbox{}\verb@cPrintSparse(5,   qmat,qmatj,qmati);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@obtainSparseReducedForm(&maxSize,@\\
+\mbox{}\verb@  5, 10,@\\
+\mbox{}\verb@  qmat,qmatj,qmati,@\\
+\mbox{}\verb@  bmat,bmatj,bmati@\\
+\mbox{}\verb@);@\\
+\mbox{}\verb@printf("here's b\n");@\\
+\mbox{}\verb@cPrintSparse(5,   bmat,bmatj,bmati);@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@autoRegression(&maxSize,&retCode,@\\
-\mbox{}\verb@   HROWS,HCOLS,@\\
-\mbox{}\verb@   hmat2,hmat2j,hmat2i,@\\
+\mbox{}\verb@   hrows,hcols,@\\
+\mbox{}\verb@   hmat,hmatj,hmati,@\\
 \mbox{}\verb@   qmat,qmatj,qmati,@\\
 \mbox{}\verb@   newHmat,newHmatj,newHmati,@\\
 \mbox{}\verb@   annihil,annihilj,annihili,@\\
 \mbox{}\verb@   theR,theRj,theRi,@\\
 \mbox{}\verb@   prow,pcol);@\\
+\mbox{}\verb@printf("here's newh again\n");@\\
+\mbox{}\verb@cPrintSparse(hrows,   newHmat,newHmatj,newHmati);@\\
+\mbox{}\verb@printf("here's q\n");@\\
+\mbox{}\verb@cPrintSparse(hrows-1,   qmat,qmatj,qmati);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@  printf("testSparseAMA2:after autoregressiona call\n");@\\
+\mbox{}\verb@  printf("testSparseAMA2:after autoregression call\n");@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  printf("testSparseAMA2:end\n");@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@/* Simple test of sparseAMA().@\\
+\mbox{}\verb@ * Writes test data to the temporary file and checks@\\
+\mbox{}\verb@ * whether the expected number of bytes were written.@\\
+\mbox{}\verb@ */@\\
+\mbox{}\verb@void testSparseAMASimplest(void)@\\
+\mbox{}\verb@{@\\
+\mbox{}\verb@static const unsigned int hrows=1;@\\
+\mbox{}\verb@static const unsigned int hcols=3;@\\
+\mbox{}\verb@static const unsigned int leads=1;@\\
+\mbox{}\verb@static const unsigned int lags=1;@\\
+\mbox{}\verb@static const unsigned int maxelems=3;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  printf("testSparseAMA2:beginning\n");@\\
+\mbox{}\verb@double hmat[2]={2., 3.};@\\
+\mbox{}\verb@unsigned int hmatj[2]={1, 2};@\\
+\mbox{}\verb@unsigned int hmati[2]={1, 3};@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@double zmat[2]={1,2};@\\
+\mbox{}\verb@unsigned int zmati[2]={1,3};@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@printf("here's h\n");@\\
+\mbox{}\verb@cPrintSparse(hrows, hmat,hmatj,hmati);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@sparseAMA(&maxSize,@\\
+\mbox{}\verb@   DISCRETE_TIME,@\\
+\mbox{}\verb@   hrows,hcols,leads,@\\
+\mbox{}\verb@   hmat,hmatj,hmati,@\\
+\mbox{}\verb@   newHmat,newHmatj,newHmati,@\\
+\mbox{}\verb@   &aux,&rowsInQ,qmat,qmatj,qmati,@\\
+\mbox{}\verb@   &essential,@\\
+\mbox{}\verb@   rootr,rooti,&retCode@\\
+\mbox{}\verb@   );printf("maxsize=%u\n",maxSize);@\\
+\mbox{}\verb@     CU_ASSERT(maxelems  == maxSize)@\\
+\mbox{}\verb@     CU_ASSERT(0 == retCode)@\\
+\mbox{}\verb@maxSize=maxelems;@\\
+\mbox{}\verb@/*@\\
+\mbox{}\verb@obtainSparseReducedForm(@\\
+\mbox{}\verb@  &maxSize,@\\
+\mbox{}\verb@  hrows*leads,(hcols-hrows),qmat,qmatj,qmati,@\\
+\mbox{}\verb@  bmat, bmatj, bmati@\\
+\mbox{}\verb@);@\\
+\mbox{}\verb@*/@\\
+\mbox{}\verb@printf("here's newh\n");@\\
+\mbox{}\verb@cPrintSparse(hrows,   newHmat,newHmatj,newHmati);@\\
+\mbox{}\verb@printf("here's q\n");@\\
+\mbox{}\verb@cPrintSparse(hrows*leads,qmat,qmatj,qmati);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@/*@\\
+\mbox{}\verb@obtainSparseReducedForm(&maxSize,@\\
+\mbox{}\verb@  hrows, hrows*(leads+lags),@\\
+\mbox{}\verb@  qmat,qmatj,qmati,@\\
+\mbox{}\verb@  bmat,bmatj,bmati@\\
+\mbox{}\verb@);@\\
+\mbox{}\verb@*/@\\
+\mbox{}\verb@printf("here's b\n");@\\
+\mbox{}\verb@cPrintSparse(hrows*(leads+lags),bmat,bmatj,bmati);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@autoRegression(&maxSize,&retCode,@\\
+\mbox{}\verb@   hrows,hcols,@\\
+\mbox{}\verb@   hmat,hmatj,hmati,@\\
+\mbox{}\verb@   qmat,qmatj,qmati,@\\
+\mbox{}\verb@   newHmat,newHmatj,newHmati,@\\
+\mbox{}\verb@   annihil,annihilj,annihili,@\\
+\mbox{}\verb@   theR,theRj,theRi,@\\
+\mbox{}\verb@   prow,pcol);@\\
+\mbox{}\verb@printf("here's newh again\n");@\\
+\mbox{}\verb@cPrintSparse(hrows,newHmat,newHmatj,newHmati);@\\
+\mbox{}\verb@printf("here's q\n");@\\
+\mbox{}\verb@cPrintSparse(hrows,qmat,qmatj,qmati);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  printf("testSparseAMA2:after autoregression call\n");@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@  printf("testSparseAMA2:end\n");@\\
 \mbox{}\verb@@\\
@@ -3529,11 +3663,10 @@ routine to provide support.
 \mbox{}\verb@void free(void * ptr);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@int init_suite1(void);@\\
-\mbox{}\verb@int init_suite2(void);@\\
 \mbox{}\verb@int clean_suite1(void);@\\
-\mbox{}\verb@int clean_suite2(void);@\\
 \mbox{}\verb@void testSparseAMA(void);@\\
 \mbox{}\verb@void testSparseAMA2(void);@\\
+\mbox{}\verb@void testSparseAMASimplest(void);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
