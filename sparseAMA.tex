@@ -1515,7 +1515,7 @@ routine to provide support.
 \mbox{}\verb@        /* write column norms of H (max abs values) into 'diag'  */@\\
 \mbox{}\verb@        diag=(double *)calloc((unsigned)hcols,sizeof(double));@\\
 \mbox{}\verb@        norm=0;@\\
-\mbox{}\verb@        cnrms_(&neq, &norm, hmat, hmatj, hmati, diag) ;@\\
+\mbox{}\verb@        useCNRMS(&neq, &norm, hmat, hmatj, hmati, diag) ;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@        /* set js to indicate nonzero columns */@\\
 \mbox{}\verb@        epsi=ZERO_TOLERANCE;@\\
@@ -3449,6 +3449,10 @@ routine to provide support.
 \mbox{}\verb@@\\
 \mbox{}\verb@int csrcsc2_(int *n,int * n2,int * job,int * ipos,double *  a,int *  ja,int * ia,double * ao,int *  jao,int *  iao);@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@#define  useCNRMS(nrow,nrm,a,ja, ia, diag)\@\\
+\mbox{}\verb@(cnrms_((int*)nrow,( int *)nrm,( double *)a,( int *)ja,( int *) ia,(double *) diag))@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@#define  useCSRCSC2(n, n2, job, ipos,  a,  ja, ia, ao,  jao,  iao)\@\\
 \mbox{}\verb@(csrcsc2_((int *)n,(int *) n2,(int *) job,(int *) ipos,(double *)  a,(int *)  ja,(int *) ia,(double *) ao,(int *)  jao,(int *)  iao))@\\
 \mbox{}\verb@@\\
@@ -3512,14 +3516,16 @@ routine to provide support.
 \mbox{}\verb@#define copyMatrix(nrow,job, a,ja,ia,ipos, ao,jao,iao)\@\\
 \mbox{}\verb@(copmat_((int *)nrow,(double *) a,( int *)ja,( int *)ia,(double *) ao,( int *)jao,( int *)iao,( int *)ipos,( int *)job))@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@#define getDiagonalElements(nrow,ncol,job,a,ja,ia,len,diag,idiag,ioff)\@\\
-\mbox{}\verb@(getdia_(nrow,ncol,job,a,ja,ia,len,diag,idiag,ioff))@\\
+\mbox{}\verb@(getdia_((int*) nrow,( int*)ncol,( int*)job,(double *) a,( int*)ja,( int*)ia,( int*)len,(double *) diag,( int*)idiag,(int*)ioff))@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@#define getUpperTriangular(n,a,ja,ia,ao,jao,iao)\@\\
 \mbox{}\verb@(getu_((int *)n,(double *)a,(int *)ja,(int *)ia,(double *)ao,(int *)jao,(int *)iao))@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@#define permuteRows(nrow,a,ja,ia,ao,jao,iao,perm,job) \@\\
-\mbox{}\verb@(rperm_(nrow,a,ja,ia,ao,jao,iao,perm,job))@\\
+\mbox{}\verb@(rperm_((int *)nrow,(double *) a,( int *)ja,( int *)ia,( double *)ao,( int *)jao,( int *)iao,( int *)perm,( int *)job))@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@#define permuteCols(nrow,a,ja,ia,ao,jao,iao,perm,job) \@\\
 \mbox{}\verb@(cperm_(nrow,a,ja,ia,ao,jao,iao,perm,job))@\\

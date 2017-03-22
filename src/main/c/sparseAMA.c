@@ -918,7 +918,7 @@ static unsigned int identifyEssential(
         /* write column norms of H (max abs values) into 'diag'  */
         diag=(double *)calloc((unsigned)hcols,sizeof(double));
         norm=0;
-        cnrms_(&neq, &norm, hmat, hmatj, hmati, diag) ;
+        useCNRMS(&neq, &norm, hmat, hmatj, hmati, diag) ;
 
         /* set js to indicate nonzero columns */
         epsi=ZERO_TOLERANCE;

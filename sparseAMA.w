@@ -1468,7 +1468,7 @@ static unsigned int identifyEssential(
 	/* write column norms of H (max abs values) into 'diag'  */
 	diag=(double *)calloc((unsigned)hcols,sizeof(double));
 	norm=0;
-   	cnrms_(&neq, &norm, hmat, hmatj, hmati, diag) ;
+   	useCNRMS(&neq, &norm, hmat, hmatj, hmati, diag) ;
 
 	/* set js to indicate nonzero columns */
 	epsi=ZERO_TOLERANCE;
@@ -3360,6 +3360,10 @@ int getdia_(int* nrow, int*ncol, int*job,double * a, int*ja, int*ia, int*len,dou
 
 int csrcsc2_(int *n,int * n2,int * job,int * ipos,double *  a,int *  ja,int * ia,double * ao,int *  jao,int *  iao);
 
+#define  useCNRMS(nrow,nrm,a,ja, ia, diag)\
+(cnrms_((int*)nrow,( int *)nrm,( double *)a,( int *)ja,( int *) ia,(double *) diag))
+
+
 #define  useCSRCSC2(n, n2, job, ipos,  a,  ja, ia, ao,  jao,  iao)\
 (csrcsc2_((int *)n,(int *) n2,(int *) job,(int *) ipos,(double *)  a,(int *)  ja,(int *) ia,(double *) ao,(int *)  jao,(int *)  iao))
 
@@ -3423,14 +3427,16 @@ aMat,aMatj,aMati,workSpace,errCode) \
 #define copyMatrix(nrow,job, a,ja,ia,ipos, ao,jao,iao)\
 (copmat_((int *)nrow,(double *) a,( int *)ja,( int *)ia,(double *) ao,( int *)jao,( int *)iao,( int *)ipos,( int *)job))
 
+
 #define getDiagonalElements(nrow,ncol,job,a,ja,ia,len,diag,idiag,ioff)\
-(getdia_(nrow,ncol,job,a,ja,ia,len,diag,idiag,ioff))
+(getdia_((int*) nrow,( int*)ncol,( int*)job,(double *) a,( int*)ja,( int*)ia,( int*)len,(double *) diag,( int*)idiag,(int*)ioff))
 
 #define getUpperTriangular(n,a,ja,ia,ao,jao,iao)\
 (getu_((int *)n,(double *)a,(int *)ja,(int *)ia,(double *)ao,(int *)jao,(int *)iao))
 
+
 #define permuteRows(nrow,a,ja,ia,ao,jao,iao,perm,job) \
-(rperm_(nrow,a,ja,ia,ao,jao,iao,perm,job))
+(rperm_((int *)nrow,(double *) a,( int *)ja,( int *)ia,( double *)ao,( int *)jao,( int *)iao,( int *)perm,( int *)job))
 
 #define permuteCols(nrow,a,ja,ia,ao,jao,iao,perm,job) \
 (cperm_(nrow,a,ja,ia,ao,jao,iao,perm,job))
