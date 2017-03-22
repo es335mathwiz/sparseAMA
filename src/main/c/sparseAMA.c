@@ -1,79 +1,6 @@
 
-#line 10 "sparseAMA.w"
+#line 553 "sparseAMA.w"
 
-/*
- * sparseAMA.c
- *
- *  Created on: Jun 4, 2013
- *      Author: m1gsa00
- */
-
-/*      -------------------------------------------------------------------------------- */
-/*      sparseAMA.c                                                                      */
-/*                                                                                   */
-/*  implements Anderson-Moore algorithm to solve linear saddle-point problems        */
-/*  original version by Gary Anderson.                                               */
-/*                                                                                   */
-/*                                                                                   */
-/*  main functions, in order:                                                        */
-/*                                                                                   */
-/*              sparseAMA                                                            */
-/*                      -- autoRegression                                           */
-/*                              -- shiftRightAndRecord                               */
-/*                              -- annihilateRows                                                    */
-/*                                      -- constructQRDecomposition                                      */
-/*                      -- augmentQmatWithInvariantSpaceVectors                                  */
-/*                              -- identifyEssential                                                 */
-/*                              -- constructA                                                        */
-/*                              -- useArpack                                                         */
-/*                                                                                   */
-/*              obtainSparseReducedForm                                                      */
-/*              applySparseReducedForm                                                       */
-/*              satisfiesLinearSystem                                                        */
-/*                                                                                   */
-/*                                                                                   */
-/*  known problems                                                                   */
-/*  --------------                                                                   */
-/*      amat dense but allocated with HMATSIZE.  Should discover the                     */
-/*      appropriate scaling factor for allocation and implement                          */
-/*                                                                                   */
-/*      js too big.  The js array has dimension as large as the transition               */
-/*      matrix array even though it only needs as much space to hold column dimensions   */
-/*                                                                                   */
-/*  calls to dnaupd and dneupd (also dgeesx, etc are platform specific               */
-/*  check treatment of char array args when calling Fortran programs from C          */
-/*                                                                                   */
-/*  satisfiesLinearSystem crashes hard if space parameter is too small.              */
-/*  (it also seems to need a lot of space.)  deal with space mgmt generally.         */
-/*                                                                                   */
-/*                                                                                   */
-/*  change log                                                                       */
-/*  ----------                                                                       */
-/*  12/15/99    gsa original program                                                 */
-/*  04/01/02    gsa add pointer to void to arg list of fns using mxCalloc              */
-/*  Jan 2003    rwt reformat source file from nuweb to straight C                    */
-/*                      add profiling statements throughout                              */
-/*                              replace DBL_EPSILON with ZERO_TOLERANCE, defined below.          */
-/*                  add fPrintMatrix, fPrintSparse                                   */
-/*  Mar 2003    rwt add comments, delete unused routines, etc                        */
-/*  3/17/03             rwt replace rightMostAllZeroQ with rowEndsInZeroBlock                */
-/*                  (called from shiftRightAndRecord)                                */
-/*  3/19/03     rwt drop signal/longjmp in sparseAMAAssert, use simple return        */
-/*                  use error codes instead of line numbers in message calls         */
-/*                                                                                   */
-/*  3/21/03             rwt rework test to call arpack vs dgees                              */
-/*  3/26/03     rwt add ZERO_TOL1 for counting large roots                           */
-/*  4/1/03          rwt add Blanchard-Kahn test, windows compile options                 */
-/*  Dec 2004    lg      del fPrintMatrix and fPrintSparse so as to hook up to Matlab                                                                                 */
-/*  6/30/2010   ar      change various "ifdef win32" statements to account for gfortran compiler                                                                                 */
-/*      -------------------------------------------------------------------------------- */
-
-#line 79 "sparseAMA.w"
-
-
-
-//double ZERO_TOLERANCE=1.0e-8;
-//double ZERO_TOL1=1.0e-8;
 #include "useSparseAMA.h"
 #ifdef WIN32
 #include <time.h>
@@ -96,7 +23,9 @@ double time_constructQRDecomposition, time_sparseMult, time_arpack, time_sparseM
 double time_extract, time_backsolve ;
 double time_autoregression, time_augmentQ;
 
-/*int rowEndsInZeroBlock() ;*/
+
+#line 578 "sparseAMA.w"
+
 
 
 /* ----------------------------------------------------------------- */
@@ -187,9 +116,6 @@ default: result=
 }
 return(result);
 }
-
-
-#line 200 "sparseAMA.w"
 
 
 
@@ -337,9 +263,7 @@ printf("row=%d,col=%d,val=%f\n",i+1,aj[j-1],a[j-1]);
 }}
 }
 
-
-
-#line 350 "sparseAMA.w"
+/*int rowEndsInZeroBlock() ;*/
 
 
 /* ----------------------------------------------------------------------
@@ -633,7 +557,7 @@ static unsigned int constructQRDecomposition (
 
 
 
-#line 644 "sparseAMA.w"
+#line 1111 "sparseAMA.w"
 
 
 
@@ -783,9 +707,6 @@ static unsigned int annihilateRows(
         return(rnk);
 
 }       /* annihilateRows */
-
-
-#line 796 "sparseAMA.w"
 
 
 
@@ -966,9 +887,6 @@ originalMaxHElements=*maxNumberOfHElements;
         return(rowsInQ);
 
 }       /* autoRegression */
-
-#line 978 "sparseAMA.w"
-
 
 
 /* --------------------------------------------------------------- */
@@ -1219,7 +1137,7 @@ static void constructA (
 }       /* constructA */
 
 
-#line 1230 "sparseAMA.w"
+#line 1691 "sparseAMA.w"
 
 
 
@@ -1456,9 +1374,6 @@ static unsigned int useArpack(
         return (0) ;
 
 } /* use Arpack */
-
-
-#line 1469 "sparseAMA.w"
 
 
 
@@ -1814,9 +1729,6 @@ static unsigned int augmentQmatWithInvariantSpaceVectors (
 }       /* augmentQmatWithInvariantSpaceVectors */
 
 
-#line 1825 "sparseAMA.w"
-
-
 /* --------------------------------------------------------------- */
 /* !obtainSparseReducedForm                                        */
 /* rwt add profiling                                               */
@@ -1928,7 +1840,7 @@ void obtainSparseReducedForm(
         ma50id_(cntl,icntl);
         nzmax=*maxNumberOfHElements;
 
-        ma50ad_(&qrows,&qrows,&nonZeroNow,
+         useMA50AD(&qrows,&qrows,&nonZeroNow,
                 &nzmax,qrmat,qrmatj,jcn,qrmati,cntl,icntl,
                 ip,np,jfirst,lenr,lastr,nextr,iw,ifirst,lenc,lastc,nextc,info,rinfo
         );
@@ -1942,7 +1854,7 @@ void obtainSparseReducedForm(
                 qrmat,qrmatj,jcn
         );
 
-        ma50bd_(&qrows,&qrows,&nonZeroNow,&aOne,
+        useMA50BD(&qrows,&qrows,&nonZeroNow,&aOne,
                 qrmat,qrmatj,jcn,
                 cntl,icntl,ip,qrmati,np,lfact,fact,irnf,iptrl,iptru,
                 w,iw,info,rinfo
@@ -1968,7 +1880,7 @@ void obtainSparseReducedForm(
                 bumpSparseAMA(qrows);
                 if(ierr!=0){printf("*************ran out of space****************\n");return;}
 
-                ma50cd_(&qrows,&qrows,icntl,qrmati,np,&trans,
+                useMA50CD(&qrows,&qrows,icntl,qrmati,np,&trans,
                         lfact,fact,irnf,iptrl,iptru,
                         nsSumC,x,w,info
                 );
@@ -1993,6 +1905,9 @@ void obtainSparseReducedForm(
         csrToCscRectangular(&cColumns,&qrows,&aOne,&aOne,tb,jtb,itb,bmat,bmatj,bmati);
         /*change sign*/
         for(i=0;i<bmati[qrows]-bmati[0];i++)bmat[i]=(-1)*bmat[i];
+
+#line 2460 "sparseAMA.w"
+
 
 
         free(w);
@@ -2035,9 +1950,6 @@ void obtainSparseReducedForm(
         return;
 
 }       /* obtainSparseReducedForm */
-
-#line 2047 "sparseAMA.w"
-
 
 
 /* --------------------------------------------------------------- */
@@ -2219,9 +2131,6 @@ cPrintMatrixNonZero(hrows,1,normVec,1.0e-8);
 
 }       /* satsifiesLinearSystemQ */
 
-
-
-#line 2232 "sparseAMA.w"
 
 
 
@@ -2443,9 +2352,6 @@ unsigned int *maxNumberOfHElements,
         time0 = cputime() ; /* rwt */
 
 
-#line 2454 "sparseAMA.w"
-
-
         /* ----------------------------------- */
         /* 1. autoRegression                   */
         /* ----------------------------------- */
@@ -2558,6 +2464,8 @@ unsigned int *maxNumberOfHElements,
 /*                               end sparseAMA.c                                               */
 /* ******************************************************************************************* */
 /* ******************************************************************************************* */
+
+
 
 
 

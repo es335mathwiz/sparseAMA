@@ -222,6 +222,9 @@ void ma50cd_(int *m,int *n,int * k,int *icntl,int * np,int *trans,\
 int * lfact,double *fact,int *irnf,int *iptrl,int *iptru,\
 double *b,double *x,double *w,int *info);
 
+void ma50bd_(int *M,int *N,int *NE,int *JOB,double*AA,int *IRNA,int *IPTRA,double*CNTL,int *ICNTL,int *IP,int *IQ,int *NP,int *LFACT,double*FACT,int *IRNF,int *IPTRL,int *IPTRU,double*W,int *IW,int *INFO,double*RINFO);
+
+void ma50ad_(int *M,int *N,int *NE,int *LA,double *A,int *IRN,int *JCN,int *IQ,double *CNTL,int *ICNTL,int *IP,int *NP,int*JFIRST,int *LENR,int *LASTR,int *NEXTR,int *IW,int *IFIRST,int *LENC,int *LASTC,int *NEXTC,int *INFO,double *RINFO);
 /*
 
 
@@ -310,8 +313,6 @@ ma50ad_
 ma50bd_
 ma50cd_
 */
-#define useMA50CD(m,n,k,icntl,np,trans,lfact,fact,irnf,iptrl,iptru,b,x,w,info)\
-void ma50cd_((int *)m,(int *)n,(int *)k,(int *)icntl,(int *) np,(int *)trans,(int *) lfact,(double *)fact,(int *)irnf,(int *)iptrl,(int *)iptru,(double *)b,(double *)x,(double *)w,(int *)info)
 
 
 #define sparseAMAQRD(m,n,k,a,lda,tau,work,lwork,info )\
@@ -407,6 +408,19 @@ copyToPos,job))
 
 #define csrToDns(nrow,ncol,a,ja,ia,dns,ndns,ierr) \
 (csrdns_((int *)nrow,(int *)ncol,(double *)a,(int *)ja,(int *)ia,(double *)dns,(int *)ndns,(int *)ierr) )
+
+
+
+#define useMA50CD(m,n,k,icntl,np,trans,lfact,fact,irnf,iptrl,iptru,b,x,w,info)\
+(ma50cd_((int *)m,(int *)n,(int *)k,(int *)icntl,(int *) np,(int *)trans,(int *) lfact,(double *)fact,(int *)irnf,(int *)iptrl,(int *)iptru,(double *)b,(double *)x,(double *)w,(int *)info))
+
+
+#define useMA50BD(M,N,NE,JOB,AA,IRNA,IPTRA,CNTL,ICNTL,IP,IQ,NP,LFACT,FACT,IRNF,IPTRL,IPTRU,W,IW,INFO,RINFO)\
+(ma50bd_((int *)M,(int *)N,(int *)NE,(int *)JOB,(double*)AA,(int *)IRNA,(int *)IPTRA,(double*)CNTL,(int *)ICNTL,(int *)IP,(int *)IQ,(int *)NP,(int *)LFACT,(double*)FACT,(int *)IRNF,(int *)IPTRL,(int *)IPTRU,(double*)W,(int *)IW,(int *)INFO,(double*)RINFO))
+
+#define useMA50AD(M,N,NE,LA,A,IRN,JCN,IQ,CNTL,ICNTL,IP,NP,JFIRST,LENR,LASTR,NEXTR,IW,IFIRST,LENC,LASTC,NEXTC,INFO,RINFO)\
+ma50ad_((int *)M,(int *)N,(int *)NE,(int *)LA,(double *)A,(int *)IRN,(int *)JCN,(int *)IQ,(double *)CNTL,(int *)ICNTL,(int *)IP,(int *)NP,(int*)JFIRST,(int *)LENR,(int *)LASTR,(int *)NEXTR,(int *)IW,(int *)IFIRST,(int *)LENC,(int *)LASTC,(int *)NEXTC,(int *)INFO,(double *)RINFO)
+
 
 
 /*LAPACK -- dgeqp3*/
