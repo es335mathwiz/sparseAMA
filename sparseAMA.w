@@ -548,6 +548,16 @@ routine to provide support.
 
 \subsection{An Example Makefile}
 \label{sec:examplelibmake}
+
+
+@o devMakefile -d
+@{
+nada
+
+@}
+
+
+
 \section{The Code}
 @o devsparseAMA.c -d
 @{
@@ -936,26 +946,56 @@ unsigned     int hrows,unsigned int hcols,
 {
 unsigned 	int i, j, qextent, zeroRow ;
 	static unsigned int maxHElementsEncountered=0;		/* bumpSparseAMA */
+printf("shiftRightAnd:on entry\n");
+printf("shiftRightAnd:zeroRow loop i=%u,hrows=%u\n",i,hrows);fflush(stdout);
+cPrintSparse(hrows,hmat,hmatj,hmati);
+
+
 
 	/* check for zero rows in H matrix -- can't shift right if all zeros */
 	/* (if row has no nonzero values, adjacent row pointers will be equal) */
 	zeroRow=FALSE;
 	i = 1 ;
 	while (i <= hrows && !zeroRow) {
+printf("shiftRightAnd:zeroRow loop i=%u,hrows=%u\n",i,hrows);fflush(stdout);
 		zeroRow = (hmati[i-1]==hmati[i]) ;
 		i++ ;
 	}
+
+printf("shiftRightAnd:checked zeroRow\n");
+cPrintSparse(hrows,hmat,hmatj,hmati);
+
+
 
 
     sparseAMAAssert (zeroRow==FALSE, shiftRightAndRecordPreZeroRow);
 	if (*returnCode) return (BADRC) ;
 
+
+
 	/* keep track of space used in Q */
+printf("shiftRightAnd:pre qextrowInq=%u\n",rowsInQ);fflush(stdout);
+printf("shiftRightAnd:qext=%u\n",qextent);fflush(stdout);
+printf("shiftRightAnd:pre qextrowInq=%u\n",qmati[0]);fflush(stdout);
+printf("shiftRightAnd:pre qmati[row]=%u\n",qmati[rowsInQ]);fflush(stdout);
+cPrintSparse(hrows,hmat,hmatj,hmati);
  	qextent=qmati[rowsInQ]-qmati[0];
+printf("shiftRightAnd:pre bump\n");
+cPrintSparse(hrows,hmat,hmatj,hmati);
 	bumpSparseAMA((qextent));
+
+printf("shiftRightAnd:post bump\n");
+cPrintSparse(hrows,hmat,hmatj,hmati);
+
+
 
 	/* loop through rows of H */
 	for(i=1; i<=hrows; i++) {
+
+printf("shiftRightAnd:loop throw rows\n");
+cPrintSparse(hrows,hmat,hmatj,hmati);
+
+
 
 		/* while row ends in zero block, add row to Q and shift right in H */
 		while (rowEndsInZeroBlock(i, dim, hmat, hmatj, hmati, hcols)) {
@@ -979,6 +1019,10 @@ unsigned 	int i, j, qextent, zeroRow ;
 
 				/* shift H value right one block.  (Zeros are just ignored.) */
 				hmatj[j-1] += dim;
+
+printf("shiftRightAnd:bottom loop throw non zero rows\n");
+cPrintSparse(hrows,hmat,hmatj,hmati);
+cPrintSparse(hrows,qmat,qmatj,qmati);
 
 			}
 		}
@@ -1307,6 +1351,8 @@ static unsigned int autoRegression(
     unsigned int * prow,unsigned int * pcol
 )
 {
+printf("autoRegression:entry hrows=%u\n",hrows);
+
 	double time0, time_annihilateRows, time_shiftRightAndRecord ; /* rwt */
 	unsigned int count_ARloop ; /* rwt */
 	unsigned int aOne;unsigned int swapped;unsigned int i;static unsigned int maxHElementsEncountered=0;
@@ -1320,21 +1366,24 @@ static unsigned int autoRegression(
 	/* save original maxspace parameter */
 	unsigned int originalMaxHElements;
 	
+printf("autoRegression:pre orig=%u\n",hrows);fflush(stdout);
 
 originalMaxHElements=*maxNumberOfHElements;
-
+printf("autoRegression:pre timeshifthrows=%u\n",hrows);fflush(stdout);
 	time_shiftRightAndRecord = 0 ;  /* rwt */
 	time_annihilateRows = 0 ;  		/* rwt */
 	count_ARloop = 0 ; 				/* rwt */
 
 	/* init ... */
 	aOne=1;swapped=0;rowsInQ=0;rnk=0;
+printf("autoRegression:pre permhrows=%u\n",hrows);fflush(stdout);
 
 	/* initialize permuatation vectors */
 	for (i=0;i<hrows;i++)
 		prow[i]=i;
 	for (i=0;i<hrows;i++)
 	    pcol[i]=i;
+printf("autoRegression:after permhrows=%u\n",hrows);fflush(stdout);
 
 	/* rwt init profile vars */
 	time_rightMostAllZeroQ = 0 ;		/* accumulated in rightMostAllZeroQ */
@@ -1351,17 +1400,29 @@ originalMaxHElements=*maxNumberOfHElements;
 
 
 		count_ARloop ++ ;  /* rwt */
-
+printf("autoRegression:while rank loop pre drop\n");
+printf("autoRegression:hrows=%u\n",hrows);fflush(stdout);
+cPrintSparse(hrows,hmat,hmatj,hmati);
 		/* clean up near-zeros */
 		ztol=ZERO_TOLERANCE;ztol=1.0e-8;job=3;len=HMATSIZE;ierr=0;
 		dropSmallElements(&hrows,&job,&ztol,&len,hmat,hmatj,hmati,hmat,hmatj,hmati,&ierr);
+printf("autoRegression:while rank loop post drop\n");
+printf("autoRegression:hrows=%u\n",hrows);fflush(stdout);
+cPrintSparse(hrows,hmat,hmatj,hmati);
+printf("autoRegression:hrows=%u\n",hrows);fflush(stdout);
 
 
 		/* shift zero rows of rightmost block of H to the right and copy into Q as auxiliary initial conditions */
 		time0 = cputime() ; /* rwt */
+printf("autoRegression:at shift call hrows=%u\n",hrows);fflush(stdout);
 		rowsInQ=shiftRightAndRecord(maxNumberOfHElements,returnCode,hrows,rowsInQ,
 			qmat,qmatj,qmati,hrows,hcols,hmat,hmatj,hmati
 		);
+
+printf("autoRegression:post shift\n");
+cPrintSparse(hrows,hmat,hmatj,hmati);
+cPrintSparse(hrows,qmat,qmatj,qmati);
+
 
 		if (*returnCode) return 0u ;
 		time_shiftRightAndRecord += cputime() - time0 ; /* rwt */
@@ -3014,8 +3075,114 @@ unsigned int *maxNumberOfHElements,
 /* ******************************************************************************************* */
 
 
+
+#include "devAMASuite.h"
+/* Simple test of sparseAMA().
+ * Writes test data to the temporary file and checks
+ * whether the expected number of bytes were written.
+ */
+void testSparseAMASimplest(void)
+{
+
+
+
+static const unsigned int testHrows=1;
+static const unsigned int testHcols=3;
+static const unsigned int testLeads=1;
+static const unsigned int testLags=1;
+static const unsigned int testMaxelems=100;
+maxSize=testMaxelems;
+
+  printf("testSparseAMA2:beginning\n");
+double hmat[2]={2., 3.};
+unsigned int hmatj[2]={1, 2};
+unsigned int hmati[2]={1, 3};
+
+
+double zmat[2]={1,2};
+unsigned int zmati[2]={1,3};
+
+
+printf("testHrows=%u,here's h\n",testHrows);
+
+cPrintSparse(testHrows, hmat,hmatj,hmati);
+aux=rowsInQ=0;
+autoRegression(&maxSize,&retCode,
+   testHrows,testHcols,
+   hmat,hmatj,hmati,
+   qmat,qmatj,qmati,
+   newHmat,newHmatj,newHmati,
+   annihil,annihilj,annihili,
+   theR,theRj,theRi,
+   prow,pcol);
+
+
+
+printf("here's newh\n");
+cPrintSparse(testHrows,   newHmat,newHmatj,newHmati);
+printf("here's q\n");
+cPrintSparse(testHrows*testLeads,qmat,qmatj,qmati);
+
+/*
+sparseAMA(&maxSize,
+   DISCRETE_TIME,
+   testHrows,testHcols,testLeads,
+   hmat,hmatj,hmati,
+   newHmat,newHmatj,newHmati,
+   &aux,&rowsInQ,qmat,qmatj,qmati,
+   &essential,
+   rootr,rooti,&retCode
+   );printf("maxsize=%u\n",maxSize);
+     CU_ASSERT(testMaxelems  == maxSize)
+     CU_ASSERT(0 == retCode)
+
+
+obtainSparseReducedForm(
+  &maxSize,
+  testHrows*testLeads,(testHcols-testHrows),qmat,qmatj,qmati,
+  bmat, bmatj, bmati
+);
+*//*
+obtainSparseReducedForm(&maxSize,
+  testHrows, testHrows*(testLeads+testLags),
+  qmat,qmatj,qmati,
+  bmat,bmatj,bmati
+);
+*/
+/*printf("here's b\n");
+cPrintSparse(testHrows*(testLeads+testLags),bmat,bmatj,bmati);
+
+
+autoRegression(&maxSize,&retCode,
+   testHrows,testHcols,
+   hmat,hmatj,hmati,
+   qmat,qmatj,qmati,
+   newHmat,newHmatj,newHmati,
+   annihil,annihilj,annihili,
+   theR,theRj,theRi,
+   prow,pcol);
+printf("here's newh again\n");
+cPrintSparse(testHrows,newHmat,newHmatj,newHmati);
+printf("here's q\n");
+cPrintSparse(testHrows,qmat,qmatj,qmati);
+
+*/
+
+  printf("testSparseAMA2:after autoregression call\n");
+
+  printf("testSparseAMA2:end\n");
+
+}
+
+
+
+
+
+
+
+
 @}
-@o devsparseAMA.c -d
+@o devAMASuite.h -d
 @{
 /*
  *  Simple example of a CUnit unit test.
@@ -3050,26 +3217,6 @@ unsigned int *maxNumberOfHElements,
 #include<stdlib.h>
 #include "useSparseAMA.h"
 
-
-
-
-#define HCOLS 39
-#define LEADS 8
-
-
-/* Pointer to the file used by the tests. */
-static FILE* temp_file = NULL;
-
-/* The suite initialization function.
- * Opens the temporary file used by the tests.
- * Returns zero on success, non-zero otherwise.
- */
-
-/* The suite cleanup function.
- * Closes the temporary file used by the tests.
- * Returns zero on success, non-zero otherwise.
- */
-
 unsigned int maxSize;
 double * newHmat;unsigned int * newHmatj;unsigned int * newHmati;
 unsigned int aux;
@@ -3091,291 +3238,93 @@ double * annihil;
 unsigned int *annihilj;
 unsigned int *annihili;
 
+/* Pointer to the file used by the tests. */
+
+
+/* The suite initialization function.
+ * Opens the temporary file used by the tests.
+ * Returns zero on success, non-zero otherwise.
+ */
+
+/* The suite cleanup function.
+ * Closes the temporary file used by the tests.
+ * Returns zero on success, non-zero otherwise.
+ */
+
+@}
+@o devsparseAMA.c -d
+@{
+
 
 int init_suite1(void)
 {
 
 
-static const unsigned int maxelems=381;
+static const unsigned int testMaxelems=381;
 
-newHmat=(double *)calloc((unsigned)maxelems,sizeof(double));
-newHmatj=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));
-newHmati=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));
-qmat=(double *)calloc((unsigned)maxelems,sizeof(double));
-qmatj=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));
-qmati=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));
-bmat=(double *)calloc((unsigned)maxelems,sizeof(double));
-bmatj=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));
-bmati=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));
-rootr=(double *)calloc((unsigned)maxelems,sizeof(double));
-rooti=(double *)calloc((unsigned)maxelems,sizeof(double));
-
-annihil=(double *)calloc((unsigned)maxelems,sizeof(double));
-annihilj=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));
-annihili=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));
-
-theR=(double *)calloc((unsigned)maxelems,sizeof(double));
-theRj=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));
-theRi=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));
-
-prow=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));
-pcol=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));
-
+@<allocate test arrays@>
 
 rowsInQ=aux=0;
 qmati[0]=1;
-maxSize=maxelems;
-   if (NULL == (temp_file = fopen("temp.txt", "w+"))) {
-      return -1;
-   }
-   else {
-      return 0;
-   }
+maxSize=testMaxelems;
+return(0);
 }
 
-
-int clean_suite1(void)
+int clean_suites(void)
 {
 free(newHmat);free(newHmatj);free(newHmati);
 free(qmat);free(qmatj);free(qmati);
 free(bmat);free(bmatj);free(bmati);
 free(rootr);free(rooti);
-
-
-   if (0 != fclose(temp_file)) {
-      return -1;
-   }
-   else {
-      temp_file = NULL;
-      return 0;
-   }
+return(0);
 }
+@}
 
-/* Simple test of sparseAMA().
- * Writes test data to the temporary file and checks
- * whether the expected number of bytes were written.
- */
-void testSparseAMA(void)
-{
-static const unsigned int hrows=3;
-static const unsigned int hcols=39;
-static const unsigned int leads=1;
-static const unsigned int lags=1;
+@d allocate test arrays
+@{
+newHmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+newHmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+newHmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+qmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+qmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+qmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+bmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+bmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+bmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+rootr=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+rooti=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 
-double normVec[hrows];
-double hmat[20]=
-{-0.1167899999999999, -0.2842153439999999, 0.098180323, -0.697197378, 
-    -0.1357490219999999, 1, -0.024790419, 0.024790419, -0.024790419, 
-    0.024790419, -0.024790419, 0.251999689, 0.024790419, -0.024790419, 
-    -1.158861192, 0.024790419, 1, -0.32, 1, -2.62};
-unsigned int hmatj[20]=
-{1, 4, 7, 10, 11, 13, 1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 14, 12, 15, 37};
-unsigned int hmati[4]={1, 7, 18,21 };
+annihil=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+annihilj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+annihili=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
+theR=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+theRj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+theRi=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
-sparseAMA(&maxSize,
-   DISCRETE_TIME,
-   hrows,hcols,leads,
-   hmat,hmatj,hmati,
-   newHmat,newHmatj,newHmati,
-   &aux,&rowsInQ,qmat,qmatj,qmati,
-   &essential,
-   rootr,rooti,&retCode
-   );
-/*%     CU_ASSERT(maxelems  == maxSize)*/
-     CU_ASSERT(0 == retCode)
-/*
-obtainSparseReducedForm(
-  &maxSize,
-  hrows*leads,(hcols-hrows),qmat,qmatj,qmati,
-  bmat, bmatj, bmati
-);
-*/
-satisfiesLinearSystemQ (
-	&maxSize,
-   hrows,hcols,leads,
-	hmat,hmatj,hmati,
-	&aux,
-	&rowsInQ,
-	bmat, bmatj, bmati,
-	&essential,
-	rootr,rooti,normVec
-);
+prow=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+pcol=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+@}
 
-}
+@o devsparseAMA.c -d
+@{
 
 
-
-/* Simple test of sparseAMA().
- * Writes test data to the temporary file and checks
- * whether the expected number of bytes were written.
- */
-void testSparseAMA2(void)
+int init_suite2(void)
 {
 
-static const unsigned int hrows=1;
-static const unsigned int hcols=3;
-static const unsigned int leads=1;
-static const unsigned int lags=1;
+
+static const unsigned int testMaxelems=381;
+
+@<allocate test arrays@>
+
+rowsInQ=aux=0;
+qmati[0]=1;
+maxSize=testMaxelems;
 
 
-  printf("testSparseAMA2:beginning\n");
-double hmat[14]={-1., 0.1, 1., -0.5, -0.5, -0.5, -0.5, 1., -0.3, -1., 1., -0.2, 1.,  1.};
-unsigned int hmatj[14]=
-{7, 8, 9, 10, 15, 4, 9, 10, 3, 6, 8, 10, 6, 7};
-unsigned int hmati[6]={1, 6, 9, 13, 14, 15};
-
-
-double zmat[9]={-0.5, -0.5, 1., -0.3, -1., 1., -0.2, 1., 1.};
-unsigned int zmatj[9]=
-{4, 9, 10, 3, 6, 8, 10, 6, 7};
-unsigned int zmati[5]={1, 4, 8, 9, 10};
-
-
-printf("here's h\n");
-cPrintSparse(5,   hmat,hmatj,hmati);
-
-sparseAMA(&maxSize,
-   DISCRETE_TIME,
-   hrows,hcols,leads,
-   hmat,hmatj,hmati,
-   newHmat,newHmatj,newHmati,
-   &aux,&rowsInQ,qmat,qmatj,qmati,
-   &essential,
-   rootr,rooti,&retCode
-   );
-/*     CU_ASSERT(maxelems  == maxSize)*/
-     CU_ASSERT(0 == retCode)
-
-/*
-obtainSparseReducedForm(
-  &maxSize,
-  hrows*leads,(hcols-hrows),qmat,qmatj,qmati,
-  bmat, bmatj, bmati
-);
-*/
-printf("here's newh\n");
-cPrintSparse(5,   newHmat,newHmatj,newHmati);
-printf("here's q\n");
-cPrintSparse(5,   qmat,qmatj,qmati);
-
-obtainSparseReducedForm(&maxSize,
-  5, 10,
-  qmat,qmatj,qmati,
-  bmat,bmatj,bmati
-);
-printf("here's b\n");
-cPrintSparse(5,   bmat,bmatj,bmati);
-
-
-autoRegression(&maxSize,&retCode,
-   hrows,hcols,
-   hmat,hmatj,hmati,
-   qmat,qmatj,qmati,
-   newHmat,newHmatj,newHmati,
-   annihil,annihilj,annihili,
-   theR,theRj,theRi,
-   prow,pcol);
-printf("here's newh again\n");
-cPrintSparse(hrows,   newHmat,newHmatj,newHmati);
-printf("here's q\n");
-cPrintSparse(hrows-1,   qmat,qmatj,qmati);
-
-
-
-  printf("testSparseAMA2:after autoregression call\n");
-
-  printf("testSparseAMA2:end\n");
-
+return(0);
 }
-
-
-
-/* Simple test of sparseAMA().
- * Writes test data to the temporary file and checks
- * whether the expected number of bytes were written.
- */
-void testSparseAMASimplest(void)
-{
-static const unsigned int hrows=1;
-static const unsigned int hcols=3;
-static const unsigned int leads=1;
-static const unsigned int lags=1;
-static const unsigned int maxelems=3;
-
-
-  printf("testSparseAMA2:beginning\n");
-double hmat[2]={2., 3.};
-unsigned int hmatj[2]={1, 2};
-unsigned int hmati[2]={1, 3};
-
-
-double zmat[2]={1,2};
-unsigned int zmati[2]={1,3};
-
-
-printf("here's h\n");
-cPrintSparse(hrows, hmat,hmatj,hmati);
-
-sparseAMA(&maxSize,
-   DISCRETE_TIME,
-   hrows,hcols,leads,
-   hmat,hmatj,hmati,
-   newHmat,newHmatj,newHmati,
-   &aux,&rowsInQ,qmat,qmatj,qmati,
-   &essential,
-   rootr,rooti,&retCode
-   );printf("maxsize=%u\n",maxSize);
-     CU_ASSERT(maxelems  == maxSize)
-     CU_ASSERT(0 == retCode)
-maxSize=maxelems;
-/*
-obtainSparseReducedForm(
-  &maxSize,
-  hrows*leads,(hcols-hrows),qmat,qmatj,qmati,
-  bmat, bmatj, bmati
-);
-*/
-printf("here's newh\n");
-cPrintSparse(hrows,   newHmat,newHmatj,newHmati);
-printf("here's q\n");
-cPrintSparse(hrows*leads,qmat,qmatj,qmati);
-
-/*
-obtainSparseReducedForm(&maxSize,
-  hrows, hrows*(leads+lags),
-  qmat,qmatj,qmati,
-  bmat,bmatj,bmati
-);
-*/
-printf("here's b\n");
-cPrintSparse(hrows*(leads+lags),bmat,bmatj,bmati);
-
-
-autoRegression(&maxSize,&retCode,
-   hrows,hcols,
-   hmat,hmatj,hmati,
-   qmat,qmatj,qmati,
-   newHmat,newHmatj,newHmati,
-   annihil,annihilj,annihili,
-   theR,theRj,theRi,
-   prow,pcol);
-printf("here's newh again\n");
-cPrintSparse(hrows,newHmat,newHmatj,newHmati);
-printf("here's q\n");
-cPrintSparse(hrows,qmat,qmatj,qmati);
-
-
-
-  printf("testSparseAMA2:after autoregression call\n");
-
-  printf("testSparseAMA2:end\n");
-
-}
-
-
-
-
 
 
 @}
@@ -3560,7 +3509,8 @@ maxHElementsEncountered=(unsigned int)(potentialMaxValue);\
 void free(void * ptr);
 
 int init_suite1(void);
-int clean_suite1(void);
+int clean_suites(void);
+int init_suite2(void);
 void testSparseAMA(void);
 void testSparseAMA2(void);
 void testSparseAMASimplest(void);

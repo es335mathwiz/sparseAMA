@@ -1,5 +1,5 @@
 
-#line 3383 "sparseAMA.w"
+#line 3332 "sparseAMA.w"
 
 /*
  * sparseAMA.h
@@ -180,7 +180,8 @@ maxHElementsEncountered=(unsigned int)(potentialMaxValue);\
 void free(void * ptr);
 
 int init_suite1(void);
-int clean_suite1(void);
+int clean_suites(void);
+int init_suite2(void);
 void testSparseAMA(void);
 void testSparseAMA2(void);
 void testSparseAMASimplest(void);

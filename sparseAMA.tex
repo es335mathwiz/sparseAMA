@@ -563,9 +563,29 @@ routine to provide support.
 
 \subsection{An Example Makefile}
 \label{sec:examplelibmake}
-\section{The Code}
+
+
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap1}\raggedright\small
+\NWtarget{nuweb13}{} \verb@"devMakefile"@\nobreak\ {\footnotesize {13}}$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@nada@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\section{The Code}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap2}\raggedright\small
 \NWtarget{nuweb14}{} \verb@"devsparseAMA.c"@\nobreak\ {\footnotesize {14}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
@@ -597,14 +617,14 @@ routine to provide support.
 \vspace{-1.5ex}
 \footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
-\item \NWtxtFileDefBy\ \NWlink{nuweb14}{14}\NWlink{nuweb15}{, 15}\NWlink{nuweb16}{, 16}\NWlink{nuweb17}{, 17}\NWlink{nuweb18}{, 18}\NWlink{nuweb19}{, 19}.
+\item \NWtxtFileDefBy\ \NWlink{nuweb14}{14}\NWlink{nuweb15}{, 15}\NWlink{nuweb16}{, 16}\NWlink{nuweb17}{, 17}\NWlink{nuweb18}{, 18}\NWlink{nuweb20}{, 20}\NWlink{nuweb22}{, 22}.
 
 \item{}
 \end{list}
 \end{minipage}\vspace{4ex}
 \end{flushleft}
 \begin{flushleft} \small
-\begin{minipage}{\linewidth}\label{scrap2}\raggedright\small
+\begin{minipage}{\linewidth}\label{scrap3}\raggedright\small
 \NWtarget{nuweb15}{} \verb@"devsparseAMA.c"@\nobreak\ {\footnotesize {15}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
@@ -969,26 +989,56 @@ routine to provide support.
 \mbox{}\verb@{@\\
 \mbox{}\verb@unsigned        int i, j, qextent, zeroRow ;@\\
 \mbox{}\verb@        static unsigned int maxHElementsEncountered=0;          /* bumpSparseAMA */@\\
+\mbox{}\verb@printf("shiftRightAnd:on entry\n");@\\
+\mbox{}\verb@printf("shiftRightAnd:zeroRow loop i=%u,hrows=%u\n",i,hrows);fflush(stdout);@\\
+\mbox{}\verb@cPrintSparse(hrows,hmat,hmatj,hmati);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@        /* check for zero rows in H matrix -- can't shift right if all zeros */@\\
 \mbox{}\verb@        /* (if row has no nonzero values, adjacent row pointers will be equal) */@\\
 \mbox{}\verb@        zeroRow=FALSE;@\\
 \mbox{}\verb@        i = 1 ;@\\
 \mbox{}\verb@        while (i <= hrows && !zeroRow) {@\\
+\mbox{}\verb@printf("shiftRightAnd:zeroRow loop i=%u,hrows=%u\n",i,hrows);fflush(stdout);@\\
 \mbox{}\verb@                zeroRow = (hmati[i-1]==hmati[i]) ;@\\
 \mbox{}\verb@                i++ ;@\\
 \mbox{}\verb@        }@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@printf("shiftRightAnd:checked zeroRow\n");@\\
+\mbox{}\verb@cPrintSparse(hrows,hmat,hmatj,hmati);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    sparseAMAAssert (zeroRow==FALSE, shiftRightAndRecordPreZeroRow);@\\
 \mbox{}\verb@        if (*returnCode) return (BADRC) ;@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@        /* keep track of space used in Q */@\\
+\mbox{}\verb@printf("shiftRightAnd:pre qextrowInq=%u\n",rowsInQ);fflush(stdout);@\\
+\mbox{}\verb@printf("shiftRightAnd:qext=%u\n",qextent);fflush(stdout);@\\
+\mbox{}\verb@printf("shiftRightAnd:pre qextrowInq=%u\n",qmati[0]);fflush(stdout);@\\
+\mbox{}\verb@printf("shiftRightAnd:pre qmati[row]=%u\n",qmati[rowsInQ]);fflush(stdout);@\\
+\mbox{}\verb@cPrintSparse(hrows,hmat,hmatj,hmati);@\\
 \mbox{}\verb@        qextent=qmati[rowsInQ]-qmati[0];@\\
+\mbox{}\verb@printf("shiftRightAnd:pre bump\n");@\\
+\mbox{}\verb@cPrintSparse(hrows,hmat,hmatj,hmati);@\\
 \mbox{}\verb@        bumpSparseAMA((qextent));@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@printf("shiftRightAnd:post bump\n");@\\
+\mbox{}\verb@cPrintSparse(hrows,hmat,hmatj,hmati);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@        /* loop through rows of H */@\\
 \mbox{}\verb@        for(i=1; i<=hrows; i++) {@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@printf("shiftRightAnd:loop throw rows\n");@\\
+\mbox{}\verb@cPrintSparse(hrows,hmat,hmatj,hmati);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@                /* while row ends in zero block, add row to Q and shift right in H */@\\
 \mbox{}\verb@                while (rowEndsInZeroBlock(i, dim, hmat, hmatj, hmati, hcols)) {@\\
@@ -1012,6 +1062,10 @@ routine to provide support.
 \mbox{}\verb@@\\
 \mbox{}\verb@                                /* shift H value right one block.  (Zeros are just ignored.) */@\\
 \mbox{}\verb@                                hmatj[j-1] += dim;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@printf("shiftRightAnd:bottom loop throw non zero rows\n");@\\
+\mbox{}\verb@cPrintSparse(hrows,hmat,hmatj,hmati);@\\
+\mbox{}\verb@cPrintSparse(hrows,qmat,qmatj,qmati);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@                        }@\\
 \mbox{}\verb@                }@\\
@@ -1144,14 +1198,14 @@ routine to provide support.
 \vspace{-1.5ex}
 \footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
-\item \NWtxtFileDefBy\ \NWlink{nuweb14}{14}\NWlink{nuweb15}{, 15}\NWlink{nuweb16}{, 16}\NWlink{nuweb17}{, 17}\NWlink{nuweb18}{, 18}\NWlink{nuweb19}{, 19}.
+\item \NWtxtFileDefBy\ \NWlink{nuweb14}{14}\NWlink{nuweb15}{, 15}\NWlink{nuweb16}{, 16}\NWlink{nuweb17}{, 17}\NWlink{nuweb18}{, 18}\NWlink{nuweb20}{, 20}\NWlink{nuweb22}{, 22}.
 
 \item{}
 \end{list}
 \end{minipage}\vspace{4ex}
 \end{flushleft}
 \begin{flushleft} \small
-\begin{minipage}{\linewidth}\label{scrap3}\raggedright\small
+\begin{minipage}{\linewidth}\label{scrap4}\raggedright\small
 \NWtarget{nuweb16}{} \verb@"devsparseAMA.c"@\nobreak\ {\footnotesize {16}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
@@ -1354,6 +1408,8 @@ routine to provide support.
 \mbox{}\verb@    unsigned int * prow,unsigned int * pcol@\\
 \mbox{}\verb@)@\\
 \mbox{}\verb@{@\\
+\mbox{}\verb@printf("autoRegression:entry hrows=%u\n",hrows);@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@        double time0, time_annihilateRows, time_shiftRightAndRecord ; /* rwt */@\\
 \mbox{}\verb@        unsigned int count_ARloop ; /* rwt */@\\
 \mbox{}\verb@        unsigned int aOne;unsigned int swapped;unsigned int i;static unsigned int maxHElementsEncountered=0;@\\
@@ -1367,21 +1423,24 @@ routine to provide support.
 \mbox{}\verb@        /* save original maxspace parameter */@\\
 \mbox{}\verb@        unsigned int originalMaxHElements;@\\
 \mbox{}\verb@        @\\
+\mbox{}\verb@printf("autoRegression:pre orig=%u\n",hrows);fflush(stdout);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@originalMaxHElements=*maxNumberOfHElements;@\\
-\mbox{}\verb@@\\
+\mbox{}\verb@printf("autoRegression:pre timeshifthrows=%u\n",hrows);fflush(stdout);@\\
 \mbox{}\verb@        time_shiftRightAndRecord = 0 ;  /* rwt */@\\
 \mbox{}\verb@        time_annihilateRows = 0 ;               /* rwt */@\\
 \mbox{}\verb@        count_ARloop = 0 ;                              /* rwt */@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@        /* init ... */@\\
 \mbox{}\verb@        aOne=1;swapped=0;rowsInQ=0;rnk=0;@\\
+\mbox{}\verb@printf("autoRegression:pre permhrows=%u\n",hrows);fflush(stdout);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@        /* initialize permuatation vectors */@\\
 \mbox{}\verb@        for (i=0;i<hrows;i++)@\\
 \mbox{}\verb@                prow[i]=i;@\\
 \mbox{}\verb@        for (i=0;i<hrows;i++)@\\
 \mbox{}\verb@            pcol[i]=i;@\\
+\mbox{}\verb@printf("autoRegression:after permhrows=%u\n",hrows);fflush(stdout);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@        /* rwt init profile vars */@\\
 \mbox{}\verb@        time_rightMostAllZeroQ = 0 ;            /* accumulated in rightMostAllZeroQ */@\\
@@ -1398,17 +1457,29 @@ routine to provide support.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@                count_ARloop ++ ;  /* rwt */@\\
-\mbox{}\verb@@\\
+\mbox{}\verb@printf("autoRegression:while rank loop pre drop\n");@\\
+\mbox{}\verb@printf("autoRegression:hrows=%u\n",hrows);fflush(stdout);@\\
+\mbox{}\verb@cPrintSparse(hrows,hmat,hmatj,hmati);@\\
 \mbox{}\verb@                /* clean up near-zeros */@\\
 \mbox{}\verb@                ztol=ZERO_TOLERANCE;ztol=1.0e-8;job=3;len=HMATSIZE;ierr=0;@\\
 \mbox{}\verb@                dropSmallElements(&hrows,&job,&ztol,&len,hmat,hmatj,hmati,hmat,hmatj,hmati,&ierr);@\\
+\mbox{}\verb@printf("autoRegression:while rank loop post drop\n");@\\
+\mbox{}\verb@printf("autoRegression:hrows=%u\n",hrows);fflush(stdout);@\\
+\mbox{}\verb@cPrintSparse(hrows,hmat,hmatj,hmati);@\\
+\mbox{}\verb@printf("autoRegression:hrows=%u\n",hrows);fflush(stdout);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@                /* shift zero rows of rightmost block of H to the right and copy into Q as auxiliary initial conditions */@\\
 \mbox{}\verb@                time0 = cputime() ; /* rwt */@\\
+\mbox{}\verb@printf("autoRegression:at shift call hrows=%u\n",hrows);fflush(stdout);@\\
 \mbox{}\verb@                rowsInQ=shiftRightAndRecord(maxNumberOfHElements,returnCode,hrows,rowsInQ,@\\
 \mbox{}\verb@                        qmat,qmatj,qmati,hrows,hcols,hmat,hmatj,hmati@\\
 \mbox{}\verb@                );@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@printf("autoRegression:post shift\n");@\\
+\mbox{}\verb@cPrintSparse(hrows,hmat,hmatj,hmati);@\\
+\mbox{}\verb@cPrintSparse(hrows,qmat,qmatj,qmati);@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@                if (*returnCode) return 0u ;@\\
 \mbox{}\verb@                time_shiftRightAndRecord += cputime() - time0 ; /* rwt */@\\
@@ -1737,14 +1808,14 @@ routine to provide support.
 \vspace{-1.5ex}
 \footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
-\item \NWtxtFileDefBy\ \NWlink{nuweb14}{14}\NWlink{nuweb15}{, 15}\NWlink{nuweb16}{, 16}\NWlink{nuweb17}{, 17}\NWlink{nuweb18}{, 18}\NWlink{nuweb19}{, 19}.
+\item \NWtxtFileDefBy\ \NWlink{nuweb14}{14}\NWlink{nuweb15}{, 15}\NWlink{nuweb16}{, 16}\NWlink{nuweb17}{, 17}\NWlink{nuweb18}{, 18}\NWlink{nuweb20}{, 20}\NWlink{nuweb22}{, 22}.
 
 \item{}
 \end{list}
 \end{minipage}\vspace{4ex}
 \end{flushleft}
 \begin{flushleft} \small
-\begin{minipage}{\linewidth}\label{scrap4}\raggedright\small
+\begin{minipage}{\linewidth}\label{scrap5}\raggedright\small
 \NWtarget{nuweb17}{} \verb@"devsparseAMA.c"@\nobreak\ {\footnotesize {17}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
@@ -2519,14 +2590,14 @@ routine to provide support.
 \vspace{-1.5ex}
 \footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
-\item \NWtxtFileDefBy\ \NWlink{nuweb14}{14}\NWlink{nuweb15}{, 15}\NWlink{nuweb16}{, 16}\NWlink{nuweb17}{, 17}\NWlink{nuweb18}{, 18}\NWlink{nuweb19}{, 19}.
+\item \NWtxtFileDefBy\ \NWlink{nuweb14}{14}\NWlink{nuweb15}{, 15}\NWlink{nuweb16}{, 16}\NWlink{nuweb17}{, 17}\NWlink{nuweb18}{, 18}\NWlink{nuweb20}{, 20}\NWlink{nuweb22}{, 22}.
 
 \item{}
 \end{list}
 \end{minipage}\vspace{4ex}
 \end{flushleft}
 \begin{flushleft} \small
-\begin{minipage}{\linewidth}\label{scrap5}\raggedright\small
+\begin{minipage}{\linewidth}\label{scrap6}\raggedright\small
 \NWtarget{nuweb18}{} \verb@"devsparseAMA.c"@\nobreak\ {\footnotesize {18}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
@@ -3089,20 +3160,126 @@ routine to provide support.
 \mbox{}\verb@/* ******************************************************************************************* */@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#include "devAMASuite.h"@\\
+\mbox{}\verb@/* Simple test of sparseAMA().@\\
+\mbox{}\verb@ * Writes test data to the temporary file and checks@\\
+\mbox{}\verb@ * whether the expected number of bytes were written.@\\
+\mbox{}\verb@ */@\\
+\mbox{}\verb@void testSparseAMASimplest(void)@\\
+\mbox{}\verb@{@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@static const unsigned int testHrows=1;@\\
+\mbox{}\verb@static const unsigned int testHcols=3;@\\
+\mbox{}\verb@static const unsigned int testLeads=1;@\\
+\mbox{}\verb@static const unsigned int testLags=1;@\\
+\mbox{}\verb@static const unsigned int testMaxelems=100;@\\
+\mbox{}\verb@maxSize=testMaxelems;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  printf("testSparseAMA2:beginning\n");@\\
+\mbox{}\verb@double hmat[2]={2., 3.};@\\
+\mbox{}\verb@unsigned int hmatj[2]={1, 2};@\\
+\mbox{}\verb@unsigned int hmati[2]={1, 3};@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@double zmat[2]={1,2};@\\
+\mbox{}\verb@unsigned int zmati[2]={1,3};@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@printf("testHrows=%u,here's h\n",testHrows);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@cPrintSparse(testHrows, hmat,hmatj,hmati);@\\
+\mbox{}\verb@aux=rowsInQ=0;@\\
+\mbox{}\verb@autoRegression(&maxSize,&retCode,@\\
+\mbox{}\verb@   testHrows,testHcols,@\\
+\mbox{}\verb@   hmat,hmatj,hmati,@\\
+\mbox{}\verb@   qmat,qmatj,qmati,@\\
+\mbox{}\verb@   newHmat,newHmatj,newHmati,@\\
+\mbox{}\verb@   annihil,annihilj,annihili,@\\
+\mbox{}\verb@   theR,theRj,theRi,@\\
+\mbox{}\verb@   prow,pcol);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@printf("here's newh\n");@\\
+\mbox{}\verb@cPrintSparse(testHrows,   newHmat,newHmatj,newHmati);@\\
+\mbox{}\verb@printf("here's q\n");@\\
+\mbox{}\verb@cPrintSparse(testHrows*testLeads,qmat,qmatj,qmati);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@/*@\\
+\mbox{}\verb@sparseAMA(&maxSize,@\\
+\mbox{}\verb@   DISCRETE_TIME,@\\
+\mbox{}\verb@   testHrows,testHcols,testLeads,@\\
+\mbox{}\verb@   hmat,hmatj,hmati,@\\
+\mbox{}\verb@   newHmat,newHmatj,newHmati,@\\
+\mbox{}\verb@   &aux,&rowsInQ,qmat,qmatj,qmati,@\\
+\mbox{}\verb@   &essential,@\\
+\mbox{}\verb@   rootr,rooti,&retCode@\\
+\mbox{}\verb@   );printf("maxsize=%u\n",maxSize);@\\
+\mbox{}\verb@     CU_ASSERT(testMaxelems  == maxSize)@\\
+\mbox{}\verb@     CU_ASSERT(0 == retCode)@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@obtainSparseReducedForm(@\\
+\mbox{}\verb@  &maxSize,@\\
+\mbox{}\verb@  testHrows*testLeads,(testHcols-testHrows),qmat,qmatj,qmati,@\\
+\mbox{}\verb@  bmat, bmatj, bmati@\\
+\mbox{}\verb@);@\\
+\mbox{}\verb@*//*@\\
+\mbox{}\verb@obtainSparseReducedForm(&maxSize,@\\
+\mbox{}\verb@  testHrows, testHrows*(testLeads+testLags),@\\
+\mbox{}\verb@  qmat,qmatj,qmati,@\\
+\mbox{}\verb@  bmat,bmatj,bmati@\\
+\mbox{}\verb@);@\\
+\mbox{}\verb@*/@\\
+\mbox{}\verb@/*printf("here's b\n");@\\
+\mbox{}\verb@cPrintSparse(testHrows*(testLeads+testLags),bmat,bmatj,bmati);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@autoRegression(&maxSize,&retCode,@\\
+\mbox{}\verb@   testHrows,testHcols,@\\
+\mbox{}\verb@   hmat,hmatj,hmati,@\\
+\mbox{}\verb@   qmat,qmatj,qmati,@\\
+\mbox{}\verb@   newHmat,newHmatj,newHmati,@\\
+\mbox{}\verb@   annihil,annihilj,annihili,@\\
+\mbox{}\verb@   theR,theRj,theRi,@\\
+\mbox{}\verb@   prow,pcol);@\\
+\mbox{}\verb@printf("here's newh again\n");@\\
+\mbox{}\verb@cPrintSparse(testHrows,newHmat,newHmatj,newHmati);@\\
+\mbox{}\verb@printf("here's q\n");@\\
+\mbox{}\verb@cPrintSparse(testHrows,qmat,qmatj,qmati);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@*/@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  printf("testSparseAMA2:after autoregression call\n");@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  printf("testSparseAMA2:end\n");@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
 \vspace{-1.5ex}
 \footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
-\item \NWtxtFileDefBy\ \NWlink{nuweb14}{14}\NWlink{nuweb15}{, 15}\NWlink{nuweb16}{, 16}\NWlink{nuweb17}{, 17}\NWlink{nuweb18}{, 18}\NWlink{nuweb19}{, 19}.
+\item \NWtxtFileDefBy\ \NWlink{nuweb14}{14}\NWlink{nuweb15}{, 15}\NWlink{nuweb16}{, 16}\NWlink{nuweb17}{, 17}\NWlink{nuweb18}{, 18}\NWlink{nuweb20}{, 20}\NWlink{nuweb22}{, 22}.
 
 \item{}
 \end{list}
 \end{minipage}\vspace{4ex}
 \end{flushleft}
 \begin{flushleft} \small
-\begin{minipage}{\linewidth}\label{scrap6}\raggedright\small
-\NWtarget{nuweb19}{} \verb@"devsparseAMA.c"@\nobreak\ {\footnotesize {19}}$\equiv$
+\begin{minipage}{\linewidth}\label{scrap7}\raggedright\small
+\NWtarget{nuweb19}{} \verb@"devAMASuite.h"@\nobreak\ {\footnotesize {19}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -3139,26 +3316,6 @@ routine to provide support.
 \mbox{}\verb@#include<stdlib.h>@\\
 \mbox{}\verb@#include "useSparseAMA.h"@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@#define HCOLS 39@\\
-\mbox{}\verb@#define LEADS 8@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@/* Pointer to the file used by the tests. */@\\
-\mbox{}\verb@static FILE* temp_file = NULL;@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@/* The suite initialization function.@\\
-\mbox{}\verb@ * Opens the temporary file used by the tests.@\\
-\mbox{}\verb@ * Returns zero on success, non-zero otherwise.@\\
-\mbox{}\verb@ */@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@/* The suite cleanup function.@\\
-\mbox{}\verb@ * Closes the temporary file used by the tests.@\\
-\mbox{}\verb@ * Returns zero on success, non-zero otherwise.@\\
-\mbox{}\verb@ */@\\
-\mbox{}\verb@@\\
 \mbox{}\verb@unsigned int maxSize;@\\
 \mbox{}\verb@double * newHmat;unsigned int * newHmatj;unsigned int * newHmati;@\\
 \mbox{}\verb@unsigned int aux;@\\
@@ -3180,291 +3337,132 @@ routine to provide support.
 \mbox{}\verb@unsigned int *annihilj;@\\
 \mbox{}\verb@unsigned int *annihili;@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@/* Pointer to the file used by the tests. */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@/* The suite initialization function.@\\
+\mbox{}\verb@ * Opens the temporary file used by the tests.@\\
+\mbox{}\verb@ * Returns zero on success, non-zero otherwise.@\\
+\mbox{}\verb@ */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@/* The suite cleanup function.@\\
+\mbox{}\verb@ * Closes the temporary file used by the tests.@\\
+\mbox{}\verb@ * Returns zero on success, non-zero otherwise.@\\
+\mbox{}\verb@ */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap8}\raggedright\small
+\NWtarget{nuweb20}{} \verb@"devsparseAMA.c"@\nobreak\ {\footnotesize {20}}$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@int init_suite1(void)@\\
 \mbox{}\verb@{@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@static const unsigned int maxelems=381;@\\
+\mbox{}\verb@static const unsigned int testMaxelems=381;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@newHmat=(double *)calloc((unsigned)maxelems,sizeof(double));@\\
-\mbox{}\verb@newHmatj=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
-\mbox{}\verb@newHmati=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
-\mbox{}\verb@qmat=(double *)calloc((unsigned)maxelems,sizeof(double));@\\
-\mbox{}\verb@qmatj=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
-\mbox{}\verb@qmati=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
-\mbox{}\verb@bmat=(double *)calloc((unsigned)maxelems,sizeof(double));@\\
-\mbox{}\verb@bmatj=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
-\mbox{}\verb@bmati=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
-\mbox{}\verb@rootr=(double *)calloc((unsigned)maxelems,sizeof(double));@\\
-\mbox{}\verb@rooti=(double *)calloc((unsigned)maxelems,sizeof(double));@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@annihil=(double *)calloc((unsigned)maxelems,sizeof(double));@\\
-\mbox{}\verb@annihilj=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
-\mbox{}\verb@annihili=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@theR=(double *)calloc((unsigned)maxelems,sizeof(double));@\\
-\mbox{}\verb@theRj=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
-\mbox{}\verb@theRi=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@prow=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
-\mbox{}\verb@pcol=(unsigned int *)calloc((unsigned)maxelems,sizeof(unsigned int));@\\
-\mbox{}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape allocate test arrays}\nobreak\ {\footnotesize \NWlink{nuweb21}{21}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@rowsInQ=aux=0;@\\
 \mbox{}\verb@qmati[0]=1;@\\
-\mbox{}\verb@maxSize=maxelems;@\\
-\mbox{}\verb@   if (NULL == (temp_file = fopen("temp.txt", "w+"))) {@\\
-\mbox{}\verb@      return -1;@\\
-\mbox{}\verb@   }@\\
-\mbox{}\verb@   else {@\\
-\mbox{}\verb@      return 0;@\\
-\mbox{}\verb@   }@\\
+\mbox{}\verb@maxSize=testMaxelems;@\\
+\mbox{}\verb@return(0);@\\
 \mbox{}\verb@}@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@int clean_suite1(void)@\\
+\mbox{}\verb@int clean_suites(void)@\\
 \mbox{}\verb@{@\\
 \mbox{}\verb@free(newHmat);free(newHmatj);free(newHmati);@\\
 \mbox{}\verb@free(qmat);free(qmatj);free(qmati);@\\
 \mbox{}\verb@free(bmat);free(bmatj);free(bmati);@\\
 \mbox{}\verb@free(rootr);free(rooti);@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@   if (0 != fclose(temp_file)) {@\\
-\mbox{}\verb@      return -1;@\\
-\mbox{}\verb@   }@\\
-\mbox{}\verb@   else {@\\
-\mbox{}\verb@      temp_file = NULL;@\\
-\mbox{}\verb@      return 0;@\\
-\mbox{}\verb@   }@\\
+\mbox{}\verb@return(0);@\\
 \mbox{}\verb@}@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtFileDefBy\ \NWlink{nuweb14}{14}\NWlink{nuweb15}{, 15}\NWlink{nuweb16}{, 16}\NWlink{nuweb17}{, 17}\NWlink{nuweb18}{, 18}\NWlink{nuweb20}{, 20}\NWlink{nuweb22}{, 22}.
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap9}\raggedright\small
+\NWtarget{nuweb21}{} $\langle\,${\itshape allocate test arrays}\nobreak\ {\footnotesize {21}}$\,\rangle\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
 \mbox{}\verb@@\\
-\mbox{}\verb@/* Simple test of sparseAMA().@\\
-\mbox{}\verb@ * Writes test data to the temporary file and checks@\\
-\mbox{}\verb@ * whether the expected number of bytes were written.@\\
-\mbox{}\verb@ */@\\
-\mbox{}\verb@void testSparseAMA(void)@\\
-\mbox{}\verb@{@\\
-\mbox{}\verb@static const unsigned int hrows=3;@\\
-\mbox{}\verb@static const unsigned int hcols=39;@\\
-\mbox{}\verb@static const unsigned int leads=1;@\\
-\mbox{}\verb@static const unsigned int lags=1;@\\
+\mbox{}\verb@newHmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));@\\
+\mbox{}\verb@newHmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@newHmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@qmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));@\\
+\mbox{}\verb@qmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@qmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@bmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));@\\
+\mbox{}\verb@bmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@bmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@rootr=(double *)calloc((unsigned)testMaxelems,sizeof(double));@\\
+\mbox{}\verb@rooti=(double *)calloc((unsigned)testMaxelems,sizeof(double));@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@double normVec[hrows];@\\
-\mbox{}\verb@double hmat[20]=@\\
-\mbox{}\verb@{-0.1167899999999999, -0.2842153439999999, 0.098180323, -0.697197378, @\\
-\mbox{}\verb@    -0.1357490219999999, 1, -0.024790419, 0.024790419, -0.024790419, @\\
-\mbox{}\verb@    0.024790419, -0.024790419, 0.251999689, 0.024790419, -0.024790419, @\\
-\mbox{}\verb@    -1.158861192, 0.024790419, 1, -0.32, 1, -2.62};@\\
-\mbox{}\verb@unsigned int hmatj[20]=@\\
-\mbox{}\verb@{1, 4, 7, 10, 11, 13, 1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 14, 12, 15, 37};@\\
-\mbox{}\verb@unsigned int hmati[4]={1, 7, 18,21 };@\\
+\mbox{}\verb@annihil=(double *)calloc((unsigned)testMaxelems,sizeof(double));@\\
+\mbox{}\verb@annihilj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@annihili=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@theR=(double *)calloc((unsigned)testMaxelems,sizeof(double));@\\
+\mbox{}\verb@theRj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@theRi=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@sparseAMA(&maxSize,@\\
-\mbox{}\verb@   DISCRETE_TIME,@\\
-\mbox{}\verb@   hrows,hcols,leads,@\\
-\mbox{}\verb@   hmat,hmatj,hmati,@\\
-\mbox{}\verb@   newHmat,newHmatj,newHmati,@\\
-\mbox{}\verb@   &aux,&rowsInQ,qmat,qmatj,qmati,@\\
-\mbox{}\verb@   &essential,@\\
-\mbox{}\verb@   rootr,rooti,&retCode@\\
-\mbox{}\verb@   );@\\
-\mbox{}\verb@/*%     CU_ASSERT(maxelems  == maxSize)*/@\\
-\mbox{}\verb@     CU_ASSERT(0 == retCode)@\\
-\mbox{}\verb@/*@\\
-\mbox{}\verb@obtainSparseReducedForm(@\\
-\mbox{}\verb@  &maxSize,@\\
-\mbox{}\verb@  hrows*leads,(hcols-hrows),qmat,qmatj,qmati,@\\
-\mbox{}\verb@  bmat, bmatj, bmati@\\
-\mbox{}\verb@);@\\
-\mbox{}\verb@*/@\\
-\mbox{}\verb@satisfiesLinearSystemQ (@\\
-\mbox{}\verb@        &maxSize,@\\
-\mbox{}\verb@   hrows,hcols,leads,@\\
-\mbox{}\verb@        hmat,hmatj,hmati,@\\
-\mbox{}\verb@        &aux,@\\
-\mbox{}\verb@        &rowsInQ,@\\
-\mbox{}\verb@        bmat, bmatj, bmati,@\\
-\mbox{}\verb@        &essential,@\\
-\mbox{}\verb@        rootr,rooti,normVec@\\
-\mbox{}\verb@);@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@}@\\
+\mbox{}\verb@prow=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@pcol=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtMacroRefIn\ \NWlink{nuweb20}{20}\NWlink{nuweb22}{, 22}.
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap10}\raggedright\small
+\NWtarget{nuweb22}{} \verb@"devsparseAMA.c"@\nobreak\ {\footnotesize {22}}$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@/* Simple test of sparseAMA().@\\
-\mbox{}\verb@ * Writes test data to the temporary file and checks@\\
-\mbox{}\verb@ * whether the expected number of bytes were written.@\\
-\mbox{}\verb@ */@\\
-\mbox{}\verb@void testSparseAMA2(void)@\\
+\mbox{}\verb@int init_suite2(void)@\\
 \mbox{}\verb@{@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@static const unsigned int hrows=1;@\\
-\mbox{}\verb@static const unsigned int hcols=3;@\\
-\mbox{}\verb@static const unsigned int leads=1;@\\
-\mbox{}\verb@static const unsigned int lags=1;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@static const unsigned int testMaxelems=381;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape allocate test arrays}\nobreak\ {\footnotesize \NWlink{nuweb21}{21}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@rowsInQ=aux=0;@\\
+\mbox{}\verb@qmati[0]=1;@\\
+\mbox{}\verb@maxSize=testMaxelems;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@  printf("testSparseAMA2:beginning\n");@\\
-\mbox{}\verb@double hmat[14]={-1., 0.1, 1., -0.5, -0.5, -0.5, -0.5, 1., -0.3, -1., 1., -0.2, 1.,  1.};@\\
-\mbox{}\verb@unsigned int hmatj[14]=@\\
-\mbox{}\verb@{7, 8, 9, 10, 15, 4, 9, 10, 3, 6, 8, 10, 6, 7};@\\
-\mbox{}\verb@unsigned int hmati[6]={1, 6, 9, 13, 14, 15};@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@double zmat[9]={-0.5, -0.5, 1., -0.3, -1., 1., -0.2, 1., 1.};@\\
-\mbox{}\verb@unsigned int zmatj[9]=@\\
-\mbox{}\verb@{4, 9, 10, 3, 6, 8, 10, 6, 7};@\\
-\mbox{}\verb@unsigned int zmati[5]={1, 4, 8, 9, 10};@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@printf("here's h\n");@\\
-\mbox{}\verb@cPrintSparse(5,   hmat,hmatj,hmati);@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@sparseAMA(&maxSize,@\\
-\mbox{}\verb@   DISCRETE_TIME,@\\
-\mbox{}\verb@   hrows,hcols,leads,@\\
-\mbox{}\verb@   hmat,hmatj,hmati,@\\
-\mbox{}\verb@   newHmat,newHmatj,newHmati,@\\
-\mbox{}\verb@   &aux,&rowsInQ,qmat,qmatj,qmati,@\\
-\mbox{}\verb@   &essential,@\\
-\mbox{}\verb@   rootr,rooti,&retCode@\\
-\mbox{}\verb@   );@\\
-\mbox{}\verb@/*     CU_ASSERT(maxelems  == maxSize)*/@\\
-\mbox{}\verb@     CU_ASSERT(0 == retCode)@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@/*@\\
-\mbox{}\verb@obtainSparseReducedForm(@\\
-\mbox{}\verb@  &maxSize,@\\
-\mbox{}\verb@  hrows*leads,(hcols-hrows),qmat,qmatj,qmati,@\\
-\mbox{}\verb@  bmat, bmatj, bmati@\\
-\mbox{}\verb@);@\\
-\mbox{}\verb@*/@\\
-\mbox{}\verb@printf("here's newh\n");@\\
-\mbox{}\verb@cPrintSparse(5,   newHmat,newHmatj,newHmati);@\\
-\mbox{}\verb@printf("here's q\n");@\\
-\mbox{}\verb@cPrintSparse(5,   qmat,qmatj,qmati);@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@obtainSparseReducedForm(&maxSize,@\\
-\mbox{}\verb@  5, 10,@\\
-\mbox{}\verb@  qmat,qmatj,qmati,@\\
-\mbox{}\verb@  bmat,bmatj,bmati@\\
-\mbox{}\verb@);@\\
-\mbox{}\verb@printf("here's b\n");@\\
-\mbox{}\verb@cPrintSparse(5,   bmat,bmatj,bmati);@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@autoRegression(&maxSize,&retCode,@\\
-\mbox{}\verb@   hrows,hcols,@\\
-\mbox{}\verb@   hmat,hmatj,hmati,@\\
-\mbox{}\verb@   qmat,qmatj,qmati,@\\
-\mbox{}\verb@   newHmat,newHmatj,newHmati,@\\
-\mbox{}\verb@   annihil,annihilj,annihili,@\\
-\mbox{}\verb@   theR,theRj,theRi,@\\
-\mbox{}\verb@   prow,pcol);@\\
-\mbox{}\verb@printf("here's newh again\n");@\\
-\mbox{}\verb@cPrintSparse(hrows,   newHmat,newHmatj,newHmati);@\\
-\mbox{}\verb@printf("here's q\n");@\\
-\mbox{}\verb@cPrintSparse(hrows-1,   qmat,qmatj,qmati);@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@  printf("testSparseAMA2:after autoregression call\n");@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@  printf("testSparseAMA2:end\n");@\\
-\mbox{}\verb@@\\
+\mbox{}\verb@return(0);@\\
 \mbox{}\verb@}@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@/* Simple test of sparseAMA().@\\
-\mbox{}\verb@ * Writes test data to the temporary file and checks@\\
-\mbox{}\verb@ * whether the expected number of bytes were written.@\\
-\mbox{}\verb@ */@\\
-\mbox{}\verb@void testSparseAMASimplest(void)@\\
-\mbox{}\verb@{@\\
-\mbox{}\verb@static const unsigned int hrows=1;@\\
-\mbox{}\verb@static const unsigned int hcols=3;@\\
-\mbox{}\verb@static const unsigned int leads=1;@\\
-\mbox{}\verb@static const unsigned int lags=1;@\\
-\mbox{}\verb@static const unsigned int maxelems=3;@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@  printf("testSparseAMA2:beginning\n");@\\
-\mbox{}\verb@double hmat[2]={2., 3.};@\\
-\mbox{}\verb@unsigned int hmatj[2]={1, 2};@\\
-\mbox{}\verb@unsigned int hmati[2]={1, 3};@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@double zmat[2]={1,2};@\\
-\mbox{}\verb@unsigned int zmati[2]={1,3};@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@printf("here's h\n");@\\
-\mbox{}\verb@cPrintSparse(hrows, hmat,hmatj,hmati);@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@sparseAMA(&maxSize,@\\
-\mbox{}\verb@   DISCRETE_TIME,@\\
-\mbox{}\verb@   hrows,hcols,leads,@\\
-\mbox{}\verb@   hmat,hmatj,hmati,@\\
-\mbox{}\verb@   newHmat,newHmatj,newHmati,@\\
-\mbox{}\verb@   &aux,&rowsInQ,qmat,qmatj,qmati,@\\
-\mbox{}\verb@   &essential,@\\
-\mbox{}\verb@   rootr,rooti,&retCode@\\
-\mbox{}\verb@   );printf("maxsize=%u\n",maxSize);@\\
-\mbox{}\verb@     CU_ASSERT(maxelems  == maxSize)@\\
-\mbox{}\verb@     CU_ASSERT(0 == retCode)@\\
-\mbox{}\verb@maxSize=maxelems;@\\
-\mbox{}\verb@/*@\\
-\mbox{}\verb@obtainSparseReducedForm(@\\
-\mbox{}\verb@  &maxSize,@\\
-\mbox{}\verb@  hrows*leads,(hcols-hrows),qmat,qmatj,qmati,@\\
-\mbox{}\verb@  bmat, bmatj, bmati@\\
-\mbox{}\verb@);@\\
-\mbox{}\verb@*/@\\
-\mbox{}\verb@printf("here's newh\n");@\\
-\mbox{}\verb@cPrintSparse(hrows,   newHmat,newHmatj,newHmati);@\\
-\mbox{}\verb@printf("here's q\n");@\\
-\mbox{}\verb@cPrintSparse(hrows*leads,qmat,qmatj,qmati);@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@/*@\\
-\mbox{}\verb@obtainSparseReducedForm(&maxSize,@\\
-\mbox{}\verb@  hrows, hrows*(leads+lags),@\\
-\mbox{}\verb@  qmat,qmatj,qmati,@\\
-\mbox{}\verb@  bmat,bmatj,bmati@\\
-\mbox{}\verb@);@\\
-\mbox{}\verb@*/@\\
-\mbox{}\verb@printf("here's b\n");@\\
-\mbox{}\verb@cPrintSparse(hrows*(leads+lags),bmat,bmatj,bmati);@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@autoRegression(&maxSize,&retCode,@\\
-\mbox{}\verb@   hrows,hcols,@\\
-\mbox{}\verb@   hmat,hmatj,hmati,@\\
-\mbox{}\verb@   qmat,qmatj,qmati,@\\
-\mbox{}\verb@   newHmat,newHmatj,newHmati,@\\
-\mbox{}\verb@   annihil,annihilj,annihili,@\\
-\mbox{}\verb@   theR,theRj,theRi,@\\
-\mbox{}\verb@   prow,pcol);@\\
-\mbox{}\verb@printf("here's newh again\n");@\\
-\mbox{}\verb@cPrintSparse(hrows,newHmat,newHmatj,newHmati);@\\
-\mbox{}\verb@printf("here's q\n");@\\
-\mbox{}\verb@cPrintSparse(hrows,qmat,qmatj,qmati);@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@  printf("testSparseAMA2:after autoregression call\n");@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@  printf("testSparseAMA2:end\n");@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@}@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
-\mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@{\NWsep}
@@ -3472,15 +3470,15 @@ routine to provide support.
 \vspace{-1.5ex}
 \footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
-\item \NWtxtFileDefBy\ \NWlink{nuweb14}{14}\NWlink{nuweb15}{, 15}\NWlink{nuweb16}{, 16}\NWlink{nuweb17}{, 17}\NWlink{nuweb18}{, 18}\NWlink{nuweb19}{, 19}.
+\item \NWtxtFileDefBy\ \NWlink{nuweb14}{14}\NWlink{nuweb15}{, 15}\NWlink{nuweb16}{, 16}\NWlink{nuweb17}{, 17}\NWlink{nuweb18}{, 18}\NWlink{nuweb20}{, 20}\NWlink{nuweb22}{, 22}.
 
 \item{}
 \end{list}
 \end{minipage}\vspace{4ex}
 \end{flushleft}
 \begin{flushleft} \small
-\begin{minipage}{\linewidth}\label{scrap7}\raggedright\small
-\NWtarget{nuweb?}{} \verb@"devuseSparseAMA.h"@\nobreak\ {\footnotesize {?}}$\equiv$
+\begin{minipage}{\linewidth}\label{scrap11}\raggedright\small
+\NWtarget{nuweb23}{} \verb@"devuseSparseAMA.h"@\nobreak\ {\footnotesize {23}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -3663,7 +3661,8 @@ routine to provide support.
 \mbox{}\verb@void free(void * ptr);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@int init_suite1(void);@\\
-\mbox{}\verb@int clean_suite1(void);@\\
+\mbox{}\verb@int clean_suites(void);@\\
+\mbox{}\verb@int init_suite2(void);@\\
 \mbox{}\verb@void testSparseAMA(void);@\\
 \mbox{}\verb@void testSparseAMA2(void);@\\
 \mbox{}\verb@void testSparseAMASimplest(void);@\\
@@ -3999,9 +3998,11 @@ routine to provide support.
 
 
 {\small\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
-\item \verb@"devsparseAMA.c"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb14}{14}\NWlink{nuweb15}{, 15}\NWlink{nuweb16}{, 16}\NWlink{nuweb17}{, 17}\NWlink{nuweb18}{, 18}\NWlink{nuweb19}{, 19}.
+\item \verb@"devAMASuite.h"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb19}{19}.}
+\item \verb@"devMakefile"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb13}{13}.}
+\item \verb@"devsparseAMA.c"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb14}{14}\NWlink{nuweb15}{, 15}\NWlink{nuweb16}{, 16}\NWlink{nuweb17}{, 17}\NWlink{nuweb18}{, 18}\NWlink{nuweb20}{, 20}\NWlink{nuweb22}{, 22}.
 }
-\item \verb@"devuseSparseAMA.h"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb?}{?}.}
+\item \verb@"devuseSparseAMA.h"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb23}{23}.}
 \end{list}}
 
 
@@ -4009,8 +4010,11 @@ routine to provide support.
 \label{sec:macros}
 
 
-None.
 
+{\small\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item $\langle\,$allocate test arrays\nobreak\ {\footnotesize \NWlink{nuweb21}{21}}$\,\rangle$ {\footnotesize {\NWtxtRefIn} \NWlink{nuweb20}{20}\NWlink{nuweb22}{, 22}.
+}
+\end{list}}
 
 
 

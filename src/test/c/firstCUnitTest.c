@@ -45,37 +45,36 @@ int main()
       return CU_get_error();
 
    /* add a suite to the registry */
-   pSuite = CU_add_suite("Suite_1", init_suite1, clean_suite1);
+   pSuite = CU_add_suite("Suite_1", init_suite1, clean_suites);
    if (NULL == pSuite) {
       CU_cleanup_registry();
       return CU_get_error();
    }
-
-
-   /* add the tests to the suite */
-   /* NOTE - ORDER IS IMPORTANT - MUST TEST fread() AFTER sparseAMA() */
-/*   if ((NULL == CU_add_test(pSuite, "test of sparseAMA()", testSparseAMA)))
-   {
-      CU_cleanup_registry();
-      return CU_get_error();
-   }
-*/
-
-
-   /* add a suite to the registry */
-  // pSuite = CU_add_suite("Suite_2", init_suite2, clean_suite2);
-  // if (NULL == pSuite) {
-   //   CU_cleanup_registry();
-    //  return CU_get_error();
-   //}
-
-   /* add the tests to the suite */
-   /* NOTE - ORDER IS IMPORTANT - MUST TEST fread() AFTER sparseAMA() */
    if ((NULL == CU_add_test(pSuite, "test of sparseAMASimplest()", testSparseAMASimplest)))
    {
       CU_cleanup_registry();
       return CU_get_error();
    }
+
+
+
+
+  /* add another suite to the registry */
+   pSuite = CU_add_suite("Suite_2", init_suite2, clean_suites);
+   if (NULL == pSuite) {
+     CU_cleanup_registry();
+    return CU_get_error();
+  }
+
+
+   /* add the tests to the suite */
+   if ((NULL == CU_add_test(pSuite, "test of sparseAMASimplest()", testSparseAMASimplest)))
+   {
+      CU_cleanup_registry();
+      return CU_get_error();
+   }
+
+
 
 
 
