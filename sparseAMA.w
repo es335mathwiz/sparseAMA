@@ -559,7 +559,7 @@ nada
 
 
 \section{The Code}
-@o devsparseAMA.c -d
+@o src/main/c/sparseAMA.c -d
 @{
 #include "useSparseAMA.h"
 #ifdef WIN32
@@ -584,7 +584,7 @@ double time_extract, time_backsolve ;
 double time_autoregression, time_augmentQ;
 
 @}
-@o devsparseAMA.c -d
+@o src/main/c/sparseAMA.c -d
 @{
 
 
@@ -1151,7 +1151,7 @@ static unsigned int constructQRDecomposition (
 
 
 @}
-@o devsparseAMA.c -d
+@o src/main/c/sparseAMA.c -d
 @{
 
 
@@ -1747,7 +1747,7 @@ static void constructA (
 }	/* constructA */
 
 @}
-@o devsparseAMA.c -d
+@o src/main/c/sparseAMA.c -d
 @{
 
 
@@ -2515,7 +2515,7 @@ void obtainSparseReducedForm(
 	/*change sign*/
 	for(i=0;i<bmati[qrows]-bmati[0];i++)bmat[i]=(-1)*bmat[i];
 @}
-@o devsparseAMA.c -d
+@o src/main/c/sparseAMA.c -d
 @{
 
 
@@ -3074,9 +3074,27 @@ unsigned int *maxNumberOfHElements,
 /* ******************************************************************************************* */
 /* ******************************************************************************************* */
 
+int sparseMatsEqual(unsigned int numRows,
+double * amat,unsigned int *amatj,unsigned int *amati,
+double * bmat,unsigned int  *bmatj,unsigned int *bmati,double tol){
+unsigned int numElems=amati[numRows]-amati[0];
+int theRes=0;
+double maxDDiff=0; unsigned int maxIDiff=0;
+unsigned int ii;unsigned int iDiff;double dDiff;
+for(ii=0;ii<=numRows;ii++){
+iDiff=abs(amati[ii]-bmati[ii]);
+maxIDiff=(iDiff>maxIDiff)?iDiff:maxIDiff;
+};
+for(ii=0;ii<numElems;ii++){
+dDiff=fabs(amat[ii]-bmat[ii]);
+iDiff=abs(amatj[ii]-bmatj[ii]);
+maxIDiff=(iDiff>maxIDiff)?iDiff:maxDDiff;
+maxDDiff=(dDiff>maxDDiff)?dDiff:maxDDiff;
+};
+return((maxIDiff<tol)&&(maxDDiff<tol));
+}
 
-
-#include "devAMASuite.h"
+#include "AMASuite.h"
 /* Simple test of sparseAMA().
  * Writes test data to the temporary file and checks
  * whether the expected number of bytes were written.
@@ -3099,8 +3117,14 @@ unsigned int hmatj[2]={1, 2};
 unsigned int hmati[2]={1, 3};
 
 
-double zmat[2]={1,2};
+double zmat[2]={2.,3.};
+unsigned int zmatj[2]={1,2};
 unsigned int zmati[2]={1,3};
+
+
+double newHExp1[2]={2.,3.};
+unsigned int newHExp1j[2]={2,3};
+unsigned int newHExp1i[2]={1,3};
 
 
 printf("testHrows=%u,here's h\n",testHrows);
@@ -3115,6 +3139,16 @@ autoRegression(&testMaxSize,&testRetCode,
    testAnnihil,testAnnihilj,testAnnihili,
    testTheR,testTheRj,testTheRi,
    testProw,testPcol);
+
+double tol=10.0e-10;
+
+CU_ASSERT(sparseMatsEqual(testHrows,
+testQmat,testQmatj,testQmati,
+zmat,zmatj,zmati,tol));
+
+CU_ASSERT(sparseMatsEqual(testHrows,
+testNewHmat,testNewHmatj,testNewHmati,
+newHExp1,newHExp1j,newHExp1i,tol));
 
 
 
@@ -3182,7 +3216,7 @@ cPrintSparse(testHrows,testQmat,testQmatj,testQmati);
 
 
 @}
-@o devAMASuite.h -d
+@o src/main/include/AMASuite.h -d
 @{
 /*
  *  Simple example of a CUnit unit test.
@@ -3252,7 +3286,7 @@ unsigned int *testAnnihili;
  */
 
 @}
-@o devsparseAMA.c -d
+@o src/main/c/sparseAMA.c -d
 @{
 
 
@@ -3278,8 +3312,8 @@ free(testBmat);free(testBmatj);free(testBmati);
 free(testRootr);free(testRooti);
 free(testAnnihil);free(testAnnihilj);free(testAnnihili);
 free(testTheR);free(testTheRj);free(testTheRi);
-free(testProw);free(testProwj);free(testProwi);
-free(testPcol);free(testPcolj);free(testPcoli);
+free(testProw);
+free(testPcol);
 return(0);
 }
 @}
@@ -3310,7 +3344,7 @@ testProw=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testPcol=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 @}
 
-@o devsparseAMA.c -d
+@o src/main/c/sparseAMA.c -d
 @{
 
 
@@ -3332,7 +3366,7 @@ return(0);
 
 
 @}
-@o devuseSparseAMA.h -d
+@o src/main/include/useSparseAMA.h -d
 @{
 /*
  * sparseAMA.h

@@ -2514,9 +2514,27 @@ unsigned int *maxNumberOfHElements,
 /* ******************************************************************************************* */
 /* ******************************************************************************************* */
 
+int sparseMatsEqual(unsigned int numRows,
+double * amat,unsigned int *amatj,unsigned int *amati,
+double * bmat,unsigned int  *bmatj,unsigned int *bmati,double tol){
+unsigned int numElems=amati[numRows]-amati[0];
+int theRes=0;
+double maxDDiff=0; unsigned int maxIDiff=0;
+unsigned int ii;unsigned int iDiff;double dDiff;
+for(ii=0;ii<=numRows;ii++){
+iDiff=abs(amati[ii]-bmati[ii]);
+maxIDiff=(iDiff>maxIDiff)?iDiff:maxIDiff;
+};
+for(ii=0;ii<numElems;ii++){
+dDiff=fabs(amat[ii]-bmat[ii]);
+iDiff=abs(amatj[ii]-bmatj[ii]);
+maxIDiff=(iDiff>maxIDiff)?iDiff:maxDDiff;
+maxDDiff=(dDiff>maxDDiff)?dDiff:maxDDiff;
+};
+return((maxIDiff<tol)&&(maxDDiff<tol));
+}
 
-
-#include "devAMASuite.h"
+#include "AMASuite.h"
 /* Simple test of sparseAMA().
  * Writes test data to the temporary file and checks
  * whether the expected number of bytes were written.
@@ -2531,7 +2549,7 @@ static const unsigned int testHcols=3;
 static const unsigned int testLeads=1;
 static const unsigned int testLags=1;
 static const unsigned int testMaxelems=100;
-maxSize=testMaxelems;
+testMaxSize=testMaxelems;
 
   printf("testSparseAMA2:beginning\n");
 double hmat[2]={2., 3.};
@@ -2539,72 +2557,88 @@ unsigned int hmatj[2]={1, 2};
 unsigned int hmati[2]={1, 3};
 
 
-double zmat[2]={1,2};
+double zmat[2]={2.,3.};
+unsigned int zmatj[2]={1,2};
 unsigned int zmati[2]={1,3};
+
+
+double newHExp1[2]={2.,3.};
+unsigned int newHExp1j[2]={2,3};
+unsigned int newHExp1i[2]={1,3};
 
 
 printf("testHrows=%u,here's h\n",testHrows);
 
 cPrintSparse(testHrows, hmat,hmatj,hmati);
-aux=rowsInQ=0;
-autoRegression(&maxSize,&retCode,
+testAux=testRowsInQ=0;
+autoRegression(&testMaxSize,&testRetCode,
    testHrows,testHcols,
    hmat,hmatj,hmati,
-   qmat,qmatj,qmati,
-   newHmat,newHmatj,newHmati,
-   annihil,annihilj,annihili,
-   theR,theRj,theRi,
-   prow,pcol);
+   testQmat,testQmatj,testQmati,
+   testNewHmat,testNewHmatj,testNewHmati,
+   testAnnihil,testAnnihilj,testAnnihili,
+   testTheR,testTheRj,testTheRi,
+   testProw,testPcol);
+
+double tol=10.0e-10;
+
+CU_ASSERT(sparseMatsEqual(testHrows,
+testQmat,testQmatj,testQmati,
+zmat,zmatj,zmati,tol));
+
+CU_ASSERT(sparseMatsEqual(testHrows,
+testNewHmat,testNewHmatj,testNewHmati,
+newHExp1,newHExp1j,newHExp1i,tol));
 
 
 
 printf("here's newh\n");
-cPrintSparse(testHrows,   newHmat,newHmatj,newHmati);
+cPrintSparse(testHrows,   testNewHmat,testNewHmatj,testNewHmati);
 printf("here's q\n");
-cPrintSparse(testHrows*testLeads,qmat,qmatj,qmati);
+cPrintSparse(testHrows*testLeads,testQmat,testQmatj,testQmati);
 
 /*
-sparseAMA(&maxSize,
+sparseAMA(&testMaxSize,
    DISCRETE_TIME,
    testHrows,testHcols,testLeads,
    hmat,hmatj,hmati,
-   newHmat,newHmatj,newHmati,
-   &aux,&rowsInQ,qmat,qmatj,qmati,
-   &essential,
-   rootr,rooti,&retCode
-   );printf("maxsize=%u\n",maxSize);
-     CU_ASSERT(testMaxelems  == maxSize)
-     CU_ASSERT(0 == retCode)
+   testNewHmat,testNewHmatj,testNewHmati,
+   &testAux,&testRowsInQ,testQmat,testQmatj,testQmati,
+   &testEssential,
+   testRootr,testRooti,&testRetCode
+   );printf("maxsize=%u\n",testMaxSize);
+     CU_ASSERT(testMaxelems  == testMaxSize)
+     CU_ASSERT(0 == testRetCode)
 
 
 obtainSparseReducedForm(
-  &maxSize,
-  testHrows*testLeads,(testHcols-testHrows),qmat,qmatj,qmati,
-  bmat, bmatj, bmati
+  &testMaxSize,
+  testHrows*testLeads,(testHcols-testHrows),testQmat,testQmatj,testQmati,
+  testBmat, testBmatj, testBmati
 );
 *//*
-obtainSparseReducedForm(&maxSize,
+obtainSparseReducedForm(&testMaxSize,
   testHrows, testHrows*(testLeads+testLags),
-  qmat,qmatj,qmati,
-  bmat,bmatj,bmati
+  testQmat,testQmatj,testQmati,
+  testBmat,testBmatj,testBmati
 );
 */
 /*printf("here's b\n");
-cPrintSparse(testHrows*(testLeads+testLags),bmat,bmatj,bmati);
+cPrintSparse(testHrows*(testLeads+testLags),testBmat,testBmatj,testBmati);
 
 
-autoRegression(&maxSize,&retCode,
+autoRegression(&testMaxSize,&testRetCode,
    testHrows,testHcols,
    hmat,hmatj,hmati,
-   qmat,qmatj,qmati,
-   newHmat,newHmatj,newHmati,
-   annihil,annihilj,annihili,
-   theR,theRj,theRi,
-   prow,pcol);
+   testQmat,testQmatj,testQmati,
+   testNewHmat,testNewHmatj,testNewHmati,
+   testAnnihil,testAnnihilj,testAnnihili,
+   testTheR,testTheRj,testTheRi,
+   testProw,testPcol);
 printf("here's newh again\n");
-cPrintSparse(testHrows,newHmat,newHmatj,newHmati);
+cPrintSparse(testHrows,testNewHmat,testNewHmatj,testNewHmati);
 printf("here's q\n");
-cPrintSparse(testHrows,qmat,qmatj,qmati);
+cPrintSparse(testHrows,testQmat,testQmatj,testQmati);
 
 */
 
@@ -2622,7 +2656,7 @@ cPrintSparse(testHrows,qmat,qmatj,qmati);
 
 
 
-#line 3256 "sparseAMA.w"
+#line 3290 "sparseAMA.w"
 
 
 
@@ -2633,50 +2667,54 @@ int init_suite1(void)
 static const unsigned int testMaxelems=381;
 
 
-#line 3284 "sparseAMA.w"
+#line 3322 "sparseAMA.w"
 
-newHmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-newHmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-newHmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-qmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-qmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-qmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-bmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-bmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-bmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-rootr=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-rooti=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testNewHmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testNewHmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testNewHmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testQmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testQmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testQmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testBmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testBmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testBmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testRootr=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testRooti=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 
-annihil=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-annihilj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-annihili=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testAnnihil=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testAnnihilj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testAnnihili=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
-theR=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-theRj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-theRi=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testTheR=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testTheRj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testTheRi=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
-prow=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-pcol=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testProw=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testPcol=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
-#line 3265 "sparseAMA.w"
+#line 3299 "sparseAMA.w"
 
 
-rowsInQ=aux=0;
-qmati[0]=1;
-maxSize=testMaxelems;
+testRowsInQ=testAux=0;
+testQmati[0]=1;
+testMaxSize=testMaxelems;
 return(0);
 }
 
 int clean_suites(void)
 {
-free(newHmat);free(newHmatj);free(newHmati);
-free(qmat);free(qmatj);free(qmati);
-free(bmat);free(bmatj);free(bmati);
-free(rootr);free(rooti);
+free(testNewHmat);free(testNewHmatj);free(testNewHmati);
+free(testQmat);free(testQmatj);free(testQmati);
+free(testBmat);free(testBmatj);free(testBmati);
+free(testRootr);free(testRooti);
+free(testAnnihil);free(testAnnihilj);free(testAnnihili);
+free(testTheR);free(testTheRj);free(testTheRi);
+free(testProw);
+free(testPcol);
 return(0);
 }
 
-#line 3310 "sparseAMA.w"
+#line 3348 "sparseAMA.w"
 
 
 
@@ -2687,37 +2725,37 @@ int init_suite2(void)
 static const unsigned int testMaxelems=381;
 
 
-#line 3284 "sparseAMA.w"
+#line 3322 "sparseAMA.w"
 
-newHmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-newHmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-newHmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-qmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-qmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-qmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-bmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-bmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-bmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-rootr=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-rooti=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testNewHmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testNewHmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testNewHmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testQmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testQmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testQmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testBmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testBmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testBmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testRootr=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testRooti=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 
-annihil=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-annihilj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-annihili=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testAnnihil=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testAnnihilj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testAnnihili=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
-theR=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-theRj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-theRi=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testTheR=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testTheRj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testTheRi=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
-prow=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-pcol=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testProw=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testPcol=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
-#line 3319 "sparseAMA.w"
+#line 3357 "sparseAMA.w"
 
 
-rowsInQ=aux=0;
-qmati[0]=1;
-maxSize=testMaxelems;
+testRowsInQ=testAux=0;
+testQmati[0]=1;
+testMaxSize=testMaxelems;
 
 
 return(0);
