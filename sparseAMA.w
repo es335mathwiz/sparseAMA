@@ -3091,7 +3091,7 @@ static const unsigned int testHcols=3;
 static const unsigned int testLeads=1;
 static const unsigned int testLags=1;
 static const unsigned int testMaxelems=100;
-maxSize=testMaxelems;
+testMaxSize=testMaxelems;
 
   printf("testSparseAMA2:beginning\n");
 double hmat[2]={2., 3.};
@@ -3106,65 +3106,65 @@ unsigned int zmati[2]={1,3};
 printf("testHrows=%u,here's h\n",testHrows);
 
 cPrintSparse(testHrows, hmat,hmatj,hmati);
-aux=rowsInQ=0;
-autoRegression(&maxSize,&retCode,
+testAux=testRowsInQ=0;
+autoRegression(&testMaxSize,&testRetCode,
    testHrows,testHcols,
    hmat,hmatj,hmati,
-   qmat,qmatj,qmati,
-   newHmat,newHmatj,newHmati,
+   testQmat,testQmatj,testQmati,
+   testNewHmat,testNewHmatj,testNewHmati,
    annihil,annihilj,annihili,
-   theR,theRj,theRi,
-   prow,pcol);
+   testTheR,testTheRj,testTheRi,
+   testProw,testPcol);
 
 
 
 printf("here's newh\n");
-cPrintSparse(testHrows,   newHmat,newHmatj,newHmati);
+cPrintSparse(testHrows,   testNewHmat,testNewHmatj,testNewHmati);
 printf("here's q\n");
-cPrintSparse(testHrows*testLeads,qmat,qmatj,qmati);
+cPrintSparse(testHrows*testLeads,testQmat,testQmatj,testQmati);
 
 /*
-sparseAMA(&maxSize,
+sparseAMA(&testMaxSize,
    DISCRETE_TIME,
    testHrows,testHcols,testLeads,
    hmat,hmatj,hmati,
-   newHmat,newHmatj,newHmati,
-   &aux,&rowsInQ,qmat,qmatj,qmati,
-   &essential,
-   rootr,rooti,&retCode
-   );printf("maxsize=%u\n",maxSize);
-     CU_ASSERT(testMaxelems  == maxSize)
-     CU_ASSERT(0 == retCode)
+   testNewHmat,testNewHmatj,testNewHmati,
+   &testAux,&testRowsInQ,testQmat,testQmatj,testQmati,
+   &testEssential,
+   testRootr,testRooti,&testRetCode
+   );printf("maxsize=%u\n",testMaxSize);
+     CU_ASSERT(testMaxelems  == testMaxSize)
+     CU_ASSERT(0 == testRetCode)
 
 
 obtainSparseReducedForm(
-  &maxSize,
-  testHrows*testLeads,(testHcols-testHrows),qmat,qmatj,qmati,
-  bmat, bmatj, bmati
+  &testMaxSize,
+  testHrows*testLeads,(testHcols-testHrows),testQmat,testQmatj,testQmati,
+  testBmat, testBmatj, testBmati
 );
 *//*
-obtainSparseReducedForm(&maxSize,
+obtainSparseReducedForm(&testMaxSize,
   testHrows, testHrows*(testLeads+testLags),
-  qmat,qmatj,qmati,
-  bmat,bmatj,bmati
+  testQmat,testQmatj,testQmati,
+  testBmat,testBmatj,testBmati
 );
 */
 /*printf("here's b\n");
-cPrintSparse(testHrows*(testLeads+testLags),bmat,bmatj,bmati);
+cPrintSparse(testHrows*(testLeads+testLags),testBmat,testBmatj,testBmati);
 
 
-autoRegression(&maxSize,&retCode,
+autoRegression(&testMaxSize,&testRetCode,
    testHrows,testHcols,
    hmat,hmatj,hmati,
-   qmat,qmatj,qmati,
-   newHmat,newHmatj,newHmati,
+   testQmat,testQmatj,testQmati,
+   testNewHmat,testNewHmatj,testNewHmati,
    annihil,annihilj,annihili,
-   theR,theRj,theRi,
-   prow,pcol);
+   testTheR,testTheRj,testTheRi,
+   testProw,testPcol);
 printf("here's newh again\n");
-cPrintSparse(testHrows,newHmat,newHmatj,newHmati);
+cPrintSparse(testHrows,testNewHmat,testNewHmatj,testNewHmati);
 printf("here's q\n");
-cPrintSparse(testHrows,qmat,qmatj,qmati);
+cPrintSparse(testHrows,testQmat,testQmatj,testQmati);
 
 */
 
@@ -3217,23 +3217,23 @@ cPrintSparse(testHrows,qmat,qmatj,qmati);
 #include<stdlib.h>
 #include "useSparseAMA.h"
 
-unsigned int maxSize;
-double * newHmat;unsigned int * newHmatj;unsigned int * newHmati;
-unsigned int aux;
-unsigned int rowsInQ;
-double * qmat;unsigned int * qmatj;unsigned int * qmati;
-double * bmat;unsigned int * bmatj;unsigned int * bmati;
-unsigned int essential;
-double * rootr;
-double * rooti;
-unsigned int retCode;
-unsigned int i;
+unsigned int testMaxSize;
+double * testNewHmat;unsigned int * testNewHmatj;unsigned int * testNewHmati;
+unsigned int testAux;
+unsigned int testRowsInQ;
+double * testQmat;unsigned int * testQmatj;unsigned int * testQmati;
+double * testBmat;unsigned int * testBmatj;unsigned int * testBmati;
+unsigned int testEssential;
+double * testRootr;
+double * testRooti;
+unsigned int testRetCode;
 
-unsigned int *prow;
-unsigned int *pcol;
-double *theR;
-unsigned int*theRj;
-unsigned int*theRi;
+
+unsigned int *testProw;
+unsigned int *testPcol;
+double *testTheR;
+unsigned int*testTheRj;
+unsigned int*testTheRi;
 double * annihil;
 unsigned int *annihilj;
 unsigned int *annihili;
@@ -3264,46 +3264,50 @@ static const unsigned int testMaxelems=381;
 
 @<allocate test arrays@>
 
-rowsInQ=aux=0;
-qmati[0]=1;
-maxSize=testMaxelems;
+testRowsInQ=testAux=0;
+testQmati[0]=1;
+testMaxSize=testMaxelems;
 return(0);
 }
 
 int clean_suites(void)
 {
-free(newHmat);free(newHmatj);free(newHmati);
-free(qmat);free(qmatj);free(qmati);
-free(bmat);free(bmatj);free(bmati);
-free(rootr);free(rooti);
+free(testNewHmat);free(testNewHmatj);free(testNewHmati);
+free(testQmat);free(testQmatj);free(testQmati);
+free(testBmat);free(testBmatj);free(testBmati);
+free(testRootr);free(testRooti);
+free(annihil);free(annihilj);free(annihili);
+free(testTheR);free(testTheRj);free(testTheRi);
+free(testProw);free(testProwj);free(testProwi);
+free(testPcol);free(testPcolj);free(testPcoli);
 return(0);
 }
 @}
 
 @d allocate test arrays
 @{
-newHmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-newHmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-newHmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-qmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-qmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-qmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-bmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-bmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-bmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-rootr=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-rooti=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testNewHmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testNewHmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testNewHmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testQmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testQmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testQmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testBmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testBmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testBmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testRootr=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testRooti=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 
 annihil=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 annihilj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 annihili=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
-theR=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-theRj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-theRi=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testTheR=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testTheRj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testTheRi=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
-prow=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-pcol=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testProw=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testPcol=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 @}
 
 @o devsparseAMA.c -d
@@ -3318,9 +3322,9 @@ static const unsigned int testMaxelems=381;
 
 @<allocate test arrays@>
 
-rowsInQ=aux=0;
-qmati[0]=1;
-maxSize=testMaxelems;
+testRowsInQ=testAux=0;
+testQmati[0]=1;
+testMaxSize=testMaxelems;
 
 
 return(0);

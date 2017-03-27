@@ -60,10 +60,18 @@ devSuite2.o: devSuite2.c
 	$(CC)  $(FCFLAGS)  devSuite2.c 
 
 
+build-tests: firstCUnitTest
 
 
+
+test:
+	./firstCUnitTest
+
+	
 firstCUnitTest.o: ./src/test/c/firstCUnitTest.c
 	$(CC)  $(FCFLAGS) ./src/test/c/firstCUnitTest.c
 
 firstCUnitTest: firstCUnitTest.o libsparseAMA.a 
 	$(FC) firstCUnitTest.o -o firstCUnitTest   $(CUNITLIBS) -L ./ -lsparseAMA $(LAPACKLIBS)	
+
+
