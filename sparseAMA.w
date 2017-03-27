@@ -3112,7 +3112,7 @@ autoRegression(&testMaxSize,&testRetCode,
    hmat,hmatj,hmati,
    testQmat,testQmatj,testQmati,
    testNewHmat,testNewHmatj,testNewHmati,
-   annihil,annihilj,annihili,
+   testAnnihil,testAnnihilj,testAnnihili,
    testTheR,testTheRj,testTheRi,
    testProw,testPcol);
 
@@ -3158,7 +3158,7 @@ autoRegression(&testMaxSize,&testRetCode,
    hmat,hmatj,hmati,
    testQmat,testQmatj,testQmati,
    testNewHmat,testNewHmatj,testNewHmati,
-   annihil,annihilj,annihili,
+   testAnnihil,testAnnihilj,testAnnihili,
    testTheR,testTheRj,testTheRi,
    testProw,testPcol);
 printf("here's newh again\n");
@@ -3234,9 +3234,9 @@ unsigned int *testPcol;
 double *testTheR;
 unsigned int*testTheRj;
 unsigned int*testTheRi;
-double * annihil;
-unsigned int *annihilj;
-unsigned int *annihili;
+double * testAnnihil;
+unsigned int *testAnnihilj;
+unsigned int *testAnnihili;
 
 /* Pointer to the file used by the tests. */
 
@@ -3276,7 +3276,7 @@ free(testNewHmat);free(testNewHmatj);free(testNewHmati);
 free(testQmat);free(testQmatj);free(testQmati);
 free(testBmat);free(testBmatj);free(testBmati);
 free(testRootr);free(testRooti);
-free(annihil);free(annihilj);free(annihili);
+free(testAnnihil);free(testAnnihilj);free(testAnnihili);
 free(testTheR);free(testTheRj);free(testTheRi);
 free(testProw);free(testProwj);free(testProwi);
 free(testPcol);free(testPcolj);free(testPcoli);
@@ -3298,9 +3298,9 @@ testBmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testRootr=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 testRooti=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 
-annihil=(double *)calloc((unsigned)testMaxelems,sizeof(double));
-annihilj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
-annihili=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testAnnihil=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+testAnnihilj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+testAnnihili=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
 testTheR=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 testTheRj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
