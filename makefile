@@ -33,8 +33,6 @@ Build: firstCUnitTest simpleSparseAMAExample
 libsparseAMA.a:	sparseAMA.o sparskit2.o ma50ad.o
 	ar -cvq libsparseAMA.a sparseAMA.o sparskit2.o ma50ad.o
 
-simpleSparseAMAExample:simpleSparseAMAExample.o libsparseAMA.a
-	$(FC) -o simpleSparseAMAExample simpleSparseAMAExample.o -L ./  -lsparseAMA $(LAPACKLIBS)
 
 src/main/c/sparseAMA.c : sparseAMA.w
 	nuweb -t sparseAMA.w
@@ -52,6 +50,10 @@ clean:
 
 simpleSparseAMAExample.o: ./src/test/c/simpleSparseAMAExample.c
 	$(CC)  $(FCFLAGS) ./src/test/c/simpleSparseAMAExample.c
+
+simpleSparseAMAExample:simpleSparseAMAExample.o libsparseAMA.a
+	$(FC) simpleSparseAMAExample.o  -o simpleSparseAMAExample -L ./  -lsparseAMA $(LAPACKLIBS)   $(CUNITLIBS) 
+
 
 devSuite1.o: devSuite1.c
 	$(CC)  $(FCFLAGS)  devSuite1.c 
@@ -71,6 +73,13 @@ firstCUnitTest.o: ./src/test/c/firstCUnitTest.c
 	$(CC)  $(FCFLAGS) ./src/test/c/firstCUnitTest.c
 
 firstCUnitTest: firstCUnitTest.o libsparseAMA.a 
-	$(FC) firstCUnitTest.o -o firstCUnitTest   $(CUNITLIBS) -L ./ -lsparseAMA $(LAPACKLIBS)	
+	$(FC) firstCUnitTest.o -o firstCUnitTest  -L ./ -lsparseAMA $(LAPACKLIBS)	  $(CUNITLIBS)
+
+
+secondCUnitTest.o: ./src/test/c/secondCUnitTest.c
+	$(CC)  $(FCFLAGS) ./src/test/c/secondCUnitTest.c
+
+secondCUnitTest: secondCUnitTest.o libsparseAMA.a 
+	$(FC) secondCUnitTest.o -o secondCUnitTest  -L ./ -lsparseAMA $(LAPACKLIBS)	  $(CUNITLIBS)
 
 

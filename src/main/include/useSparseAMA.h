@@ -1,5 +1,5 @@
 
-#line 3370 "sparseAMA.w"
+#line 3573 "sparseAMA.w"
 
 /*
  * sparseAMA.h
