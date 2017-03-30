@@ -1,5 +1,5 @@
 
-#line 563 "sparseAMA.w"
+#line 652 "sparseAMA.w"
 
 #include "useSparseAMA.h"
 #ifdef WIN32
@@ -24,7 +24,7 @@ double time_extract, time_backsolve ;
 double time_autoregression, time_augmentQ;
 
 
-#line 1043 "sparseAMA.w"
+#line 1132 "sparseAMA.w"
 
 
 static int lineNumberToViolation(unsigned int lineNo)
@@ -513,7 +513,7 @@ static unsigned int constructQRDecomposition (
 
 
 
-#line 1532 "sparseAMA.w"
+#line 1621 "sparseAMA.w"
 
 
 
@@ -1005,7 +1005,7 @@ static void constructA (
 }       /* constructA */
 
 
-#line 2024 "sparseAMA.w"
+#line 2113 "sparseAMA.w"
 
 
 static unsigned int useArpack(
@@ -1705,7 +1705,7 @@ void obtainSparseReducedForm(
         /*change sign*/
         for(i=0;i<bmati[qrows]-bmati[0];i++)bmat[i]=(-1)*bmat[i];
 
-#line 2724 "sparseAMA.w"
+#line 2813 "sparseAMA.w"
 
 
 
@@ -2343,7 +2343,7 @@ cPrintSparse(testHrows,testQmat,testQmatj,testQmati);
 
 
 
-#line 3592 "sparseAMA.w"
+#line 3684 "sparseAMA.w"
 
 
 
@@ -2354,7 +2354,7 @@ int init_suite1(void)
 static const unsigned int testMaxelems=381;
 
 
-#line 3624 "sparseAMA.w"
+#line 3716 "sparseAMA.w"
 
 testNewHmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 testNewHmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
@@ -2379,7 +2379,7 @@ testTheRi=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testProw=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testPcol=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
-#line 3601 "sparseAMA.w"
+#line 3693 "sparseAMA.w"
 
 
 testRowsInQ=testAux=0;
@@ -2401,7 +2401,7 @@ free(testPcol);
 return(0);
 }
 
-#line 3650 "sparseAMA.w"
+#line 3742 "sparseAMA.w"
 
 
 
@@ -2412,7 +2412,7 @@ int init_suite2(void)
 static const unsigned int testMaxelems=381;
 
 
-#line 3624 "sparseAMA.w"
+#line 3716 "sparseAMA.w"
 
 testNewHmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 testNewHmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
@@ -2437,7 +2437,7 @@ testTheRi=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testProw=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testPcol=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
-#line 3659 "sparseAMA.w"
+#line 3751 "sparseAMA.w"
 
 
 testRowsInQ=testAux=0;
