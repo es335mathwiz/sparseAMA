@@ -33,6 +33,11 @@ Build: firstCUnitTest simpleSparseAMAExample
 libsparseAMA.a:	sparseAMA.o sparskit2.o ma50ad.o
 	ar -cvq libsparseAMA.a sparseAMA.o sparskit2.o ma50ad.o
 
+src/test/c/firstCUnitTest.c: sparseAMA.w
+	nuweb -t sparseAMA.w
+
+src/test/c/secondCUnitTest.c: sparseAMA.w
+	nuweb -t sparseAMA.w
 
 src/main/c/sparseAMA.c : sparseAMA.w
 	nuweb -t sparseAMA.w
@@ -46,7 +51,7 @@ ma50ad.o: ./src/main/fortran/ma50ad.f
 sparskit2.o: ./src/main/c/sparskit2.c
 	$(CC)  $(FCFLAGS)  ./src/main/c/sparskit2.c 
 clean: 
-	rm -f *.o simpleSparseAMAExample libsparseAMA.a firstCUnitTest
+	rm -f *.o simpleSparseAMAExample libsparseAMA.a firstCUnitTest secondCUnitTest
 
 simpleSparseAMAExample.o: ./src/test/c/simpleSparseAMAExample.c
 	$(CC)  $(FCFLAGS) ./src/test/c/simpleSparseAMAExample.c

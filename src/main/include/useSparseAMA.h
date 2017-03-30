@@ -1,5 +1,5 @@
 
-#line 3573 "sparseAMA.w"
+#line 3672 "sparseAMA.w"
 
 /*
  * sparseAMA.h
@@ -185,6 +185,7 @@ int init_suite2(void);
 void testSparseAMA(void);
 void testSparseAMA2(void);
 void testSparseAMASimplest(void);
+void testSparseAMANotSimplest(void);
 
 
 
