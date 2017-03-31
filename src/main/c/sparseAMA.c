@@ -213,6 +213,11 @@ result=
       return(result);
 }
 
+#include "fintrf.h"
+void readDotMat(char * fileName){
+
+}
+
 
 void cPrintMatrix(unsigned int nrows,unsigned int ncols,double * matrix)
 {
@@ -513,7 +518,7 @@ static unsigned int constructQRDecomposition (
 
 
 
-#line 1630 "sparseAMA.w"
+#line 1635 "sparseAMA.w"
 
 
 
@@ -1005,7 +1010,7 @@ static void constructA (
 }       /* constructA */
 
 
-#line 2122 "sparseAMA.w"
+#line 2127 "sparseAMA.w"
 
 
 static unsigned int useArpack(
@@ -1706,7 +1711,7 @@ void obtainSparseReducedForm(
         /*change sign*/
         for(i=0;i<bmati[qrows]-bmati[0];i++)bmat[i]=(-1)*bmat[i];
 
-#line 2823 "sparseAMA.w"
+#line 2828 "sparseAMA.w"
 
 
 
@@ -2155,18 +2160,22 @@ cPrintSparse(testHrows*testLeads,testQmat,testQmatj,testQmati);
 
 void oneEquationZeroLead(void)
 {
+/*zero tolerance*/
 double tol=10.0e-10;
 
+/*problem dimensions*/
 static const unsigned int testHrows=1;
 static const unsigned int testHcols=3;
+static const unsigned int testLags=1;
 static const unsigned int testLeads=1;
 static const unsigned int testMaxelems=100;
-testMaxSize=testMaxelems;
 
+/*original hmat*/
 double hmat[2]={2., 3.};
 unsigned int hmatj[2]={1, 2};
 unsigned int hmati[2]={1, 3};
 
+/*expected results*/
 double zmat[2]={2.,3.};
 unsigned int zmatj[2]={1,2};
 unsigned int zmati[2]={1,3};
@@ -2175,17 +2184,28 @@ double newHExp1[2]={2.,3.};
 unsigned int newHExp1j[2]={2,3};
 unsigned int newHExp1i[2]={1,3};
 
-testAux=testRowsInQ=0;
-autoRegression(&testMaxSize,&testRetCode,
-   testHrows,testHcols,
+
+/*sparseAMA call*/
+testMaxSize=testMaxelems;
+sparseAMA(&testMaxSize,
+   DISCRETE_TIME,
+   testHrows,testHcols,testLeads,
    hmat,hmatj,hmati,
-   testQmat,testQmatj,testQmati,
    testNewHmat,testNewHmatj,testNewHmati,
-   testAnnihil,testAnnihilj,testAnnihili,
-   testTheR,testTheRj,testTheRi,
-   testProw,testPcol);
+   &testAux,&testRowsInQ,testQmat,testQmatj,testQmati,
+   &testEssential,
+   testRootr,testRooti,&testRetCode
+   );
+     CU_ASSERT(2  == testMaxSize)
+     CU_ASSERT(0 == testRetCode)
 
-
+/*obtainSparseReducedForm call*/
+testMaxSize=testMaxelems;
+obtainSparseReducedForm(
+  &testMaxSize,
+  testHrows*testLeads,(testHcols-testHrows),testQmat,testQmatj,testQmati,
+  testBmat, testBmatj, testBmati
+);
 
 CU_ASSERT(sparseMatsEqual(testHrows,
 testQmat,testQmatj,testQmati,
@@ -2195,12 +2215,56 @@ CU_ASSERT(sparseMatsEqual(testHrows,
 testNewHmat,testNewHmatj,testNewHmati,
 newHExp1,newHExp1j,newHExp1i,tol));
 
+/*satisfiesLinearSystemQ*/
+satisfiesLinearSystemQ (&testMaxSize,
+   testHrows,testLags,testLeads,
+   hmat,hmatj,hmati,
+   &testAux,&testRowsInQ,  testBmat, testBmatj, testBmati,
+   &testEssential,
+   testRootr,testRooti,testNormVec
+);
 
+
+/*autoRegression call*/
+testAux=testRowsInQ=0;
 testMaxSize=testMaxelems;
+autoRegression(&testMaxSize,&testRetCode,
+   testHrows,testHcols,
+   hmat,hmatj,hmati,
+   testQmat,testQmatj,testQmati,
+   testNewHmat,testNewHmatj,testNewHmati,
+   testAnnihil,testAnnihilj,testAnnihili,
+   testTheR,testTheRj,testTheRi,
+   testProw,testPcol);
 
+CU_ASSERT(sparseMatsEqual(testHrows,
+testQmat,testQmatj,testQmati,
+zmat,zmatj,zmati,tol));
+
+CU_ASSERT(sparseMatsEqual(testHrows,
+testNewHmat,testNewHmatj,testNewHmati,
+newHExp1,newHExp1j,newHExp1i,tol));
+
+/*shiftRightAndRecord call*/
+testRowsInQ=shiftRightAndRecord(&testMaxSize,&testRetCode,testHrows,testRowsInQ,
+                        testQmat,testQmatj,testQmati,testHrows,testHcols,testHmat,testHmatj,testHmati
+                );
+/*annihilateRows call*/
+ testRnk=annihilateRows(&testMaxSize,&testRetCode,testHrows,testHcols,
+                        testHmat, testHmatj, testHmati,
+                        testNewHmat, testNewHmatj, testNewHmati,
+                        testAnnihil, testAnnihilj, testAnnihili,
+                        testTheR, testTheRj, testTheRi,
+                        testProw, testPcol
+                );
+
+
+
+
+/*augmentQmatWithInvariantSpaceVectors call*/
+testMaxSize=testMaxelems;
 unsigned int testDiscreteTime=1;
 unsigned int testConstraintsNeeded=0;
-
 testMaxSize=testMaxelems;
         testRowsInQ=augmentQmatWithInvariantSpaceVectors(
         &testMaxSize,&testRetCode,testDiscreteTime,
@@ -2226,68 +2290,20 @@ newHExp1,newHExp1j,newHExp1i,tol));
 
 
 
-testMaxSize=testMaxelems;
-
-
-sparseAMA(&testMaxSize,
-   DISCRETE_TIME,
-   testHrows,testHcols,testLeads,
-   hmat,hmatj,hmati,
-   testNewHmat,testNewHmatj,testNewHmati,
-   &testAux,&testRowsInQ,testQmat,testQmatj,testQmati,
-   &testEssential,
-   testRootr,testRooti,&testRetCode
-   );
-     CU_ASSERT(2  == testMaxSize)
-     CU_ASSERT(0 == testRetCode)
 
 
 
 
 
-testMaxSize=testMaxelems;
+/*identifyEssential call*/
+testEssential=identifyEssential(testHrows, testHcols, testHmat, testHmatj, testHmati, &testJs) ;
 
-
-obtainSparseReducedForm(
-  &testMaxSize,
-  testHrows*testLeads,(testHcols-testHrows),testQmat,testQmatj,testQmati,
-  testBmat, testBmatj, testBmati
-);
-
-CU_ASSERT(sparseMatsEqual(testHrows,
-testQmat,testQmatj,testQmati,
-zmat,zmatj,zmati,tol));
-
-CU_ASSERT(sparseMatsEqual(testHrows,
-testNewHmat,testNewHmatj,testNewHmati,
-newHExp1,newHExp1j,newHExp1i,tol));
-
-
-testRowsInQ=shiftRightAndRecord(&testMaxSize,&testRetCode,testHrows,testRowsInQ,
-                        testQmat,testQmatj,testQmati,testHrows,testHcols,testHmat,testHmatj,testHmati
-                );
-
-
-
- testRnk=annihilateRows(&testMaxSize,&testRetCode,testHrows,testHcols,
-                        testHmat, testHmatj, testHmati,
-                        testNewHmat, testNewHmatj, testNewHmati,
-                        testAnnihil, testAnnihilj, testAnnihili,
-                        testTheR, testTheRj, testTheRi,
-                        testProw, testPcol
-                );
-
-
-        testEssential=identifyEssential(testHrows, testHcols, testHmat, testHmatj, testHmati, &testJs) ;
-
-
-
-                      testRc = useArpack (
-                                &testMaxSize, testSpacedim, testNroot, testA, testAj, testAi, testBeyondQmat, testRootr, testRooti, &testSdim
+/*useArpack call*/
+testRc = useArpack ( &testMaxSize, testSpacedim, testNroot, testA, testAj, testAi, testBeyondQmat, testRootr, testRooti, &testSdim
                         );
 
 
-
+/*construcA call*/
           constructA(&testMaxSize,&testRetCode,testHrows,testHcols,testEssential,&testJs,
                 testHmat,testHmatj,testHmati,
                 testAnnihil,testAnnihilj,testAnnihili,
@@ -2305,7 +2321,7 @@ testRowsInQ=shiftRightAndRecord(&testMaxSize,&testRetCode,testHrows,testRowsInQ,
 
 
 
-#line 3658 "sparseAMA.w"
+#line 3675 "sparseAMA.w"
 
 
 
@@ -2316,7 +2332,7 @@ int init_suite1(void)
 static const unsigned int testMaxelems=381;
 
 
-#line 3690 "sparseAMA.w"
+#line 3707 "sparseAMA.w"
 
 testNewHmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 testNewHmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
@@ -2341,7 +2357,7 @@ testTheRi=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testProw=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testPcol=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
-#line 3667 "sparseAMA.w"
+#line 3684 "sparseAMA.w"
 
 
 testRowsInQ=testAux=0;
@@ -2363,7 +2379,7 @@ free(testPcol);
 return(0);
 }
 
-#line 3716 "sparseAMA.w"
+#line 3733 "sparseAMA.w"
 
 
 
@@ -2374,7 +2390,7 @@ int init_suite2(void)
 static const unsigned int testMaxelems=381;
 
 
-#line 3690 "sparseAMA.w"
+#line 3707 "sparseAMA.w"
 
 testNewHmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 testNewHmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
@@ -2399,7 +2415,7 @@ testTheRi=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testProw=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testPcol=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
-#line 3725 "sparseAMA.w"
+#line 3742 "sparseAMA.w"
 
 
 testRowsInQ=testAux=0;
