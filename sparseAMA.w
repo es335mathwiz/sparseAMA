@@ -1125,6 +1125,15 @@ Arguments
 	coefficients matrix.
 	------------------------------------------------------------------------------------- */
 
+/* ******************************************************************************************* */
+/* ******************************************************************************************* */
+/*                               end sparseAMA.c                                               */
+/* ******************************************************************************************* */
+/* ******************************************************************************************* */
+
+
+
+
 \end{verbatim}
 
 
@@ -2378,8 +2387,9 @@ static unsigned int augmentQmatWithInvariantSpaceVectors (
 	time_constructA = 0 ;
 	*returnCode = 0 ;
 
-	sparseAMAAssert(constraintsNeeded>0, augmentQmatWithInvariantSpaceVectorsPreConstraints);
+	sparseAMAAssert(constraintsNeeded>=0, augmentQmatWithInvariantSpaceVectorsPreConstraints);
     sparseAMAAssert(auxiliaryInitialConditions>=0, augmentQmatWithInvariantSpaceVectorsPreAuxiliary);
+    if (constraintsNeeded==0) return (0);
 	if (*returnCode) return (0) ;
 
     wcols = (unsigned int *) calloc((unsigned)hcols-hrows,sizeof(int));
@@ -3165,13 +3175,6 @@ unsigned int *maxNumberOfHElements,
 
 
 
-
-/* ******************************************************************************************* */
-/* ******************************************************************************************* */
-/*                               end sparseAMA.c                                               */
-/* ******************************************************************************************* */
-/* ******************************************************************************************* */
-
 int sparseMatsEqual(unsigned int numRows,
 double * amat,unsigned int *amatj,unsigned int *amati,
 double * bmat,unsigned int  *bmatj,unsigned int *bmati,double tol){
@@ -3197,6 +3200,8 @@ return((maxIDiff<tol)&&(maxDDiff<tol));
  * Writes test data to the temporary file and checks
  * whether the expected number of bytes were written.
  */
+
+
 void testSparseAMASimplest(void)
 {
 
@@ -3205,11 +3210,10 @@ void testSparseAMASimplest(void)
 static const unsigned int testHrows=1;
 static const unsigned int testHcols=3;
 static const unsigned int testLeads=1;
-//static const unsigned int testLags=1;
 static const unsigned int testMaxelems=100;
 testMaxSize=testMaxelems;
 
-  printf("testSparseAMA2:beginning\n");
+  printf("testSparseAMASimplest:beginning\n");
 double hmat[2]={2., 3.};
 unsigned int hmatj[2]={1, 2};
 unsigned int hmati[2]={1, 3};
@@ -3255,88 +3259,35 @@ cPrintSparse(testHrows,   testNewHmat,testNewHmatj,testNewHmati);
 printf("here's q\n");
 cPrintSparse(testHrows*testLeads,testQmat,testQmatj,testQmati);
 
-/*
-sparseAMA(&testMaxSize,
-   DISCRETE_TIME,
-   testHrows,testHcols,testLeads,
-   hmat,hmatj,hmati,
-   testNewHmat,testNewHmatj,testNewHmati,
-   &testAux,&testRowsInQ,testQmat,testQmatj,testQmati,
-   &testEssential,
-   testRootr,testRooti,&testRetCode
-   );printf("maxsize=%u\n",testMaxSize);
-     CU_ASSERT(testMaxelems  == testMaxSize)
-     CU_ASSERT(0 == testRetCode)  
 
+  printf("testSparseAMSimplest:after autoregression call\n");
 
-obtainSparseReducedForm(
-  &testMaxSize,
-  testHrows*testLeads,(testHcols-testHrows),testQmat,testQmatj,testQmati,
-  testBmat, testBmatj, testBmati
-);
-*//*
-obtainSparseReducedForm(&testMaxSize,
-  testHrows, testHrows*(testLeads+testLags),
-  testQmat,testQmatj,testQmati,
-  testBmat,testBmatj,testBmati
-);
-*/
-/*printf("here's b\n");
-cPrintSparse(testHrows*(testLeads+testLags),testBmat,testBmatj,testBmati);
-
-
-autoRegression(&testMaxSize,&testRetCode,
-   testHrows,testHcols,
-   hmat,hmatj,hmati,
-   testQmat,testQmatj,testQmati,
-   testNewHmat,testNewHmatj,testNewHmati,
-   testAnnihil,testAnnihilj,testAnnihili,
-   testTheR,testTheRj,testTheRi,
-   testProw,testPcol);
-printf("here's newh again\n");
-cPrintSparse(testHrows,testNewHmat,testNewHmatj,testNewHmati);
-printf("here's q\n");
-cPrintSparse(testHrows,testQmat,testQmatj,testQmati);
-
-*/
-
-  printf("testSparseAMA2:after autoregression call\n");
-
-  printf("testSparseAMA2:end\n");
+  printf("testSparseAMSimplest:end\n");
 
 }
 
-void testSparseAMANotSimplest(void)
+void oneEquationZeroLead(void)
 {
-
-
+double tol=10.0e-10;
 
 static const unsigned int testHrows=1;
 static const unsigned int testHcols=3;
 static const unsigned int testLeads=1;
-//static const unsigned int testLags=1;
 static const unsigned int testMaxelems=100;
 testMaxSize=testMaxelems;
 
-  printf("testSparseAMA2:beginning\n");
 double hmat[2]={2., 3.};
 unsigned int hmatj[2]={1, 2};
 unsigned int hmati[2]={1, 3};
-
 
 double zmat[2]={2.,3.};
 unsigned int zmatj[2]={1,2};
 unsigned int zmati[2]={1,3};
 
-
 double newHExp1[2]={2.,3.};
 unsigned int newHExp1j[2]={2,3};
 unsigned int newHExp1i[2]={1,3};
 
-
-printf("testHrows=%u,here's h\n",testHrows);
-
-cPrintSparse(testHrows, hmat,hmatj,hmati);
 testAux=testRowsInQ=0;
 autoRegression(&testMaxSize,&testRetCode,
    testHrows,testHcols,
@@ -3347,7 +3298,7 @@ autoRegression(&testMaxSize,&testRetCode,
    testTheR,testTheRj,testTheRi,
    testProw,testPcol);
 
-double tol=10.0e-10;
+
 
 CU_ASSERT(sparseMatsEqual(testHrows,
 testQmat,testQmatj,testQmati,
@@ -3357,14 +3308,13 @@ CU_ASSERT(sparseMatsEqual(testHrows,
 testNewHmat,testNewHmatj,testNewHmati,
 newHExp1,newHExp1j,newHExp1i,tol));
 
+
+testMaxSize=testMaxelems;
+
 unsigned int testDiscreteTime=1;
 unsigned int testConstraintsNeeded=0;
 
-printf("here's newh\n");
-cPrintSparse(testHrows,   testNewHmat,testNewHmatj,testNewHmati);
-printf("here's q\n");
-cPrintSparse(testHrows*testLeads,testQmat,testQmatj,testQmati);
-
+testMaxSize=testMaxelems;
         testRowsInQ=augmentQmatWithInvariantSpaceVectors(
         &testMaxSize,&testRetCode,testDiscreteTime,
         testHrows, testHcols,
@@ -3379,7 +3329,6 @@ cPrintSparse(testHrows*testLeads,testQmat,testQmatj,testQmati);
         testRootr,testRooti
         );
 
-
 CU_ASSERT(sparseMatsEqual(testHrows,
 testQmat,testQmatj,testQmati,
 zmat,zmatj,zmati,tol));
@@ -3390,8 +3339,9 @@ newHExp1,newHExp1j,newHExp1i,tol));
 
 
 
+testMaxSize=testMaxelems;
 
-/*
+
 sparseAMA(&testMaxSize,
    DISCRETE_TIME,
    testHrows,testHcols,testLeads,
@@ -3400,9 +3350,15 @@ sparseAMA(&testMaxSize,
    &testAux,&testRowsInQ,testQmat,testQmatj,testQmati,
    &testEssential,
    testRootr,testRooti,&testRetCode
-   );printf("maxsize=%u\n",testMaxSize);
-     CU_ASSERT(testMaxelems  == testMaxSize)
+   );
+     CU_ASSERT(2  == testMaxSize)
      CU_ASSERT(0 == testRetCode)
+
+
+
+
+
+testMaxSize=testMaxelems;
 
 
 obtainSparseReducedForm(
@@ -3410,35 +3366,50 @@ obtainSparseReducedForm(
   testHrows*testLeads,(testHcols-testHrows),testQmat,testQmatj,testQmati,
   testBmat, testBmatj, testBmati
 );
-*//*
-obtainSparseReducedForm(&testMaxSize,
-  testHrows, testHrows*(testLeads+testLags),
-  testQmat,testQmatj,testQmati,
-  testBmat,testBmatj,testBmati
-);
-*/
-/*printf("here's b\n");
-cPrintSparse(testHrows*(testLeads+testLags),testBmat,testBmatj,testBmati);
+
+CU_ASSERT(sparseMatsEqual(testHrows,
+testQmat,testQmatj,testQmati,
+zmat,zmatj,zmati,tol));
+
+CU_ASSERT(sparseMatsEqual(testHrows,
+testNewHmat,testNewHmatj,testNewHmati,
+newHExp1,newHExp1j,newHExp1i,tol));
 
 
-autoRegression(&testMaxSize,&testRetCode,
-   testHrows,testHcols,
-   hmat,hmatj,hmati,
-   testQmat,testQmatj,testQmati,
-   testNewHmat,testNewHmatj,testNewHmati,
-   testAnnihil,testAnnihilj,testAnnihili,
-   testTheR,testTheRj,testTheRi,
-   testProw,testPcol);
-printf("here's newh again\n");
-cPrintSparse(testHrows,testNewHmat,testNewHmatj,testNewHmati);
-printf("here's q\n");
-cPrintSparse(testHrows,testQmat,testQmatj,testQmati);
+testRowsInQ=shiftRightAndRecord(&testMaxSize,&testRetCode,testHrows,testRowsInQ,
+                        testQmat,testQmatj,testQmati,testHrows,testHcols,testHmat,testHmatj,testHmati
+                );
 
-*/
 
-  printf("testSparseAMA2:after autoregression call\n");
 
-  printf("testSparseAMA2:end\n");
+ testRnk=annihilateRows(&testMaxSize,&testRetCode,testHrows,testHcols,
+                        testHmat, testHmatj, testHmati,
+                        testNewHmat, testNewHmatj, testNewHmati,
+                        testAnnihil, testAnnihilj, testAnnihili,
+                        testTheR, testTheRj, testTheRi,
+                        testProw, testPcol
+                );
+
+
+        testEssential=identifyEssential(testHrows, testHcols, testHmat, testHmatj, testHmati, &testJs) ;
+
+
+
+                      testRc = useArpack (
+                                &testMaxSize, testSpacedim, testNroot, testA, testAj, testAi, testBeyondQmat, testRootr, testRooti, &testSdim
+                        );
+
+
+
+          constructA(&testMaxSize,&testRetCode,testHrows,testHcols,testEssential,&testJs,
+                testHmat,testHmatj,testHmati,
+                testAnnihil,testAnnihilj,testAnnihili,
+                testTheR,testTheRj,testTheRi,
+                testProw,testPcol,
+                testDamat
+        );
+
+
 
 }
 
@@ -3567,19 +3538,6 @@ int main()
    if (CUE_SUCCESS != CU_initialize_registry())
       return CU_get_error();
 
-   /* add a suite to the registry */
-   pSuite = CU_add_suite("Suite_1", init_suite1, clean_suites);
-   if (NULL == pSuite) {
-      CU_cleanup_registry();
-      return CU_get_error();
-   }
-   if ((NULL == CU_add_test(pSuite, "test of sparseAMASimplest()", testSparseAMASimplest)))
-   {
-      CU_cleanup_registry();
-      return CU_get_error();
-   }
-
-
 
 
   /* add another suite to the registry */
@@ -3591,7 +3549,7 @@ int main()
 
 
    /* add the tests to the suite */
-   if ((NULL == CU_add_test(pSuite, "test of sparseAMANotSimplest()", testSparseAMANotSimplest)))
+   if ((NULL == CU_add_test(pSuite, "test of oneEquationZeroLead()", oneEquationZeroLead)))
    {
       CU_cleanup_registry();
       return CU_get_error();
@@ -3610,8 +3568,7 @@ int main()
 
 @}
 
-@o src/main/include/AMASuite.h -d
-@{
+\begin{verbatim}
 /*
  *  Simple example of a CUnit unit test.
  *
@@ -3639,6 +3596,11 @@ int main()
  *                      asserts       5       5       5       0
  */
 
+\end{verbatim}
+
+@o src/main/include/AMASuite.h -d
+@{
+
 #include <stdio.h>
 #include <string.h>
 #include "CUnit/Basic.h"
@@ -3647,6 +3609,7 @@ int main()
 
 unsigned int testMaxSize;
 double * testNewHmat;unsigned int * testNewHmatj;unsigned int * testNewHmati;
+double * testHmat;unsigned int * testHmatj;unsigned int * testHmati;
 unsigned int testAux;
 unsigned int testRowsInQ;
 double * testQmat;unsigned int * testQmatj;unsigned int * testQmati;
@@ -3655,7 +3618,13 @@ unsigned int testEssential;
 double * testRootr;
 double * testRooti;
 unsigned int testRetCode;
-
+unsigned int testJs;
+unsigned int testRc;
+unsigned int testNroot;
+unsigned int testSdim;
+unsigned int testSpacedim;
+double * testBeyondQmat;
+double * testDamat;
 
 unsigned int *testProw;
 unsigned int *testPcol;
@@ -3665,6 +3634,11 @@ unsigned int*testTheRi;
 double * testAnnihil;
 unsigned int *testAnnihilj;
 unsigned int *testAnnihili;
+double * testA;
+unsigned int *testAj;
+unsigned int *testAi;
+
+unsigned int testRnk;
 
 /* Pointer to the file used by the tests. */
 
@@ -3943,10 +3917,8 @@ void free(void * ptr);
 int init_suite1(void);
 int clean_suites(void);
 int init_suite2(void);
-void testSparseAMA(void);
-void testSparseAMA2(void);
 void testSparseAMASimplest(void);
-void testSparseAMANotSimplest(void);
+void oneEquationZeroLead(void);
 
 
 
