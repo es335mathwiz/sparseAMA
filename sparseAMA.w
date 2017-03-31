@@ -559,8 +559,8 @@ UNAME= $(shell uname)
 ifeq ($(UNAME),Linux)
 #compilers
 CC = gcc
-FCFLAGS = -c -O2  -I./ -I./src/main/include   -I /msu/res5/software/myUsr/include/ -I/opt/MATLAB/R2016a/extern/include/
-FCFLAGS = -c -g -Wall  -I./ -I./src/main/include   -I /msu/res5/software/myUsr/include -I/opt/MATLAB/R2016a/extern/include/
+FCFLAGS = -c -O2  -I./ -I./src/main/include   -I/msu/res5/software/myUsr/include/ -I/opt/MATLAB/R2016a/extern/include/
+FCFLAGS = -c -g -Wall  -I./ -I./src/main/include   -I/msu/res5/software/myUsr/include -I/opt/MATLAB/R2016a/extern/include/
 #lapack
 LAPACKLIBS=   -L /msu/res5/software/ARPACK96forCluster -larpack_linux -L/msu/res5/software/lapackGithubForCluster -llapack -lrefblas
 CUNITLIBS= -L /msu/res5/software/myUsr/lib/ -l cunit
@@ -569,8 +569,8 @@ endif
 ifeq ($(UNAME),Darwin)
 #compilers
 CC = gcc
-FCFLAGS = -c -O2  -I./ -I./src/main/include   -I /Users/garyanderson/myUsr/include/ -I/Application/MATLAB/R2016a.app/extern/include/
-FCFLAGS = -c -Wall -g  -I./ -I./src/main/include   -I /Users/garyanderson/myUsr/include/ -I/Applications/MATLAB_R2016a.app/extern/include/
+FCFLAGS = -c -O2  -I./ -I./src/main/include   -I/Users/garyanderson/myUsr/include/ -I/Application/MATLAB/R2016a.app/extern/include/
+FCFLAGS = -c -Wall -g  -I./ -I./src/main/include   -I/Users/garyanderson/myUsr/include/ -I/Applications/MATLAB_R2016a.app/extern/include/
 #lapack
 LAPACKLIBS=  -L /Users/garyanderson/ARPACK96/  -larpack_MACOS -L /Users/garyanderson/lapack-release/ -llapack -lrefblas
 CUNITLIBS= -L /Users/garyanderson/myUsr/lib -l cunit
