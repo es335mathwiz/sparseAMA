@@ -549,7 +549,7 @@ routine to provide support.
 \subsection{An Example Makefile}
 \label{sec:examplelibmake}
 
-
+q
 @o makefile -t
 @{
 #identify operating system
@@ -559,28 +559,30 @@ UNAME= $(shell uname)
 ifeq ($(UNAME),Linux)
 #compilers
 CC = gcc
-FCFLAGS = -c -O2  -I./ -I./src/main/include   -I/msu/res5/software/myUsr/include/ -I/opt/MATLAB/R2016a/extern/include/
-FCFLAGS = -c -g -Wall  -I./ -I./src/main/include   -I/msu/res5/software/myUsr/include -I/opt/MATLAB/R2016a/extern/include/
+FCFLAGS = -c -O2  -I./ -I./src/main/include   -I/msu/res5/software/myUsr/include/ -I /msu/res1/Software/matio-1.5.1/src/ 
+FCFLAGS = -c -g -Wall  -I./ -I./src/main/include   -I/msu/res5/software/myUsr/include -I /msu/res1/Software/matio-1.5.1/src/ 
 #lapack
 LAPACKLIBS=   -L /msu/res5/software/ARPACK96forCluster -larpack_linux -L/msu/res5/software/lapackGithubForCluster -llapack -lrefblas
-CUNITLIBS= -L /msu/res5/software/myUsr/lib/ -l cunit
+CUNITLIBS= -L/msu/res5/software/myUsr/lib/ -l cunit
+MATIOLIBS= -L/msu/res1/Software/matio-1.5.1/src/.libs/ -lmatio  -lhdf5
 endif
 
 ifeq ($(UNAME),Darwin)
 #compilers
 CC = gcc
-FCFLAGS = -c -O2  -I./ -I./src/main/include   -I/Users/garyanderson/myUsr/include/ -I/Application/MATLAB/R2016a.app/extern/include/
-FCFLAGS = -c -Wall -g  -I./ -I./src/main/include   -I/Users/garyanderson/myUsr/include/ -I/Applications/MATLAB_R2016a.app/extern/include/
+FCFLAGS = -c -O2  -I./ -I./src/main/include   -I/Users/garyanderson/myUsr/include/ -I /msu/res1/Software/matio-1.5.1/src/ 
+FCFLAGS = -c -Wall -g  -I./ -I./src/main/include   -I/Users/garyanderson/myUsr/include/ -I /msu/res1/Software/matio-1.5.1/src/ 
 #lapack
 LAPACKLIBS=  -L /Users/garyanderson/ARPACK96/  -larpack_MACOS -L /Users/garyanderson/lapack-release/ -llapack -lrefblas
 CUNITLIBS= -L /Users/garyanderson/myUsr/lib -l cunit
+MATIOLIBS= -L/msu/res1/Software/matio-1.5.1/src/.libs/ -lmatio  -lhdf5
 endif
 
 #compilers
 FC = gfortran
 .PHONY: Build
 Build: firstCUnitTest simpleSparseAMAExample
-	$(FC) firstCUnitTest.o -o firstCUnitTest $(CUNITLIBS) -L ./ -lsparseAMA $(LAPACKLIBS)
+	$(FC) firstCUnitTest.o -o firstCUnitTest $(CUNITLIBS) -L ./ -lsparseAMA $(LAPACKLIBS) $(MATIOLIBS)
 
 
 libsparseAMA.a:	sparseAMA.o sparskit2.o ma50ad.o
@@ -610,7 +612,7 @@ simpleSparseAMAExample.o: ./src/test/c/simpleSparseAMAExample.c
 	$(CC)  $(FCFLAGS) ./src/test/c/simpleSparseAMAExample.c
 
 simpleSparseAMAExample:simpleSparseAMAExample.o libsparseAMA.a
-	$(FC) simpleSparseAMAExample.o  -o simpleSparseAMAExample -L ./  -lsparseAMA $(LAPACKLIBS)   $(CUNITLIBS) 
+	$(FC) simpleSparseAMAExample.o  -o simpleSparseAMAExample -L ./  -lsparseAMA $(LAPACKLIBS)   $(CUNITLIBS) $(MATIOLIBS)
 
 
 devSuite1.o: devSuite1.c
@@ -631,14 +633,14 @@ firstCUnitTest.o: ./src/test/c/firstCUnitTest.c
 	$(CC)  $(FCFLAGS) ./src/test/c/firstCUnitTest.c
 
 firstCUnitTest: firstCUnitTest.o libsparseAMA.a 
-	$(FC) firstCUnitTest.o -o firstCUnitTest  -L ./ -lsparseAMA $(LAPACKLIBS)	  $(CUNITLIBS)
+	$(FC) firstCUnitTest.o -o firstCUnitTest  -L ./ -lsparseAMA $(LAPACKLIBS)	  $(CUNITLIBS) $(MATIOLIBS)
 
 
 secondCUnitTest.o: ./src/test/c/secondCUnitTest.c
 	$(CC)  $(FCFLAGS) ./src/test/c/secondCUnitTest.c
 
 secondCUnitTest: secondCUnitTest.o libsparseAMA.a 
-	$(FC) secondCUnitTest.o -o secondCUnitTest  -L ./ -lsparseAMA $(LAPACKLIBS)	  $(CUNITLIBS)
+	$(FC) secondCUnitTest.o -o secondCUnitTest  -L ./ -lsparseAMA $(LAPACKLIBS)	  $(CUNITLIBS) $(MATIOLIBS)
 
 
 
@@ -1326,11 +1328,50 @@ result=
       return(result);
 }
 
-#include "fintrf.h"
-void readDotMat(char * fileName){
 
+
+
+
+/*uses matio1.5.1*/
+#include <stdlib.h>
+#include <stdio.h>
+#include "matio.h"
+#define EXIT_SUCCESS 0
+#define EXIT_FAILURE 1
+
+
+matvar_t * getMatVar(char * varName,mat_t *matfp){
+matvar_t *matvar;
+matvar = Mat_VarRead(matfp,varName);
+if ( NULL == matvar ) {
+printf("Variable %s not found, or error reading MAT file\n",varName);
+fflush(stdout);
+} else {
+  double * theVar=matvar->data;
+cPrintMatrix(matvar->dims[0],matvar->dims[1],theVar);
+return matvar;
+}}
+
+
+
+void readDotMat(char * fileName){
+mat_t *matfp;
+matvar_t *matvar[3];
+matfp = Mat_Open(fileName,MAT_ACC_RDONLY);
+printf("\nreadDotMat:tried open %s\n",fileName);fflush(stdout);
+if ( NULL == matfp ) {
+printf("Error opening MAT file \"%s\"!\n",fileName);fflush(stdout);
+}
+matvar[0]=getMatVar("hin",matfp);
+matvar[1]=getMatVar("hexact",matfp);
+matvar[2]=getMatVar("qexact",matfp);
+Mat_VarFree(matvar[0]);
+Mat_VarFree(matvar[1]);
+Mat_VarFree(matvar[2]);
+Mat_Close(matfp);
 }
 
+  
 
 void cPrintMatrix(unsigned int nrows,unsigned int ncols,double * matrix)
 {
@@ -3271,6 +3312,19 @@ cPrintSparse(testHrows*testLeads,testQmat,testQmatj,testQmati);
 
 }
 
+void genericTestTemplate(void)
+{
+#ifdef __linux__
+char fileName[]="/msu/home/m1gsa00/git/SPSolve/tests/firmValue/firmvalue.mat";
+#elif __APPLE__
+char fileName[]="/Users/garyanderson/git/SPSolve/tests/firmValue/firmvalue.mat";
+#endif
+
+readDotMat(fileName);
+
+
+}
+
 void oneEquationZeroLead(void)
 {
 /*zero tolerance*/
@@ -3282,7 +3336,7 @@ static const unsigned int testHcols=3;
 static const unsigned int testLags=1;
 static const unsigned int testLeads=1;
 static const unsigned int testMaxelems=100;
-
+genericTestTemplate();
 /*original hmat*/
 double hmat[2]={2., 3.};
 unsigned int hmatj[2]={1, 2};

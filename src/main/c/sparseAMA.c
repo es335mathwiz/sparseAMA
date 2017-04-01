@@ -1,5 +1,5 @@
 
-#line 652 "sparseAMA.w"
+#line 654 "sparseAMA.w"
 
 #include "useSparseAMA.h"
 #ifdef WIN32
@@ -24,7 +24,7 @@ double time_extract, time_backsolve ;
 double time_autoregression, time_augmentQ;
 
 
-#line 1141 "sparseAMA.w"
+#line 1143 "sparseAMA.w"
 
 
 static int lineNumberToViolation(unsigned int lineNo)
@@ -213,11 +213,50 @@ result=
       return(result);
 }
 
-#include "fintrf.h"
-void readDotMat(char * fileName){
 
+
+
+
+/*uses matio1.5.1*/
+#include <stdlib.h>
+#include <stdio.h>
+#include "matio.h"
+#define EXIT_SUCCESS 0
+#define EXIT_FAILURE 1
+
+
+matvar_t * getMatVar(char * varName,mat_t *matfp){
+matvar_t *matvar;
+matvar = Mat_VarRead(matfp,varName);
+if ( NULL == matvar ) {
+printf("Variable %s not found, or error reading MAT file\n",varName);
+fflush(stdout);
+} else {
+  double * theVar=matvar->data;
+cPrintMatrix(matvar->dims[0],matvar->dims[1],theVar);
+return matvar;
+}}
+
+
+
+void readDotMat(char * fileName){
+mat_t *matfp;
+matvar_t *matvar[3];
+matfp = Mat_Open(fileName,MAT_ACC_RDONLY);
+printf("\nreadDotMat:tried open %s\n",fileName);fflush(stdout);
+if ( NULL == matfp ) {
+printf("Error opening MAT file \"%s\"!\n",fileName);fflush(stdout);
+}
+matvar[0]=getMatVar("hin",matfp);
+matvar[1]=getMatVar("hexact",matfp);
+matvar[2]=getMatVar("qexact",matfp);
+Mat_VarFree(matvar[0]);
+Mat_VarFree(matvar[1]);
+Mat_VarFree(matvar[2]);
+Mat_Close(matfp);
 }
 
+  
 
 void cPrintMatrix(unsigned int nrows,unsigned int ncols,double * matrix)
 {
@@ -518,7 +557,7 @@ static unsigned int constructQRDecomposition (
 
 
 
-#line 1635 "sparseAMA.w"
+#line 1676 "sparseAMA.w"
 
 
 
@@ -1010,7 +1049,7 @@ static void constructA (
 }       /* constructA */
 
 
-#line 2127 "sparseAMA.w"
+#line 2168 "sparseAMA.w"
 
 
 static unsigned int useArpack(
@@ -1711,7 +1750,7 @@ void obtainSparseReducedForm(
         /*change sign*/
         for(i=0;i<bmati[qrows]-bmati[0];i++)bmat[i]=(-1)*bmat[i];
 
-#line 2828 "sparseAMA.w"
+#line 2869 "sparseAMA.w"
 
 
 
@@ -2158,6 +2197,19 @@ cPrintSparse(testHrows*testLeads,testQmat,testQmatj,testQmati);
 
 }
 
+void genericTestTemplate(void)
+{
+#ifdef __linux__
+char fileName[]="/msu/home/m1gsa00/git/SPSolve/tests/firmValue/firmvalue.mat";
+#elif __APPLE__
+char fileName[]="/Users/garyanderson/git/SPSolve/tests/firmValue/firmvalue.mat";
+#endif
+
+readDotMat(fileName);
+
+
+}
+
 void oneEquationZeroLead(void)
 {
 /*zero tolerance*/
@@ -2169,7 +2221,7 @@ static const unsigned int testHcols=3;
 static const unsigned int testLags=1;
 static const unsigned int testLeads=1;
 static const unsigned int testMaxelems=100;
-
+genericTestTemplate();
 /*original hmat*/
 double hmat[2]={2., 3.};
 unsigned int hmatj[2]={1, 2};
@@ -2321,7 +2373,7 @@ testRc = useArpack ( &testMaxSize, testSpacedim, testNroot, testA, testAj, testA
 
 
 
-#line 3675 "sparseAMA.w"
+#line 3729 "sparseAMA.w"
 
 
 
@@ -2332,7 +2384,7 @@ int init_suite1(void)
 static const unsigned int testMaxelems=381;
 
 
-#line 3707 "sparseAMA.w"
+#line 3761 "sparseAMA.w"
 
 testNewHmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 testNewHmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
@@ -2357,7 +2409,7 @@ testTheRi=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testProw=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testPcol=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
-#line 3684 "sparseAMA.w"
+#line 3738 "sparseAMA.w"
 
 
 testRowsInQ=testAux=0;
@@ -2379,7 +2431,7 @@ free(testPcol);
 return(0);
 }
 
-#line 3733 "sparseAMA.w"
+#line 3787 "sparseAMA.w"
 
 
 
@@ -2390,7 +2442,7 @@ int init_suite2(void)
 static const unsigned int testMaxelems=381;
 
 
-#line 3707 "sparseAMA.w"
+#line 3761 "sparseAMA.w"
 
 testNewHmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 testNewHmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
@@ -2415,7 +2467,7 @@ testTheRi=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testProw=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testPcol=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
-#line 3742 "sparseAMA.w"
+#line 3796 "sparseAMA.w"
 
 
 testRowsInQ=testAux=0;
