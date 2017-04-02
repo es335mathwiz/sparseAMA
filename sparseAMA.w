@@ -1354,9 +1354,8 @@ return matvar;
 
 
 
-void readDotMat(char * fileName){
+void readDotMat(char * fileName,matvar_t**matvar){
 mat_t *matfp;
-matvar_t *matvar[3];
 matfp = Mat_Open(fileName,MAT_ACC_RDONLY);
 printf("\nreadDotMat:tried open %s\n",fileName);fflush(stdout);
 if ( NULL == matfp ) {
@@ -3319,8 +3318,9 @@ char fileName[]="/msu/home/m1gsa00/git/SPSolve/tests/firmValue/firmvalue.mat";
 #elif __APPLE__
 char fileName[]="/Users/garyanderson/git/SPSolve/tests/firmValue/firmvalue.mat";
 #endif
+matvar_t *matvar[3];
 
-readDotMat(fileName);
+readDotMat(fileName,matvar);
 
 
 }

@@ -239,9 +239,8 @@ return matvar;
 
 
 
-void readDotMat(char * fileName){
+void readDotMat(char * fileName,matvar_t**matvar){
 mat_t *matfp;
-matvar_t *matvar[3];
 matfp = Mat_Open(fileName,MAT_ACC_RDONLY);
 printf("\nreadDotMat:tried open %s\n",fileName);fflush(stdout);
 if ( NULL == matfp ) {
@@ -557,7 +556,7 @@ static unsigned int constructQRDecomposition (
 
 
 
-#line 1676 "sparseAMA.w"
+#line 1675 "sparseAMA.w"
 
 
 
@@ -1049,7 +1048,7 @@ static void constructA (
 }       /* constructA */
 
 
-#line 2168 "sparseAMA.w"
+#line 2167 "sparseAMA.w"
 
 
 static unsigned int useArpack(
@@ -1750,7 +1749,7 @@ void obtainSparseReducedForm(
         /*change sign*/
         for(i=0;i<bmati[qrows]-bmati[0];i++)bmat[i]=(-1)*bmat[i];
 
-#line 2869 "sparseAMA.w"
+#line 2868 "sparseAMA.w"
 
 
 
@@ -2204,8 +2203,9 @@ char fileName[]="/msu/home/m1gsa00/git/SPSolve/tests/firmValue/firmvalue.mat";
 #elif __APPLE__
 char fileName[]="/Users/garyanderson/git/SPSolve/tests/firmValue/firmvalue.mat";
 #endif
+matvar_t *matvar[3];
 
-readDotMat(fileName);
+readDotMat(fileName,matvar);
 
 
 }
