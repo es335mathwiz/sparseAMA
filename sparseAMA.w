@@ -1347,8 +1347,8 @@ if ( NULL == matvar ) {
 printf("Variable %s not found, or error reading MAT file\n",varName);
 fflush(stdout);
 } else {
-  double * theVar=matvar->data;
-cPrintMatrix(matvar->dims[0],matvar->dims[1],theVar);
+/*  double * theVar=matvar->data;
+cPrintMatrix(matvar->dims[0],matvar->dims[1],theVar);*/
 }
 return matvar;
 }
@@ -1365,9 +1365,23 @@ printf("Error opening MAT file \"%s\"!\n",fileName);fflush(stdout);
 matvar[0]=getMatVar("hin",matfp);
 matvar[1]=getMatVar("hexact",matfp);
 matvar[2]=getMatVar("qexact",matfp);
-Mat_VarFree(matvar[0]);
-Mat_VarFree(matvar[1]);
-Mat_VarFree(matvar[2]);
+matvar[3]=getMatVar("nexact",matfp);
+matvar[4]=getMatVar("hnumeric",matfp);
+matvar[5]=getMatVar("qnumeric",matfp);
+matvar[6]=getMatVar("nnumeric",matfp);
+matvar[7]=getMatVar("a",matfp);
+matvar[8]=getMatVar("ia",matfp);
+matvar[9]=getMatVar("js",matfp);
+matvar[10]=getMatVar("w",matfp);
+matvar[11]=getMatVar("rroots",matfp);
+matvar[12]=getMatVar("iroots",matfp);
+matvar[13]=getMatVar("lgroots",matfp);
+matvar[14]=getMatVar("q",matfp);
+matvar[15]=getMatVar("myNonsing",matfp);
+matvar[16]=getMatVar("b",matfp);
+matvar[17]=getMatVar("AMAcode",matfp);
+matvar[18]=getMatVar("dims",matfp);
+
 Mat_Close(matfp);
 }
 
@@ -1481,9 +1495,9 @@ unsigned     int hrows,unsigned int hcols,
 {
 unsigned 	int i, j, qextent, zeroRow ;
 	static unsigned int maxHElementsEncountered=0;		/* bumpSparseAMA */
-printf("shiftRightAnd:on entry\n");
-printf("shiftRightAnd:zeroRow loop hrows=%u\n",hrows);fflush(stdout);
-cPrintSparse(hrows,hmat,hmatj,hmati);
+/*printf("shiftRightAnd:on entry\n");*/
+/*printf("shiftRightAnd:zeroRow loop hrows=%u\n",hrows);fflush(stdout);*/
+/*cPrintSparse(hrows,hmat,hmatj,hmati);*/
 
 
 
@@ -1492,13 +1506,13 @@ cPrintSparse(hrows,hmat,hmatj,hmati);
 	zeroRow=FALSE;
 	i = 1 ;
 	while (i <= hrows && !zeroRow) {
-printf("shiftRightAnd:zeroRow loop i=%u,hrows=%u\n",i,hrows);fflush(stdout);
+/*printf("shiftRightAnd:zeroRow loop i=%u,hrows=%u\n",i,hrows);fflush(stdout);*/
 		zeroRow = (hmati[i-1]==hmati[i]) ;
 		i++ ;
 	}
 
-printf("shiftRightAnd:checked zeroRow\n");
-cPrintSparse(hrows,hmat,hmatj,hmati);
+/*printf("shiftRightAnd:checked zeroRow\n");*/
+/*cPrintSparse(hrows,hmat,hmatj,hmati);*/
 
 
 
@@ -1509,26 +1523,26 @@ cPrintSparse(hrows,hmat,hmatj,hmati);
 
 
 	/* keep track of space used in Q */
-printf("shiftRightAnd:pre qextrowInq=%u\n",rowsInQ);fflush(stdout);
+/*printf("shiftRightAnd:pre qextrowInq=%u\n",rowsInQ);fflush(stdout);*/
 //printf("shiftRightAnd:qext=%u\n",qextent);fflush(stdout);
-printf("shiftRightAnd:pre qextrowInq=%u\n",qmati[0]);fflush(stdout);
-printf("shiftRightAnd:pre qmati[row]=%u\n",qmati[rowsInQ]);fflush(stdout);
-cPrintSparse(hrows,hmat,hmatj,hmati);
+//printf("shiftRightAnd:pre qextrowInq=%u\n",qmati[0]);fflush(stdout);
+//printf("shiftRightAnd:pre qmati[row]=%u\n",qmati[rowsInQ]);fflush(stdout);
+//cPrintSparse(hrows,hmat,hmatj,hmati);
  	qextent=qmati[rowsInQ]-qmati[0];
-printf("shiftRightAnd:pre bump\n");
-cPrintSparse(hrows,hmat,hmatj,hmati);
+//printf("shiftRightAnd:pre bump\n");
+//cPrintSparse(hrows,hmat,hmatj,hmati);
 	bumpSparseAMA((qextent));
 
-printf("shiftRightAnd:post bump\n");
-cPrintSparse(hrows,hmat,hmatj,hmati);
+//printf("shiftRightAnd:post bump\n");
+//cPrintSparse(hrows,hmat,hmatj,hmati);
 
 
 
 	/* loop through rows of H */
 	for(i=1; i<=hrows; i++) {
 
-printf("shiftRightAnd:loop throw rows\n");
-cPrintSparse(hrows,hmat,hmatj,hmati);
+//printf("shiftRightAnd:loop throw rows\n");
+//cPrintSparse(hrows,hmat,hmatj,hmati);
 
 
 
@@ -1555,9 +1569,9 @@ cPrintSparse(hrows,hmat,hmatj,hmati);
 				/* shift H value right one block.  (Zeros are just ignored.) */
 				hmatj[j-1] += dim;
 
-printf("shiftRightAnd:bottom loop throw non zero rows\n");
-cPrintSparse(hrows,hmat,hmatj,hmati);
-cPrintSparse(hrows,qmat,qmatj,qmati);
+//printf("shiftRightAnd:bottom loop throw non zero rows\n");
+//cPrintSparse(hrows,hmat,hmatj,hmati);
+//cPrintSparse(hrows,qmat,qmatj,qmati);
 
 			}
 		}
@@ -1814,7 +1828,7 @@ static unsigned int autoRegression(
     unsigned int * prow,unsigned int * pcol
 )
 {
-printf("autoRegression:entry hrows=%u\n",hrows);
+/*printf("autoRegression:entry hrows=%u\n",hrows);*/
 
 	double time0, time_annihilateRows, time_shiftRightAndRecord ; /* rwt */
 	unsigned int count_ARloop ; /* rwt */
@@ -1829,24 +1843,24 @@ printf("autoRegression:entry hrows=%u\n",hrows);
 	/* save original maxspace parameter */
 	unsigned int originalMaxHElements;
 	
-printf("autoRegression:pre orig=%u\n",hrows);fflush(stdout);
+/*printf("autoRegression:pre orig=%u\n",hrows);fflush(stdout);*/
 
 originalMaxHElements=*maxNumberOfHElements;
-printf("autoRegression:pre timeshifthrows=%u\n",hrows);fflush(stdout);
+/*printf("autoRegression:pre timeshifthrows=%u\n",hrows);fflush(stdout);*/
 	time_shiftRightAndRecord = 0 ;  /* rwt */
 	time_annihilateRows = 0 ;  		/* rwt */
 	count_ARloop = 0 ; 				/* rwt */
 
 	/* init ... */
 	aOne=1;swapped=0;rowsInQ=0;rnk=0;
-printf("autoRegression:pre permhrows=%u\n",hrows);fflush(stdout);
+/*printf("autoRegression:pre permhrows=%u\n",hrows);fflush(stdout);*/
 
 	/* initialize permuatation vectors */
 	for (i=0;i<hrows;i++)
 		prow[i]=i;
 	for (i=0;i<hrows;i++)
 	    pcol[i]=i;
-printf("autoRegression:after permhrows=%u\n",hrows);fflush(stdout);
+/*printf("autoRegression:after permhrows=%u\n",hrows);fflush(stdout);*/
 
 	/* rwt init profile vars */
 	time_rightMostAllZeroQ = 0 ;		/* accumulated in rightMostAllZeroQ */
@@ -1863,26 +1877,26 @@ printf("autoRegression:after permhrows=%u\n",hrows);fflush(stdout);
 
 
 		count_ARloop ++ ;  /* rwt */
-printf("autoRegression:while rank loop pre drop\n");
-printf("autoRegression:hrows=%u\n",hrows);fflush(stdout);
+/*printf("autoRegression:while rank loop pre drop\n");*/
+/*printf("autoRegression:hrows=%u\n",hrows);fflush(stdout);*/
 cPrintSparse(hrows,hmat,hmatj,hmati);
 		/* clean up near-zeros */
 		ztol=ZERO_TOLERANCE;ztol=1.0e-8;job=3;len=HMATSIZE;ierr=0;
 		dropSmallElements(&hrows,&job,&ztol,&len,hmat,hmatj,hmati,hmat,hmatj,hmati,&ierr);
-printf("autoRegression:while rank loop post drop\n");
-printf("autoRegression:hrows=%u\n",hrows);fflush(stdout);
-cPrintSparse(hrows,hmat,hmatj,hmati);
-printf("autoRegression:hrows=%u\n",hrows);fflush(stdout);
+/*printf("autoRegression:while rank loop post drop\n");*/
+/*printf("autoRegression:hrows=%u\n",hrows);fflush(stdout);*/
+/*cPrintSparse(hrows,hmat,hmatj,hmati);*/
+/*printf("autoRegression:hrows=%u\n",hrows);fflush(stdout);*/
 
 
 		/* shift zero rows of rightmost block of H to the right and copy into Q as auxiliary initial conditions */
 		time0 = cputime() ; /* rwt */
-printf("autoRegression:at shift call hrows=%u\n",hrows);fflush(stdout);
+/*printf("autoRegression:at shift call hrows=%u\n",hrows);fflush(stdout);*/
 		rowsInQ=shiftRightAndRecord(maxNumberOfHElements,returnCode,hrows,rowsInQ,
 			qmat,qmatj,qmati,hrows,hcols,hmat,hmatj,hmati
 		);
 
-printf("autoRegression:post shift\n");
+/*printf("autoRegression:post shift\n");*/
 cPrintSparse(hrows,hmat,hmatj,hmati);
 cPrintSparse(hrows,qmat,qmatj,qmati);
 
@@ -3311,37 +3325,46 @@ cPrintSparse(testHrows*testLeads,testQmat,testQmatj,testQmati);
   printf("testSparseAMSimplest:end\n");
 
 }
-
-void genericTestTemplate(void)
-{
-#ifdef __linux__
-char fileName[]="/msu/home/m1gsa00/git/SPSolve/tests/firmValue/firmvalue.mat";
-#elif __APPLE__
-char fileName[]="/Users/garyanderson/git/SPSolve/tests/firmValue/firmvalue.mat";
-#endif
-matvar_t *matvar[3];
-
-readDotMat(fileName,matvar);
-
-
-}
+double * theVar;
+#define HROWS (unsigned int) 1
+#define HLAGS (unsigned int) 1
+#define HLEADS (unsigned int) 1
 
 void oneEquationZeroLead(void)
 {
 /*zero tolerance*/
 double tol=10.0e-10;
+#ifdef __linux__
+char fileName[]="/msu/home/m1gsa00/git/SPSolve/tests/oneEquationNoLead/oneEquationNoLead.mat";
+#elif __APPLE__
+char fileName[]="/Users/garyanderson/git/SPSolve/tests/oneEquationNoLead/oneEquationNoLead.mat";
+#endif
+matvar_t *matvar[19];
+
+readDotMat(fileName,matvar);
+printf("oneEquationZeroLead:dims\n");
+theVar=matvar[18]->data;
+cPrintMatrix(matvar[18]->dims[0],matvar[18]->dims[1],theVar);
+printf("oneEquationZeroLead:try double %u\n",(unsigned int)round(*theVar));
 
 /*problem dimensions*/
-static const unsigned int testHrows=1;
-static const unsigned int testHcols=3;
-static const unsigned int testLags=1;
-static const unsigned int testLeads=1;
+const unsigned int testHrows=(unsigned int)round(*theVar);
+const unsigned int testLags=(unsigned int)round(*(theVar+1));
+const unsigned int testLeads=(unsigned int)round(*(theVar+2));
+const unsigned int testHcols=testLags+testLeads+1;
 static const unsigned int testMaxelems=100;
-genericTestTemplate();
+int info;
 /*original hmat*/
-double hmat[2]={2., 3.};
-unsigned int hmatj[2]={1, 2};
-unsigned int hmati[2]={1, 3};
+
+double hmat[2];
+unsigned int hmatj[2];
+unsigned int hmati[2];
+
+/*original hmat hin*/
+theVar=matvar[0]->data;
+dnsToCsr(&testHrows,&testHcols,&testMaxelems,theVar,&testHrows,hmat,hmatj,hmati,&info);
+
+
 
 /*expected results*/
 double zmat[2]={2.,3.};
@@ -3364,122 +3387,12 @@ sparseAMA(&testMaxSize,
    &testEssential,
    testRootr,testRooti,&testRetCode
    );
-     CU_ASSERT(2  == testMaxSize)
+     CU_ASSERT(3  == testMaxSize)
      CU_ASSERT(0 == testRetCode)
 
-/*obtainSparseReducedForm call*/
-testMaxSize=testMaxelems;
-obtainSparseReducedForm(
-  &testMaxSize,
-  testHrows*testLeads,(testHcols-testHrows),testQmat,testQmatj,testQmati,
-  testBmat, testBmatj, testBmati
-);
 
-CU_ASSERT(sparseMatsEqual(testHrows,
-testQmat,testQmatj,testQmati,
-zmat,zmatj,zmati,tol));
-
-CU_ASSERT(sparseMatsEqual(testHrows,
-testNewHmat,testNewHmatj,testNewHmati,
-newHExp1,newHExp1j,newHExp1i,tol));
-
-/*satisfiesLinearSystemQ*/
-satisfiesLinearSystemQ (&testMaxSize,
-   testHrows,testLags,testLeads,
-   hmat,hmatj,hmati,
-   &testAux,&testRowsInQ,  testBmat, testBmatj, testBmati,
-   &testEssential,
-   testRootr,testRooti,testNormVec
-);
-
-
-/*autoRegression call*/
-testAux=testRowsInQ=0;
-testMaxSize=testMaxelems;
-autoRegression(&testMaxSize,&testRetCode,
-   testHrows,testHcols,
-   hmat,hmatj,hmati,
-   testQmat,testQmatj,testQmati,
-   testNewHmat,testNewHmatj,testNewHmati,
-   testAnnihil,testAnnihilj,testAnnihili,
-   testTheR,testTheRj,testTheRi,
-   testProw,testPcol);
-
-CU_ASSERT(sparseMatsEqual(testHrows,
-testQmat,testQmatj,testQmati,
-zmat,zmatj,zmati,tol));
-
-CU_ASSERT(sparseMatsEqual(testHrows,
-testNewHmat,testNewHmatj,testNewHmati,
-newHExp1,newHExp1j,newHExp1i,tol));
-
-/*shiftRightAndRecord call*/
-testRowsInQ=shiftRightAndRecord(&testMaxSize,&testRetCode,testHrows,testRowsInQ,
-                        testQmat,testQmatj,testQmati,testHrows,testHcols,testHmat,testHmatj,testHmati
-                );
-/*annihilateRows call*/
- testRnk=annihilateRows(&testMaxSize,&testRetCode,testHrows,testHcols,
-                        testHmat, testHmatj, testHmati,
-                        testNewHmat, testNewHmatj, testNewHmati,
-                        testAnnihil, testAnnihilj, testAnnihili,
-                        testTheR, testTheRj, testTheRi,
-                        testProw, testPcol
-                );
-
-
-
-
-/*augmentQmatWithInvariantSpaceVectors call*/
-testMaxSize=testMaxelems;
-unsigned int testDiscreteTime=1;
-unsigned int testConstraintsNeeded=0;
-testMaxSize=testMaxelems;
-        testRowsInQ=augmentQmatWithInvariantSpaceVectors(
-        &testMaxSize,&testRetCode,testDiscreteTime,
-        testHrows, testHcols,
-        hmat,hmatj,hmati,
-        testAnnihil,testAnnihilj,testAnnihili,
-        testTheR,testTheRj,testTheRi,
-        testProw,testPcol,
-        testAux,
-        testConstraintsNeeded,
-        testQmat,testQmatj,testQmati,
-        &testEssential,
-        testRootr,testRooti
-        );
-
-CU_ASSERT(sparseMatsEqual(testHrows,
-testQmat,testQmatj,testQmati,
-zmat,zmatj,zmati,tol));
-
-CU_ASSERT(sparseMatsEqual(testHrows,
-testNewHmat,testNewHmatj,testNewHmati,
-newHExp1,newHExp1j,newHExp1i,tol));
-
-
-
-
-
-
-
-
-/*identifyEssential call*/
-testEssential=identifyEssential(testHrows, testHcols, testHmat, testHmatj, testHmati, &testJs) ;
-
-/*useArpack call*/
-testRc = useArpack ( &testMaxSize, testSpacedim, testNroot, testA, testAj, testAi, testBeyondQmat, testRootr, testRooti, &testSdim
-                        );
-
-
-/*construcA call*/
-          constructA(&testMaxSize,&testRetCode,testHrows,testHcols,testEssential,&testJs,
-                testHmat,testHmatj,testHmati,
-                testAnnihil,testAnnihilj,testAnnihili,
-                testTheR,testTheRj,testTheRi,
-                testProw,testPcol,
-                testDamat
-        );
-
+int ii;
+for(ii=0;ii<19;ii++){Mat_VarFree(matvar[ii]);}
 
 
 }
