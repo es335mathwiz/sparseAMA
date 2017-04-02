@@ -3255,6 +3255,27 @@ maxDDiff=(dDiff>maxDDiff)?dDiff:maxDDiff;
 return((maxIDiff<tol)&&(maxDDiff<tol));
 }
 
+int denseVecsAllSmall(unsigned int numElems,double * avec,double tol){
+double maxDDiff=0;
+unsigned int ii;double dDiff;
+for(ii=0;ii<=numElems;ii++){
+dDiff=fabs(avec[ii]);
+maxDDiff=(dDiff>maxDDiff)?dDiff:maxDDiff;
+};
+return(maxDDiff<tol);
+}
+
+
+int denseVecsEqual(unsigned int numElems,double * avec,double * bvec,double tol){
+double maxDDiff=0;
+unsigned int ii;double dDiff;
+for(ii=0;ii<=numElems;ii++){
+dDiff=fabs(avec[ii]-bvec[ii]);
+maxDDiff=(dDiff>maxDDiff)?dDiff:maxDDiff;
+};
+return(maxDDiff<tol);
+}
+
 #include "AMASuite.h"
 /* Simple test of sparseAMA().
  * Writes test data to the temporary file and checks
@@ -3332,6 +3353,10 @@ double * theVar;
 
 void oneEquationZeroLead(void)
 {
+int ii;
+
+
+
 /*zero tolerance*/
 double tol=10.0e-10;
 #ifdef __linux__
@@ -3356,42 +3381,71 @@ static const unsigned int testMaxelems=100;
 int info;
 /*original hmat*/
 
-double hmat[2];
-unsigned int hmatj[2];
-unsigned int hmati[2];
+double testHmat[2];
+unsigned int testHmatj[2];
+unsigned int testHmati[2];
 
 /*original hmat hin*/
 theVar=matvar[0]->data;
-dnsToCsr(&testHrows,&testHcols,&testMaxelems,theVar,&testHrows,hmat,hmatj,hmati,&info);
-
+dnsToCsr(&testHrows,&testHcols,&testMaxelems,theVar,&testHrows,testHmat,testHmatj,testHmati,&info);
 
 
 /*expected results*/
-double zmat[2]={2.,3.};
-unsigned int zmatj[2]={1,2};
-unsigned int zmati[2]={1,3};
 
-double newHExp1[2]={2.,3.};
-unsigned int newHExp1j[2]={2,3};
-unsigned int newHExp1i[2]={1,3};
+double * expRootr=matvar[11]->data;
+double * expRooti=matvar[12]->data;
+unsigned int aRows=matvar[7]->dims[0];
+theVar=matvar[16]->data;
+int testBcols=testHrows*testLags;
+dnsToCsr(&testHrows,&testBcols,&testMaxelems,theVar,&testHrows,expBmat,expBmatj,expBmati,&info);
 
+printf("dtos b\n");
+cPrintSparse(1,expBmat,expBmatj,expBmati);
 
 /*sparseAMA call*/
 testMaxSize=testMaxelems;
 sparseAMA(&testMaxSize,
    DISCRETE_TIME,
    testHrows,testHcols,testLeads,
-   hmat,hmatj,hmati,
+   testHmat,testHmatj,testHmati,
    testNewHmat,testNewHmatj,testNewHmati,
    &testAux,&testRowsInQ,testQmat,testQmatj,testQmati,
    &testEssential,
    testRootr,testRooti,&testRetCode
    );
-     CU_ASSERT(3  == testMaxSize)
+     CU_ASSERT(3  == testMaxSize)/*sparseAMA specific*/
      CU_ASSERT(0 == testRetCode)
+     CU_ASSERT(1  == denseVecsEqual(aRows,testRootr,expRootr,tol))
+     CU_ASSERT(1  == denseVecsEqual(aRows,testRooti,expRooti,tol))
 
 
-int ii;
+/*obtainSparseReducedForm call*/
+testMaxSize=testMaxelems;
+obtainSparseReducedForm(
+  &testMaxSize,
+  testHrows*testLeads,(testHcols-testHrows),testQmat,testQmatj,testQmati,
+  testBmat, testBmatj, testBmati
+);
+
+CU_ASSERT(sparseMatsEqual(testHrows,
+testBmat,testBmatj,testBmati,
+expBmat,expBmatj,expBmati,tol));
+
+
+
+/*satisfiesLinearSystemQ*/
+testMaxSize=testMaxelems;
+satisfiesLinearSystemQ (&testMaxSize,
+   testHrows,testLags,testLeads,
+   testHmat,testHmatj,testHmati,
+   &testAux,&testRowsInQ,  testBmat, testBmatj, testBmati,
+   &testEssential,
+   testRootr,testRooti,testNormVec
+);
+cPrintMatrix(testHrows,1,testNormVec);
+
+CU_ASSERT(denseVecsAllSmall(testHrows,testNormVec,tol))
+
 for(ii=0;ii<19;ii++){Mat_VarFree(matvar[ii]);}
 
 
@@ -3597,6 +3651,7 @@ double * testHmat;unsigned int * testHmatj;unsigned int * testHmati;
 unsigned int testAux;
 unsigned int testRowsInQ;
 double * testQmat;unsigned int * testQmatj;unsigned int * testQmati;
+double * expBmat;unsigned int * expBmatj;unsigned int * expBmati;
 double * testBmat;unsigned int * testBmatj;unsigned int * testBmati;
 unsigned int testEssential;
 double * testRootr;
@@ -3661,6 +3716,7 @@ int clean_suites(void)
 {
 free(testNewHmat);free(testNewHmatj);free(testNewHmati);
 free(testQmat);free(testQmatj);free(testQmati);
+free(expBmat);free(expBmatj);free(expBmati);
 free(testBmat);free(testBmatj);free(testBmati);
 free(testRootr);free(testRooti);
 free(testAnnihil);free(testAnnihilj);free(testAnnihili);
@@ -3673,12 +3729,16 @@ return(0);
 
 @d allocate test arrays
 @{
+testNormVec=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 testNewHmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 testNewHmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testNewHmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testQmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 testQmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testQmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+expBmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+expBmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+expBmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testBmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 testBmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testBmati=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
