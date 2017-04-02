@@ -570,12 +570,12 @@ endif
 ifeq ($(UNAME),Darwin)
 #compilers
 CC = gcc
-FCFLAGS = -c -O2  -I./ -I./src/main/include   -I/Users/garyanderson/myUsr/include/ -I /msu/res1/Software/matio-1.5.1/src/ 
-FCFLAGS = -c -Wall -g  -I./ -I./src/main/include   -I/Users/garyanderson/myUsr/include/ -I /msu/res1/Software/matio-1.5.1/src/ 
+FCFLAGS = -c -O2  -I./ -I./src/main/include   -I/Users/garyanderson/myUsr/include/ -I /usr/local/Cellar/libmatio/1.5.10/include
+FCFLAGS = -c -Wall -g  -I./ -I./src/main/include   -I/Users/garyanderson/myUsr/include/ -I /usr/local/Cellar/libmatio/1.5.10/include 
 #lapack
 LAPACKLIBS=  -L /Users/garyanderson/ARPACK96/  -larpack_MACOS -L /Users/garyanderson/lapack-release/ -llapack -lrefblas
 CUNITLIBS= -L /Users/garyanderson/myUsr/lib -l cunit
-MATIOLIBS= -L/msu/res1/Software/matio-1.5.1/src/.libs/ -lmatio  -lhdf5
+MATIOLIBS= -L/usr/local/Cellar/libmatio/1.5.10/lib -lmatio 
 endif
 
 #compilers
@@ -1349,8 +1349,9 @@ fflush(stdout);
 } else {
   double * theVar=matvar->data;
 cPrintMatrix(matvar->dims[0],matvar->dims[1],theVar);
+}
 return matvar;
-}}
+}
 
 
 

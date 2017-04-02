@@ -234,8 +234,9 @@ fflush(stdout);
 } else {
   double * theVar=matvar->data;
 cPrintMatrix(matvar->dims[0],matvar->dims[1],theVar);
+}
 return matvar;
-}}
+}
 
 
 
@@ -557,7 +558,7 @@ static unsigned int constructQRDecomposition (
 
 
 
-#line 1676 "sparseAMA.w"
+#line 1677 "sparseAMA.w"
 
 
 
@@ -1049,7 +1050,7 @@ static void constructA (
 }       /* constructA */
 
 
-#line 2168 "sparseAMA.w"
+#line 2169 "sparseAMA.w"
 
 
 static unsigned int useArpack(
@@ -1750,7 +1751,7 @@ void obtainSparseReducedForm(
         /*change sign*/
         for(i=0;i<bmati[qrows]-bmati[0];i++)bmat[i]=(-1)*bmat[i];
 
-#line 2869 "sparseAMA.w"
+#line 2870 "sparseAMA.w"
 
 
 
@@ -2373,7 +2374,7 @@ testRc = useArpack ( &testMaxSize, testSpacedim, testNroot, testA, testAj, testA
 
 
 
-#line 3729 "sparseAMA.w"
+#line 3730 "sparseAMA.w"
 
 
 
@@ -2384,7 +2385,7 @@ int init_suite1(void)
 static const unsigned int testMaxelems=381;
 
 
-#line 3761 "sparseAMA.w"
+#line 3762 "sparseAMA.w"
 
 testNewHmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 testNewHmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
@@ -2409,7 +2410,7 @@ testTheRi=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testProw=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testPcol=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
-#line 3738 "sparseAMA.w"
+#line 3739 "sparseAMA.w"
 
 
 testRowsInQ=testAux=0;
@@ -2431,7 +2432,7 @@ free(testPcol);
 return(0);
 }
 
-#line 3787 "sparseAMA.w"
+#line 3788 "sparseAMA.w"
 
 
 
@@ -2442,7 +2443,7 @@ int init_suite2(void)
 static const unsigned int testMaxelems=381;
 
 
-#line 3761 "sparseAMA.w"
+#line 3762 "sparseAMA.w"
 
 testNewHmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
 testNewHmatj=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
@@ -2467,7 +2468,7 @@ testTheRi=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testProw=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 testPcol=(unsigned int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
 
-#line 3796 "sparseAMA.w"
+#line 3797 "sparseAMA.w"
 
 
 testRowsInQ=testAux=0;
