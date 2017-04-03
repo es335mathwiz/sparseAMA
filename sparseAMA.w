@@ -1358,7 +1358,6 @@ return matvar;
 void readDotMat(char * fileName,matvar_t**matvar){
 mat_t *matfp;
 matfp = Mat_Open(fileName,MAT_ACC_RDONLY);
-printf("\nreadDotMat:tried open %s\n",fileName);fflush(stdout);
 if ( NULL == matfp ) {
 printf("Error opening MAT file \"%s\"!\n",fileName);fflush(stdout);
 }
@@ -1879,7 +1878,7 @@ originalMaxHElements=*maxNumberOfHElements;
 		count_ARloop ++ ;  /* rwt */
 /*printf("autoRegression:while rank loop pre drop\n");*/
 /*printf("autoRegression:hrows=%u\n",hrows);fflush(stdout);*/
-cPrintSparse(hrows,hmat,hmatj,hmati);
+//cPrintSparse(hrows,hmat,hmatj,hmati);
 		/* clean up near-zeros */
 		ztol=ZERO_TOLERANCE;ztol=1.0e-8;job=3;len=HMATSIZE;ierr=0;
 		dropSmallElements(&hrows,&job,&ztol,&len,hmat,hmatj,hmati,hmat,hmatj,hmati,&ierr);
@@ -1897,8 +1896,8 @@ cPrintSparse(hrows,hmat,hmatj,hmati);
 		);
 
 /*printf("autoRegression:post shift\n");*/
-cPrintSparse(hrows,hmat,hmatj,hmati);
-cPrintSparse(hrows,qmat,qmatj,qmati);
+//cPrintSparse(hrows,hmat,hmatj,hmati);
+//cPrintSparse(hrows,qmat,qmatj,qmati);
 
 
 		if (*returnCode) return 0u ;
@@ -3064,7 +3063,7 @@ int satisfiesLinearSystemQ (
 		forHMult,forHMultj,forHMulti,
 		&ierr
 	);
-cPrintSparse(hrows,forHMult,forHMultj,forHMulti);
+//cPrintSparse(hrows,forHMult,forHMultj,forHMulti);
 	bumpSparseAMA(ltpti[neqTimesTau+neqTimesTheta+1]-ltpti[0]);
 	bumpSparseAMA(forHMulti[hrows]-forHMulti[0]);
 	if(ierr!=0){printf("*************ran out of space****************\n");return(1);}
@@ -3290,11 +3289,10 @@ void testSparseAMASimplest(void)
 
 static const unsigned int testHrows=1;
 static const unsigned int testHcols=3;
-static const unsigned int testLeads=1;
 static const unsigned int testMaxelems=100;
 testMaxSize=testMaxelems;
 
-  printf("testSparseAMASimplest:beginning\n");
+//  printf("testSparseAMASimplest:beginning\n");
 double hmat[2]={2., 3.};
 unsigned int hmatj[2]={1, 2};
 unsigned int hmati[2]={1, 3};
@@ -3310,9 +3308,9 @@ unsigned int newHExp1j[2]={2,3};
 unsigned int newHExp1i[2]={1,3};
 
 
-printf("testHrows=%u,here's h\n",testHrows);
+//printf("testHrows=%u,here's h\n",testHrows);
 
-cPrintSparse(testHrows, hmat,hmatj,hmati);
+//cPrintSparse(testHrows, hmat,hmatj,hmati);
 testAux=testRowsInQ=0;
 autoRegression(&testMaxSize,&testRetCode,
    testHrows,testHcols,
@@ -3336,9 +3334,9 @@ newHExp1,newHExp1j,newHExp1i,tol));
 
 
 printf("here's newh\n");
-cPrintSparse(testHrows,   testNewHmat,testNewHmatj,testNewHmati);
-printf("here's q\n");
-cPrintSparse(testHrows*testLeads,testQmat,testQmatj,testQmati);
+//cPrintSparse(testHrows,   testNewHmat,testNewHmatj,testNewHmati);
+//printf("here's q\n");
+//cPrintSparse(testHrows*testLeads,testQmat,testQmatj,testQmati);
 
 
   printf("testSparseAMSimplest:after autoregression call\n");
@@ -3367,10 +3365,7 @@ char fileName[]="/Users/garyanderson/git/SPSolve/tests/oneEquationNoLead/oneEqua
 matvar_t *matvar[19];
 
 readDotMat(fileName,matvar);
-printf("oneEquationZeroLead:dims\n");
 theVar=matvar[18]->data;
-cPrintMatrix(matvar[18]->dims[0],matvar[18]->dims[1],theVar);
-printf("oneEquationZeroLead:try double %u\n",(unsigned int)round(*theVar));
 
 /*problem dimensions*/
 const unsigned int testHrows=(unsigned int)round(*theVar);
@@ -3399,8 +3394,6 @@ theVar=matvar[16]->data;
 int testBcols=testHrows*testLags;
 dnsToCsr(&testHrows,&testBcols,&testMaxelems,theVar,&testHrows,expBmat,expBmatj,expBmati,&info);
 
-printf("dtos b\n");
-cPrintSparse(1,expBmat,expBmatj,expBmati);
 
 /*sparseAMA call*/
 testMaxSize=testMaxelems;
@@ -3442,7 +3435,7 @@ satisfiesLinearSystemQ (&testMaxSize,
    &testEssential,
    testRootr,testRooti,testNormVec
 );
-cPrintMatrix(testHrows,1,testNormVec);
+//cPrintMatrix(testHrows,1,testNormVec);
 
 CU_ASSERT(denseVecsAllSmall(testHrows,testNormVec,tol))
 
