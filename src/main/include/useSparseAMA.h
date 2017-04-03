@@ -1,5 +1,5 @@
 
-#line 3776 "sparseAMA.w"
+#line 4074 "sparseAMA.w"
 
 /*
  * sparseAMA.h
@@ -184,8 +184,15 @@ int clean_suites(void);
 int init_suite2(void);
 void testSparseAMASimplest(void);
 void oneEquationZeroLead(void);
+void reliablePaperExmpl(void);
+void habitmodExmpl(void);
+
+int sameComplexRoots(unsigned int numElems,
+double * arootr,double * arooti,double * brootr,double * brooti,double tol);
 
 
+void magOrder(unsigned int numElems,double * Arootr,double * Arooti,
+unsigned int* theOrder);
 
 void cPrintMatrixNonZero(unsigned int nrows,unsigned int ncols,double *matrix,double zerotol);
 

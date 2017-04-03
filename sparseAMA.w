@@ -1385,6 +1385,34 @@ Mat_Close(matfp);
 }
 
   
+void magOrder(unsigned int numElems,double * Arootr,double * Arooti,
+unsigned int* theOrder){
+unsigned int ii,position,jj,swapPos;
+double swapVal;
+double * theMagsSq=(double *)calloc(numElems,sizeof(double));
+for(ii=0;ii<numElems;ii++){
+theMagsSq[ii]=Arootr[ii]*Arootr[ii]+Arooti[ii]*Arooti[ii];
+theOrder[ii]=ii;};
+for(ii = 0 ; ii < (numElems - 1 ) ; ii++ )
+   {
+      position = ii;
+      for ( jj = ii + 1 ; jj < numElems ; jj++ )
+      {
+         if ( theMagsSq[position] < theMagsSq[jj] )
+            position = jj;
+      }
+      if ( position != ii )
+      {
+         swapVal = theMagsSq[ii];
+         swapPos = theOrder[ii];
+         theMagsSq[ii] = theMagsSq[position];
+         theOrder[ii] = theOrder[position];
+         theMagsSq[position] = swapVal;
+         theOrder[position] = swapPos;
+      }
+   }
+}
+
 
 void cPrintMatrix(unsigned int nrows,unsigned int ncols,double * matrix)
 {
@@ -3069,7 +3097,7 @@ int satisfiesLinearSystemQ (
 	if(ierr!=0){printf("*************ran out of space****************\n");return(1);}
 	normsByRow(&hrows,&aTwo,forHMult,forHMultj,forHMulti,normVec);
 	
-cPrintMatrixNonZero(hrows,1,normVec,1.0e-8);
+//cPrintMatrixNonZero(hrows,1,normVec,1.0e-8);
 	free(wkspc);
 	free(forHMult);
 	free(forHMultj);
@@ -3237,21 +3265,43 @@ unsigned int *maxNumberOfHElements,
 int sparseMatsEqual(unsigned int numRows,
 double * amat,unsigned int *amatj,unsigned int *amati,
 double * bmat,unsigned int  *bmatj,unsigned int *bmati,double tol){
-unsigned int numElems=amati[numRows]-amati[0];
-
-double maxDDiff=0; unsigned int maxIDiff=0;
-unsigned int ii;unsigned int iDiff;double dDiff;
-for(ii=0;ii<=numRows;ii++){
-iDiff=abs(amati[ii]-bmati[ii]);
-maxIDiff=(iDiff>maxIDiff)?iDiff:maxIDiff;
+unsigned int numAElems=amati[numRows]-amati[0];
+unsigned int numBElems=bmati[numRows]-bmati[0];
+unsigned int testMaxelems=numAElems+numBElems;
+double * diffmat;unsigned int *diffmatj;unsigned int *diffmati;
+double * negmat;unsigned int *negmatj;unsigned int *negmati;
+diffmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+diffmatj=(unsigned  int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+diffmati=(unsigned  int *)calloc((unsigned)numRows+1,sizeof(unsigned int));
+negmat=(double *)calloc((unsigned)testMaxelems,sizeof(double));
+negmatj=(unsigned  int *)calloc((unsigned)testMaxelems,sizeof(unsigned int));
+negmati=(unsigned  int *)calloc((unsigned)numRows+1,sizeof(unsigned int));
+unsigned int ii;unsigned int numCols=0;
+for(ii=0;ii<numRows+1;ii++){negmati[ii]=bmati[ii];};
+for(ii=0;ii<bmati[numRows]-bmati[0];ii++){
+negmat[ii]=-1*bmat[ii];
+negmatj[ii]=bmatj[ii];
+numCols=(bmatj[ii]>numCols)?bmatj[ii]:numCols;
 };
-for(ii=0;ii<numElems;ii++){
-dDiff=fabs(amat[ii]-bmat[ii]);
-iDiff=abs(amatj[ii]-bmatj[ii]);
-maxIDiff=(iDiff>maxIDiff)?iDiff:maxDDiff;
+for(ii=0;ii<amati[numRows]-amati[0];ii++){
+numCols=(amatj[ii]>numCols)?amatj[ii]:numCols;
+};
+unsigned int * workSpace=(unsigned int *)calloc(testMaxelems,sizeof(unsigned int));
+int aOne[1]={1};
+int errCode[1]={0};
+sparseAdd(&numRows,&numCols,&testMaxelems, \
+workSpace,aOne, \
+amat,amatj,amati, \
+negmat,negmatj,negmati, \
+diffmat,diffmatj,diffmati, \
+errCode);
+double maxDDiff=0;
+double dDiff;
+for(ii=0;ii<diffmati[numRows]-diffmati[0];ii++){
+dDiff=fabs(diffmat[ii]);
 maxDDiff=(dDiff>maxDDiff)?dDiff:maxDDiff;
 };
-return((maxIDiff<tol)&&(maxDDiff<tol));
+return(maxDDiff<tol);
 }
 
 int denseVecsAllSmall(unsigned int numElems,double * avec,double tol){
@@ -3264,11 +3314,31 @@ maxDDiff=(dDiff>maxDDiff)?dDiff:maxDDiff;
 return(maxDDiff<tol);
 }
 
+int sameComplexRoots(unsigned int numElems,
+double * arootr,double * arooti,double * brootr,double * brooti,double tol)
+{
+unsigned int * aOrder=(unsigned int *)calloc(numElems,sizeof(unsigned int));
+unsigned int * bOrder=(unsigned int *)calloc(numElems,sizeof(double));
+magOrder(numElems,arootr,arooti,aOrder);
+magOrder(numElems,brootr,brooti,bOrder);
+double maxDDiff=0;
+unsigned int ii;double dDiff;
+for(ii=0;ii<numElems;ii++){
+dDiff=fabs(arootr[aOrder[ii]]-brootr[bOrder[ii]]);
+maxDDiff=(dDiff>maxDDiff)?dDiff:maxDDiff;
+dDiff=fabs(arooti[aOrder[ii]]-brooti[bOrder[ii]]);
+maxDDiff=(dDiff>maxDDiff)?dDiff:maxDDiff;
+};
+free(aOrder);
+free(bOrder);
 
+
+return(maxDDiff<tol);
+}
 int denseVecsEqual(unsigned int numElems,double * avec,double * bvec,double tol){
 double maxDDiff=0;
 unsigned int ii;double dDiff;
-for(ii=0;ii<=numElems;ii++){
+for(ii=0;ii<numElems;ii++){
 dDiff=fabs(avec[ii]-bvec[ii]);
 maxDDiff=(dDiff>maxDDiff)?dDiff:maxDDiff;
 };
@@ -3333,7 +3403,7 @@ newHExp1,newHExp1j,newHExp1i,tol));
 
 
 
-printf("here's newh\n");
+//printf("here's newh\n");
 //cPrintSparse(testHrows,   testNewHmat,testNewHmatj,testNewHmati);
 //printf("here's q\n");
 //cPrintSparse(testHrows*testLeads,testQmat,testQmatj,testQmati);
@@ -3344,15 +3414,15 @@ printf("here's newh\n");
   printf("testSparseAMSimplest:end\n");
 
 }
-double * theVar;
-#define HROWS (unsigned int) 1
-#define HLAGS (unsigned int) 1
-#define HLEADS (unsigned int) 1
+@}
+@o src/main/c/sparseAMA.c -d
+@{
 
 void oneEquationZeroLead(void)
 {
 int ii;
 
+double * theVar;
 
 
 /*zero tolerance*/
@@ -3371,14 +3441,14 @@ theVar=matvar[18]->data;
 const unsigned int testHrows=(unsigned int)round(*theVar);
 const unsigned int testLags=(unsigned int)round(*(theVar+1));
 const unsigned int testLeads=(unsigned int)round(*(theVar+2));
-const unsigned int testHcols=testLags+testLeads+1;
+const unsigned int testHcols=(testLags+testLeads+1)*testHrows;
 static const unsigned int testMaxelems=100;
 int info;
 /*original hmat*/
 
-double testHmat[2];
-unsigned int testHmatj[2];
-unsigned int testHmati[2];
+double testHmat[100];
+unsigned int testHmatj[100];
+unsigned int testHmati[100];
 
 /*original hmat hin*/
 theVar=matvar[0]->data;
@@ -3410,6 +3480,217 @@ sparseAMA(&testMaxSize,
      CU_ASSERT(0 == testRetCode)
      CU_ASSERT(1  == denseVecsEqual(aRows,testRootr,expRootr,tol))
      CU_ASSERT(1  == denseVecsEqual(aRows,testRooti,expRooti,tol))
+
+
+/*obtainSparseReducedForm call*/
+testMaxSize=testMaxelems;
+obtainSparseReducedForm(
+  &testMaxSize,
+  testHrows*testLeads,(testHcols-testHrows),testQmat,testQmatj,testQmati,
+  testBmat, testBmatj, testBmati
+);
+
+CU_ASSERT(sparseMatsEqual(testHrows,
+testBmat,testBmatj,testBmati,
+expBmat,expBmatj,expBmati,tol));
+
+
+
+/*satisfiesLinearSystemQ*/
+testMaxSize=testMaxelems;
+satisfiesLinearSystemQ (&testMaxSize,
+   testHrows,testLags,testLeads,
+   testHmat,testHmatj,testHmati,
+   &testAux,&testRowsInQ,  testBmat, testBmatj, testBmati,
+   &testEssential,
+   testRootr,testRooti,testNormVec
+);
+//cPrintMatrix(testHrows,1,testNormVec);
+
+CU_ASSERT(denseVecsAllSmall(testHrows,testNormVec,tol))
+
+for(ii=0;ii<19;ii++){Mat_VarFree(matvar[ii]);}
+
+
+}
+
+
+@}
+@o src/main/c/sparseAMA.c -d
+@{
+
+void habitmodExmpl(void)
+{
+int ii;
+
+double * theVar;
+
+
+/*zero tolerance*/
+double tol=1.0e-8;
+#ifdef __linux__
+char fileName[]="/msu/home/m1gsa00/git/SPSolve/tests/spSolveHabitmod/habitmod.mat";
+#elif __APPLE__
+char fileName[]="/Users/garyanderson/git/SPSolve/tests/spSolveHabitmod/habitmod.mat";
+#endif
+matvar_t *matvar[19];
+
+readDotMat(fileName,matvar);
+theVar=matvar[18]->data;
+
+/*problem dimensions*/
+const unsigned int testHrows=(unsigned int)round(*theVar);
+const unsigned int testLags=(unsigned int)round(*(theVar+1));
+const unsigned int testLeads=(unsigned int)round(*(theVar+2));
+const unsigned int testHcols=(testLags+testLeads+1)*testHrows;
+static const unsigned int testMaxelems=500;
+int info;
+/*original hmat*/
+
+double testHmat[400];
+unsigned int testHmatj[400];
+unsigned int testHmati[400];
+
+/*original hmat hin*/
+theVar=matvar[0]->data;
+dnsToCsr(&testHrows,&testHcols,&testMaxelems,theVar,&testHrows,testHmat,testHmatj,testHmati,&info);
+
+
+/*expected results*/
+
+double * expRootr=matvar[11]->data;
+double * expRooti=matvar[12]->data;
+theVar=matvar[13]->data;
+unsigned int numLargeRoots=(unsigned int)round(*theVar);
+
+theVar=matvar[16]->data;
+int testBcols=testHrows*testLags;
+dnsToCsr(&testHrows,&testBcols,&testMaxelems,theVar,&testHrows,expBmat,expBmatj,expBmati,&info);
+
+
+/*sparseAMA call*/
+
+testMaxSize=testMaxelems;
+USEARPACK=1u;
+sparseAMA(&testMaxSize,
+   DISCRETE_TIME,
+   testHrows,testHcols,testLeads,
+   testHmat,testHmatj,testHmati,
+   testNewHmat,testNewHmatj,testNewHmati,
+   &testAux,&testRowsInQ,testQmat,testQmatj,testQmati,
+   &testEssential,
+   testRootr,testRooti,&testRetCode
+   );
+
+
+     CU_ASSERT(0 == testRetCode)
+     CU_ASSERT(1  == sameComplexRoots(numLargeRoots,testRootr,testRooti,expRootr,expRooti,tol))
+
+
+
+/*obtainSparseReducedForm call*/
+testMaxSize=testMaxelems;
+obtainSparseReducedForm(
+  &testMaxSize,
+  testHrows*testLeads,(testHcols-testHrows),testQmat,testQmatj,testQmati,
+  testBmat, testBmatj, testBmati
+);
+
+CU_ASSERT(sparseMatsEqual(testHrows,
+testBmat,testBmatj,testBmati,
+expBmat,expBmatj,expBmati,tol));
+
+
+
+/*satisfiesLinearSystemQ*/
+testMaxSize=testMaxelems;
+satisfiesLinearSystemQ (&testMaxSize,
+   testHrows,testLags,testLeads,
+   testHmat,testHmatj,testHmati,
+   &testAux,&testRowsInQ,  testBmat, testBmatj, testBmati,
+   &testEssential,
+   testRootr,testRooti,testNormVec
+);
+//cPrintMatrix(testHrows,1,testNormVec);
+
+CU_ASSERT(denseVecsAllSmall(testHrows,testNormVec,tol))
+
+for(ii=0;ii<19;ii++){Mat_VarFree(matvar[ii]);}
+
+
+}
+
+
+@}
+
+@o src/main/c/sparseAMA.c -d
+@{
+
+void reliablePaperExmpl(void)
+{
+int ii;
+
+double * theVar;
+
+
+/*zero tolerance*/
+double tol=1.0e-8;
+#ifdef __linux__
+char fileName[]="/msu/home/m1gsa00/git/SPSolve/tests/reliablePaperExmpl/reliablePaperExmpl.mat";
+#elif __APPLE__
+char fileName[]="/Users/garyanderson/git/SPSolve/tests/reliablePaperExmpl/reliablePaperExmpl.mat";
+#endif
+matvar_t *matvar[19];
+
+readDotMat(fileName,matvar);
+theVar=matvar[18]->data;
+
+/*problem dimensions*/
+const unsigned int testHrows=(unsigned int)round(*theVar);
+const unsigned int testLags=(unsigned int)round(*(theVar+1));
+const unsigned int testLeads=(unsigned int)round(*(theVar+2));
+const unsigned int testHcols=(testLags+testLeads+1)*testHrows;
+static const unsigned int testMaxelems=100;
+int info;
+/*original hmat*/
+
+double testHmat[100];
+unsigned int testHmatj[100];
+unsigned int testHmati[100];
+
+/*original hmat hin*/
+theVar=matvar[0]->data;
+dnsToCsr(&testHrows,&testHcols,&testMaxelems,theVar,&testHrows,testHmat,testHmatj,testHmati,&info);
+
+
+/*expected results*/
+
+double * expRootr=matvar[11]->data;
+double * expRooti=matvar[12]->data;
+theVar=matvar[13]->data;
+unsigned int numLargeRoots=(unsigned int)round(*theVar);
+
+theVar=matvar[16]->data;
+int testBcols=testHrows*testLags;
+dnsToCsr(&testHrows,&testBcols,&testMaxelems,theVar,&testHrows,expBmat,expBmatj,expBmati,&info);
+
+
+/*sparseAMA call*/
+testMaxSize=testMaxelems;
+sparseAMA(&testMaxSize,
+   DISCRETE_TIME,
+   testHrows,testHcols,testLeads,
+   testHmat,testHmatj,testHmati,
+   testNewHmat,testNewHmatj,testNewHmati,
+   &testAux,&testRowsInQ,testQmat,testQmatj,testQmati,
+   &testEssential,
+   testRootr,testRooti,&testRetCode
+   );
+
+
+     CU_ASSERT(0 == testRetCode)
+     CU_ASSERT(1  == denseVecsEqual(numLargeRoots,testRootr,expRootr,tol))
+     CU_ASSERT(1  == denseVecsEqual(numLargeRoots,testRooti,expRooti,tol))
 
 
 /*obtainSparseReducedForm call*/
@@ -3581,6 +3862,23 @@ int main()
 
    /* add the tests to the suite */
    if ((NULL == CU_add_test(pSuite, "test of oneEquationZeroLead()", oneEquationZeroLead)))
+   {
+      CU_cleanup_registry();
+      return CU_get_error();
+   }
+
+
+
+   /* add the tests to the suite */
+   if ((NULL == CU_add_test(pSuite, "test of reliablePaperExmpl()", reliablePaperExmpl)))
+   {
+      CU_cleanup_registry();
+      return CU_get_error();
+   }
+
+
+   /* add the tests to the suite */
+   if ((NULL == CU_add_test(pSuite, "test of habitmodExmpl()", habitmodExmpl)))
    {
       CU_cleanup_registry();
       return CU_get_error();
@@ -3957,8 +4255,15 @@ int clean_suites(void);
 int init_suite2(void);
 void testSparseAMASimplest(void);
 void oneEquationZeroLead(void);
+void reliablePaperExmpl(void);
+void habitmodExmpl(void);
+
+int sameComplexRoots(unsigned int numElems,
+double * arootr,double * arooti,double * brootr,double * brooti,double tol);
 
 
+void magOrder(unsigned int numElems,double * Arootr,double * Arooti,
+unsigned int* theOrder);
 
 void cPrintMatrixNonZero(unsigned int nrows,unsigned int ncols,double *matrix,double zerotol);
 
