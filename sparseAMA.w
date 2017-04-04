@@ -121,7 +121,8 @@ algorithm.
 
 \begin{figure}[htbp]
   \begin{center}
-\includegraphics[width=8cm]{overallGraph.pdf}
+%\includegraphics[width=8cm]{overallGraph.pdf}
+\includegraphics{overallGraph.pdf}
 %   \caption{Algorithm Overview}
     \label{fig:overview}
   \end{center}
@@ -394,40 +395,6 @@ copmat, filter, submat, amub, rperm, cperm, getdia, diamua, usol and cnrms.
 The SPARSKIT author requires that the 
 following statement accompany any code using SPARSKIT:
 
-\begin{verbatim}
------------------------------------------------------------------------
-                   S P A R S K I T   V E R S I O N  2.
------------------------------------------------------------------------ 
-
-Latest update : Thu Nov 20 09:24:38 CST 1997
-
------------------------------------------------------------------------
-
-IMPORTANT: 
----------- 
-
-Copyright 1990,1994 Yousef Saad.
------------------------------------- 
-
-Permission to copy all or  part of any  material contained in SPARSKIT
-is only  granted upon approval from Yousef  Saad.  Not  any portion of
-SPARSKIT can   be used  for  commercial  purposes  or  as  part of   a
-commercial package.  This notice should accompany   the package in any
-approved copy.
-
-Note to contributors: Before  contributing any software be aware  that
-above  note     is   the only    global  limitation    against copying
-software. Eventually this copyright note may be replaced.
-
-DISCLAIMER
-----------
-
-SPARSKIT comes  with no warranty whatsoever.   The author/contributors
-of SPARKSIT are not liable for any loss/damage or inconvenience caused
-in  the use of the software  in  SPARSKIT or any modification thereof.
-
-
-\end{verbatim}
 \subsubsection{ LAPACK 3.0}
 
 
@@ -549,7 +516,41 @@ routine to provide support.
 \subsection{An Example Makefile}
 \label{sec:examplelibmake}
 
-q
+
+@d linux makefile variables
+@{
+#compilers
+CC = gcc
+FCFLAGS = -c -O2  -I./ -I./src/main/include \
+-I/msu/res5/software/myUsr/include/ -I /msu/res1/Software/matio-1.5.1/src/ 
+FCFLAGS = -c -g -Wall  -I./ -I./src/main/include \
+-I/msu/res5/software/myUsr/include -I /msu/res1/Software/matio-1.5.1/src/ 
+#lapack
+LAPACKLIBS=   -L /msu/res5/software/ARPACK96forCluster -larpack_linux \
+-L/msu/res5/software/lapackGithubForCluster -llapack -lrefblas
+CUNITLIBS= -L/msu/res5/software/myUsr/lib/ -l cunit
+MATIOLIBS= -L/msu/res1/Software/matio-1.5.1/src/.libs/ -lmatio  -lhdf5
+
+@}
+@d mac makefile variables
+@{
+#compilers
+CC = gcc
+FCFLAGS = -c -O2  -I./ -I./src/main/include \
+-I/Users/garyanderson/myUsr/include/\
+-I /usr/local/Cellar/libmatio/1.5.10/include
+FCFLAGS = -c -Wall -g  -I./ -I./src/main/include \
+-I/Users/garyanderson/myUsr/include/ \
+-I /usr/local/Cellar/libmatio/1.5.10/include 
+#lapack
+LAPACKLIBS=  -L /Users/garyanderson/ARPACK96/  -larpack_MACOS\
+-L /Users/garyanderson/lapack-release/ -llapack -lrefblas
+CUNITLIBS= -L /Users/garyanderson/myUsr/lib -l cunit
+MATIOLIBS= -L/usr/local/Cellar/libmatio/1.5.10/lib -lmatio 
+
+@}
+
+
 @o makefile -t
 @{
 #identify operating system
@@ -557,32 +558,19 @@ UNAME= $(shell uname)
 
 
 ifeq ($(UNAME),Linux)
-#compilers
-CC = gcc
-FCFLAGS = -c -O2  -I./ -I./src/main/include   -I/msu/res5/software/myUsr/include/ -I /msu/res1/Software/matio-1.5.1/src/ 
-FCFLAGS = -c -g -Wall  -I./ -I./src/main/include   -I/msu/res5/software/myUsr/include -I /msu/res1/Software/matio-1.5.1/src/ 
-#lapack
-LAPACKLIBS=   -L /msu/res5/software/ARPACK96forCluster -larpack_linux -L/msu/res5/software/lapackGithubForCluster -llapack -lrefblas
-CUNITLIBS= -L/msu/res5/software/myUsr/lib/ -l cunit
-MATIOLIBS= -L/msu/res1/Software/matio-1.5.1/src/.libs/ -lmatio  -lhdf5
+@< linux makefile variables@>
 endif
 
 ifeq ($(UNAME),Darwin)
-#compilers
-CC = gcc
-FCFLAGS = -c -O2  -I./ -I./src/main/include   -I/Users/garyanderson/myUsr/include/ -I /usr/local/Cellar/libmatio/1.5.10/include
-FCFLAGS = -c -Wall -g  -I./ -I./src/main/include   -I/Users/garyanderson/myUsr/include/ -I /usr/local/Cellar/libmatio/1.5.10/include 
-#lapack
-LAPACKLIBS=  -L /Users/garyanderson/ARPACK96/  -larpack_MACOS -L /Users/garyanderson/lapack-release/ -llapack -lrefblas
-CUNITLIBS= -L /Users/garyanderson/myUsr/lib -l cunit
-MATIOLIBS= -L/usr/local/Cellar/libmatio/1.5.10/lib -lmatio 
+@< mac makefile variables@>
 endif
 
 #compilers
 FC = gfortran
 .PHONY: Build
 Build: firstCUnitTest simpleSparseAMAExample
-	$(FC) firstCUnitTest.o -o firstCUnitTest $(CUNITLIBS) -L ./ -lsparseAMA $(LAPACKLIBS) $(MATIOLIBS)
+	$(FC) firstCUnitTest.o -o firstCUnitTest $(CUNITLIBS) \
+	-L ./ -lsparseAMA $(LAPACKLIBS) $(MATIOLIBS)
 
 
 libsparseAMA.a:	sparseAMA.o sparskit2.o ma50ad.o
@@ -597,7 +585,8 @@ src/test/c/secondCUnitTest.c: sparseAMA.w
 src/main/c/sparseAMA.c : sparseAMA.w
 	nuweb -t sparseAMA.w
 
-sparseAMA.o: ./src/main/c/sparseAMA.c sparskit2.o ./src/main/include/useSparseAMA.h
+sparseAMA.o: ./src/main/c/sparseAMA.c sparskit2.o \
+./src/main/include/useSparseAMA.h
 	$(CC) $(FCFLAGS)  ./src/main/c/sparseAMA.c 
 
 ma50ad.o: ./src/main/fortran/ma50ad.f
@@ -606,13 +595,15 @@ ma50ad.o: ./src/main/fortran/ma50ad.f
 sparskit2.o: ./src/main/c/sparskit2.c
 	$(CC)  $(FCFLAGS)  ./src/main/c/sparskit2.c 
 clean: 
-	rm -f *.o simpleSparseAMAExample libsparseAMA.a firstCUnitTest secondCUnitTest
+	rm -f *.o simpleSparseAMAExample libsparseAMA.a \
+	firstCUnitTest secondCUnitTest
 
 simpleSparseAMAExample.o: ./src/test/c/simpleSparseAMAExample.c
 	$(CC)  $(FCFLAGS) ./src/test/c/simpleSparseAMAExample.c
 
 simpleSparseAMAExample:simpleSparseAMAExample.o libsparseAMA.a
-	$(FC) simpleSparseAMAExample.o  -o simpleSparseAMAExample -L ./  -lsparseAMA $(LAPACKLIBS)   $(CUNITLIBS) $(MATIOLIBS)
+	$(FC) simpleSparseAMAExample.o  -o simpleSparseAMAExample -L ./ \
+	-lsparseAMA $(LAPACKLIBS)   $(CUNITLIBS) $(MATIOLIBS)
 
 
 devSuite1.o: devSuite1.c
@@ -633,7 +624,8 @@ firstCUnitTest.o: ./src/test/c/firstCUnitTest.c
 	$(CC)  $(FCFLAGS) ./src/test/c/firstCUnitTest.c
 
 firstCUnitTest: firstCUnitTest.o libsparseAMA.a 
-	$(FC) firstCUnitTest.o -o firstCUnitTest  -L ./ -lsparseAMA $(LAPACKLIBS)	  $(CUNITLIBS) $(MATIOLIBS)
+	$(FC) firstCUnitTest.o -o firstCUnitTest  -L ./ \
+	-lsparseAMA $(LAPACKLIBS)	  $(CUNITLIBS) $(MATIOLIBS)
 
 
 secondCUnitTest.o: ./src/test/c/secondCUnitTest.c
@@ -675,469 +667,6 @@ double time_extract, time_backsolve ;
 double time_autoregression, time_augmentQ;
 
 @}
-\begin{verbatim}
-
-
-/* ----------------------------------------------------------------- */
-/* misc utility routines follow ...                                  */
-/*                                                                   */
-/*                                                                   */
-/*  lineNumberToViolation                                            */
-/*  lineNumberToString                                               */
-/*  validVector                                                      */
-/*  validCSRMatrix                                                   */
-/*  cPrintMatrix                                                     */
-/*  cPrintMatrixNonZero                                              */
-/*  cPrintSparse                                                     */
-/*  rowEndsInZeroBlock                                               */
-/*                                                                   */
-/* ----------------------------------------------------------------- */
-
-
-/* ----------------------------------------------------------------------
- rowEndsInZeroBlock (targetRow, blockLength, mat, matj, mati, ncols)
-
- returns true if targetRow in CSR matrix mat ends in zero block,
- else returns false
-
-	targetRow   		row number to check
-	blockLength   		length of block to check
-	mat, matj, mati  	target matrix in CSR format
-	ncols    			number of columns in 'mat'
-
- notes
- no range checking -- targetRow and blockLength are assumed to be in bounds
----------------------------------------------------------------------- */
-
-/* ----------------------------------------------------------------------
- deleteRow (targetRow, mat, nrows, ncols)
-
- 	deletes row targetRow from dense matrix mat, which is nrows by ncols
-	deletes in place, last row of existing matrix is left unchanged
- 	returns 0 if successful
-	targetRow is indexed from 1 to nrows
-
-
----------------------------------------------------------------------- */
-
-/* --------------------------------------------------------------- */
-/* !shiftRighttAndRecord                                           */
-/* --------------------------------------------------------------- */
-
-/* -----------------------------------------------------------------------------
-
-	shift rows of H right one block at a time until no row ends in a zero block.
-	for each shift, add row to Q to form auxiliary initial conditions.
-	return total number of rows in Q.
-
-	arguments
-
-		maxNumberOfHElements 		space allocated for Q matrix
-		returnCode 					used by sparseAMAAssert
-		dim  						number of columns in block to check for zero
-		rowsInQ 					number of rows in Q matrix
-		qmat, qmatj, qmati			Q matrix in CSR format
-		hrows, hcols				number of rows, columns in H matrix
-		hmat, hmatj, hmati			H matrix in CSR format
-
-
------------------------------------------------------------------------------ */
-
-/* --------------------------------------------------------------- */
-/* !constructQRDecomposition                                       */
-/* rwt add profiling                                               */
-/* --------------------------------------------------------------- */
-
-/* -------------------------------------------------------------------------
-	QR decomposition of matrix A.  return results as q and r, plus
-	permutation vectors prow and pcol.  calls LAPACK routines dgeqp3
-	and dorqpr, which operate on dense matrices.
-
-http://www.netlib.org/lapack/lapack-3.1.1/html/dgeqp3.f.html
-
-
---------------------------------------------------------------------------- */
-
-/* --------------------------------------------------------------- */
-/* !annihilateRows                                                 */
-/* rwt add profiling, ztol                                         */
-/* --------------------------------------------------------------- */
-
-/* ----------------------------------------------------------------------------------------
-    compute QR decomposition of rightmost block of H matrix (H-theta), then premultiply H
-    by resulting q and reorder matrix by rows so that the bottom rows of the right block are
-    zeroed out.  return result in newHmat, along with QR decomposition and pivot vectors.
-
-	arguments
-
-		maxNumberOfHElements						max space used
-	    returnCode									used in sparseAMAAssert
-	    hrows, hcols								rows and cols in H
-	    hmat, hmatj, hmati,							H matrix in CSR format
-	    newHmat, newHmatj, newHmati,				transformed H matrix in CSR format
-	    annihilator, annihilatorj, annihilatori,	q matrix from QR decomposition of H-theta
-	    rmat, rmatj, rmati,							r matrix from QR decomposition of H-theta
-	    prow										reordering of H matrix by rows (?)
-	    pcol										column pivots from QR decomposition
-
------------------------------------------------------------------------------------------ */
-
-/* --------------------------------------------------------------- */
-/* !autoRegression                                                 */
-/* rwt allocate space for rightMostAllZeroQ                        */
-/* rwt add profiling                                               */
-/* --------------------------------------------------------------- */
-
-/* -------------------------------------------------------------------------
-
-	First stage of computation of unconstrained autoregression X(t) = A X(t-1).
-	Transforms matrix of structural coefficients (H) so that right-most block
-	(H-theta) is non-singular.  This is done by shifting zero rows of H-theta
-	right and storing them in Q as auxiliary initial conditions.  A QR decomposition
-	is performed on H-theta, which is premultiplied by the q matrix to generate
-	additional zero rows, which are then shifted as well.  This process continues
-	until H-theta becomes non-singular.
-
-	Arguments
-
-		*maxNumberOfHElements 			on input, number of elements to allocate for hmat storage
-		returnCode 						on output, number of elements to allocate for qmat storage
-
-		hrows, hcols					rows and columns in H matrix
-		hmat, hmatj, hmati 				structural coefficients matrix in CSR format
-		qmat, qmatj, qmati 				asymptotic constraint matrix in CSR format.
-
-		newHmat, newHmatj, newHmati 	transformed structural coefficients matrix in CSR format
-		annihilator, annihilatorj, 		q matrix from final QR decomposition of H-theta
-			annihilatori
-		rmat, rmatj,  rmati				r matrix from final QR decomposition of H-theta
-		prow (output) 					permution of rows in H-theta (?)
-		pcol (output) 					column pivots from final QR decomposition of H-theta
-		aPointToVoid					not used
-
-------------------------------------------------------------------------- */
-
-/* --------------------------------------------------------------- */
-/* !identifyEssential                                              */
-/* --------------------------------------------------------------- */
-/* ------------------------------------------------------------------
-	compute dimension of transition matrix.  Loosely speaking, that's
-	the number of nonzero columns in H ...
-
-	arguments
-
-		neq						number of rows in H matrix
-		hcols					number of cols in H
-		hmat, hmatj, hmati		H matrix in CSR format
-		js						vector masking nonzero columns in H
-
-
------------------------------------------------------------------- */
-
-/* --------------------------------------------------------------- */
-/* !constructA                                                     */
-/* rwt add profiling                                               */
-/* --------------------------------------------------------------- */
-
-/* ------------------------------------------------------------------
-	construct A == [ 0   I ]
-	               [ gamma ]
-
-    where gamma == [ H-theta inverse * H ]
-
-	use QR decomposition from autoRegression above to avoid inverting
-	H-theta.
-
-	arguments
-
-		maxNumberOfHElements	   		max size parameter
-		returnCode				   		ptr to global return code
-		hrows, hcols			   		rows, columns in H matrix
-		ia						   		?
-		js						   		pointers to nonzero cols in gamma
-		hmat, hmatj, hmati		   		H matrix in CSR format
-		qmat, qmatj, qmati		   		Q matrix in CSR format
-		rmat, rmatj, rmati		   		r matrix from QR decomposition of H-theta
-		prow, pcol				   		row and column permutations of H-theta (?)
-		damat					   		dense version of A ??? used in call to dgeesx
-
-------------------------------------------------------------------- */
-
-/* --------------------------------------------------------------- */
-/* !useArpack                                                      */
-/* rwt add profiling                                               */
-/* --------------------------------------------------------------- */
-
-/* ------------------------------------------------------------------
-	wrapper function to call arpack routines to compute eigenvectors
-	and eigen values for matrix A.  returns arpack error code.
-	computes number of large roots if global TESTBLANCHARDKAHN=true
-
-	arguments
-
-		maxNumberOfHElements				max size parameter
-		maxnev								number of eigenvalues to calculate
-		nroot								dimension of eigenproblem
-		amat, amatj, amati					A matrix in CSR format
-		spanVecs							array of eigenvectors
-		rootr, rooti						vectors of real and imaginary roots
-		&nlarge								ptr to number of large roots
-------------------------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-/* !augmentQmatWithInvariantSpaceVectors                           */
-/* rwt add profiling                                               */
-/* --------------------------------------------------------------- */
-
-/* -----------------------------------------------------------------------------------
-	this documentation is based on the old faim program ...
-
-    premultiplies h by the negative inverse of htheta.  The left
-    part of h (all but htheta, the rightmost block) will be referred to
-    now as gamma.  A vector js is made to contain zeros for each zero
-    column of gamma.  Nonzero entries in js (corresponding to nonzero
-    columns in gamma) are numbered (1,2,...,nroot) -- nroot is the number of
-    nonzero columns in gamma.  gcols is the total number of columns in
-    gamma.
-
-    if there are any nonzero columns in gamma, constructs a matrix
-    A, which is a squeezed down version of a state transition matrix Q.
-    (A is the rows and columns of Q corresponding to nonzero entries in js.)
-
-    computes vectors spanning the left invariant subspace of A and stores them
-    in w.  The eigenvalues are stored in roots.
-
-    writes any of these vectors associated with roots outside
-    the unit circle into q.
-
-	arguments
-
-		maxNumberOfHElements						max size for alloc matrices
-		returnCode									return code
-		discreteTime								discrete (0) or continuous (1)
-		hrows, hcols								rows and columns of H matrix
-		hmat, hmatj, hmati							H matrix in CSR format
-		annihilator, annihilatorj, annihilatori		final q matrix from QR decomposition
-		rmat, rmatj, rmati							final r matrix from QR decomposition
-		prow, pcol									permutations of rows and columns
-		auxiliaryInitialConditions					number of aux init conditions
-		constraintsNeeded							number of constraints
-		qmat, qmatj,qmati							Q matrix in CSR format
-		essential									dimension of transition matrix
-		rootr, rooti								vectors of roots, real and imaginary
-
------------------------------------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-/* !obtainSparseReducedForm                                        */
-/* rwt add profiling                                               */
-/* --------------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-/* !applySparseReducedForm                                        */
-/* --------------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-/* !satisfiesLinearSystemQ                                         */
-/* rwt allocate space for rightMostAllZeroQ                        */
-/* rwt add profiling                                               */
-/* --------------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-/* !sparseAMA                                                      */
-/* rwt add profiling                                               */
-/* --------------------------------------------------------------- */
-
-/* ---------------------------------------------------------------------------------
-
-	Given the structural coefficients matrix, this routine computes
-	the statespace transition matrix, and its eigenvalues and constructs the asymptotic
-	constraints matrix.  Returns an int, the number of rows in the asymptotic constraint
-	matrix.
-
-
-Arguments
----------
-
-	All args should be allocated and initialized by the caller as shown below.
-	In these comments,
-			qmax == maxNumberOfHElements
-	Arrays are assumed to be initialized to zero unless otherwise specified.
-
-	maxNumberOfHElements (input,output)
-
-		A pointer to a strictly positive int:  the number of elements to allocate
-		for sparse matrix storage. On output, the minimum value required to carry
-		out the computations for this function invocation.
-
-		Recommended initial guess is hrows*hcols.
-
-	discreteTime (input)
-
-		when non-zero, computes discrete time solutions
-		when 0 computes continuous time solutions.
-		The former case requires ruling out eigenvalues bigger than one in magnitude.
-		The latter case requires ruling out eigenvalues with positive real part.
-		The sparseAMA.h include file provides definitions for these int constants.
-
-	hrows (input)
-
-		a strictly positive int characterizing the number of rows in hmat
-		also equal to the number of equations in the model, referred to here as neq
-
-	hcols (input)
-
-		a strictly positive int characterizing the number of columns in hmat
-
-	leads (input)
-
-		a strictly positive int characterizing the number of leads
-
-	hmat, hmatj, hmati (input)
-
-		structural coefficients matrix in `compressed sparse row' (CSR) format.
-		The CSR data structure consists of three arrays:
-
-			A real array A containing the real values a_{i,j} stored row by row,
-			from row 1 to N. The length of A is NNZ.
-
-			An integer array JA containing the column indices of the elements a_{i,j}
-			as stored in the array $A$.  The length of JA is NNZ.
-
-			An integer array IA containing the pointers to the beginning of each row
-			in the arrays A and JA. The content of IA(i) is the position in arrays A and JA
-			where the i-th row starts.  The length of IA is N+1 with IA(N+1) containing the
-			number IA(1)+NNZ, i.e., the address in A and JA of the beginning of a fictitious
-			row N+1.
-
-		allocate as:
-
-			double *hmat[qmax]
-			int *hmatj[qmax]
-			int *hmati[hrows+1]
-
-	newHmat, newHmatj, newHmati (output)
-
-		transformed structural coefficients matrix in CSR format. Leading block non-singular.
-		allocate as:
-
-			double *newHmat[qmax]
-			int *newHmatj[qmax]
-			int *newHmati[hrows+1]
-
-	auxiliaryInitialConditions (input,output)
-
-		a non-negative int indicating the number of auxiliary initial conditions
-		set to zero on input unless user is pre-initializing Q with aux conditions.
-
-	rowsInQ (input,output)
-
-		a non-negative int indicating the number of rows in qmat.
-		set to zero on input (unless aux conditions set on input?)
-
-	qmat, qmatj, qmati (input,output)
-
-		asymptotic constraint matrix in CSR format.
-		allocate as:
-			double *qmat[qmax]
-			int *qmatj[qmax]
-			int *qmati[hrows*(nleads+nlags+1)+1]
-		where nleads == max number of leads, nlags = max number of lags
-
-	essential (output)
-
-		a non-negative int indicating the number of elements in rootr and rooti.
-
-	rootr (output)
-
-		real part of transition matrix eigenvalues
-		allocate as:
-			double *rootr[qcols]
-		where qcols == neq*(nlags+nleads)
-
-	rooti (output)
-
-		imaginary part of transition matrix eigenvalues
-		allocate as:
-			double *rooti[qcols]
-		where qcols == neq*(nlags+nleads)
-
-	returnCode (output)
-
-		ASYMPTOTIC_LINEAR_CONSTRAINTS_AVAILABLE 0
-		STACKED_SYSTEM_NOT_FULL_RANK 2000
-		sparseAMA_PRECONDITIONS_VIOLATED 2001
-		autoRegression_POSTCONDITIONS_VIOLATED 2002
-		augmentQmatWithInvariantSpaceVectors_PRECONDITIONS_VIOLATED 2003
-		augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED 2004
-		shiftRightAndRecord_PRECONDITIONS_VIOLATED 2005
-		annihilateRows_POSTCONDITIONS_VIOLATED 2006
-		HELEMS_TOO_SMALL 2007
-		AMAT_TOO_LARGE 2008
-
-
-		not used in the default implementation.
-
-
-	'global' variables
-
-		double ZERO_TOLERANCE
-		double ZERO_TOL1
-		int USEARPACK
-		int TESTBLANCHARDKAHN
-
-	must all be declared and set in the calling program.
-
-
-
----------------------------------------------------------------------------------- */
-	/* --------------------------------------- */
-	/* 2. augmentQmatWithInvariantSpaceVectors */
-	/* --------------------------------------- */
-
-	/* -----------------------------------------------------------------------------------
-	In addition to returning the number of rows in the asymptotic constraint matrix,
-	the call to augmentQmatWithInvariantSpaceVectors returns several matrices:
-
-		qmat, qmatj, qmati 	matrix of asymptotic constraints in CSR format
-		amat				transition matrix in dense format
-		rootr				real part of the eignvalues
-		rooti				imaginary part of the eignvalues
-		js					a vector indicating which columns of the original structural
-							coefficients matrix correspond to the columns of the transition matrix.
-		essential			dimension of the transition matrix
-   -------------------------------------------------------------------------------------- */
-
-	/* ----------------------------------- */
-	/* 1. autoRegression                   */
-	/* ----------------------------------- */
-
-	/* -----------------------------------------------------------------------------------
-	In addition to the number of auxiliary initial conditions, the call to
-	autoRegression() returns several sparse matrices:
-
-		newHmat, newHmatj, newHmati
-			The transformed structural coefficients matrix.
-			The algorithm constructs a matrix with a non-singular right-hand block.
-
-		annihilator, annihilatorj, annihilatori
-			The Q matrix in the final rank determining QR-Decomposition.
-
-		rmat, rmatj, rmati
-				The R matrix in the final rank determining QR-Decomposition.
-
-	The routine also returns the row and column permutations used in the QR-Decomposition
-	(prow and pcol).  Subsequent routines use the QR-Decomposition matrix to avoid
-	computing the inverse of the right-hand block of the transformed structural
-	coefficients matrix.
-	------------------------------------------------------------------------------------- */
-
-/* ******************************************************************************************* */
-/* ******************************************************************************************* */
-/*                               end sparseAMA.c                                               */
-/* ******************************************************************************************* */
-/* ******************************************************************************************* */
-
-
-
-
-\end{verbatim}
-
 
 @o src/main/c/sparseAMA.c -d
 @{
@@ -3731,36 +3260,6 @@ for(ii=0;ii<19;ii++){Mat_VarFree(matvar[ii]);}
 
 @}
 
-\begin{verbatim}
-  
-
-/*
- *  Simple example of a CUnit unit test.
- *
- *  This program (crudely) demonstrates a very simple "black box"
- *  test of the standard library functions sparseAMA() and fread().
- *  It uses suite initialization and cleanup functions to open
- *  and close a common temporary file used by the test functions.
- *  The test functions then write to and read from the temporary
- *  file in the course of testing the library functions.
- *
- *  The 2 test functions are added to a single CUnit suite, and
- *  then run using the CUnit Basic interface.  The output of the
- *  program (on CUnit version 2.0-2) is:
- *
- *           CUnit : A Unit testing framework for C.
- *           http://cunit.sourceforge.net/
- *
- *       Suite: Suite_1
- *         Test: test of sparseAMA() ... passed
- *         Test: test of fread() ... passed
- *
- *       --Run Summary: Type      Total     Ran  Passed  Failed
- *                      suites        1       1     n/a       0
- *                      tests         2       2       2       0
- *                      asserts       5       5       5       0
- */
-\end{verbatim}
 @o src/test/c/firstCUnitTest.c -d
 @{
 
@@ -3897,35 +3396,6 @@ int main()
 
 @}
 
-\begin{verbatim}
-/*
- *  Simple example of a CUnit unit test.
- *
- *  This program (crudely) demonstrates a very simple "black box"
- *  test of the standard library functions sparseAMA() and fread().
- *  It uses suite initialization and cleanup functions to open
- *  and close a common temporary file used by the test functions.
- *  The test functions then write to and read from the temporary
- *  file in the course of testing the library functions.
- *
- *  The 2 test functions are added to a single CUnit suite, and
- *  then run using the CUnit Basic interface.  The output of the
- *  program (on CUnit version 2.0-2) is:
- *
- *           CUnit : A Unit testing framework for C.
- *           http://cunit.sourceforge.net/
- *
- *       Suite: Suite_1
- *         Test: test of sparseAMA() ... passed
- *         Test: test of fread() ... passed
- *
- *       --Run Summary: Type      Total     Ran  Passed  Failed
- *                      suites        1       1     n/a       0
- *                      tests         2       2       2       0
- *                      asserts       5       5       5       0
- */
-
-\end{verbatim}
 
 @o src/main/include/AMASuite.h -d
 @{
