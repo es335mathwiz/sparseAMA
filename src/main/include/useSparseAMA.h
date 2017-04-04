@@ -1,5 +1,5 @@
 
-#line 3544 "sparseAMA.w"
+#line 3490 "sparseAMA.w"
 
 /*
  * sparseAMA.h
@@ -16,7 +16,7 @@
 #include <math.h>
 // #include "mex.h"
 
-#define WIN32 1
+
 #define USESETJMP 1
 #ifdef USESETJMP
 #define _POSIX_SOURCE 1

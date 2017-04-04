@@ -645,12 +645,9 @@ secondCUnitTest: secondCUnitTest.o libsparseAMA.a
 @o src/main/c/sparseAMA.c -d
 @{
 #include "useSparseAMA.h"
-#ifdef WIN32
-#include <time.h>
-#else
 #include <time.h>
 #include <sys/time.h>
-#endif
+
 double ZERO_TOLERANCE;
 double ZERO_TOL1;
 unsigned int USEARPACK, TESTBLANCHARDKAHN ;
@@ -1806,20 +1803,12 @@ static unsigned int useArpack(
 		/*	fflush (stdout);*/
 
 	time0 = cputime() ;
-/* Fortran calls in Win32 require hidden args for string length */
-/* strings are char arrays, so don't take addresses when calling */
-/* #ifdef WIN32
-	useDNAUPD( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
-		iparam, ipntr, workd, workl, &lworkl, &info
-	);
-*/
-//#else
 	useDNAUPD( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
 		iparam, ipntr, workd, workl, &lworkl, &info
 	);
 
 	/*	fflush (stdout);*/
-//#endif
+
 	time_arpack += (cputime() - time0) ;
 	if (info != 0) {
 		printf ("error return from dnaupd, ierr=%d\n", info) ;
@@ -1835,18 +1824,9 @@ static unsigned int useArpack(
 		time_sparseMatTimesVec += (cputime() - time0) ;
 
 		time0 = cputime() ;
-/* Fortran calls in Win32 require hidden args for string length */
-/* strings are char arrays, so don't take addresses when calling */
-/* #ifdef WIN32
-	    useDNAUPD( &ido, bmat, ONE, &maxn, which, TWO, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
-	    	iparam, ipntr, workd, workl, &lworkl, &info
-	    );
-*/
-// #else
 	    useDNAUPD( &ido, bmat, &maxn, which, &maxnev, &tol, resid, &maxncv, spanVecs, &ldv,
 	    	iparam, ipntr, workd, workl, &lworkl, &info
 	    );
-// #endif
 		time_arpack += (cputime() - time0) ;
 		if (info != 0) {
 			printf ("error return from dnaupd, ierr=%d\n", info) ;
@@ -1858,25 +1838,12 @@ static unsigned int useArpack(
 
 	/* call dneupd to retrive eigenvectors and values */
 	time0 = cputime() ;
-/* Fortran calls in Win32 require hidden args for string length */
-/* strings are char arrays, so don't take addresses when calling */
-/*#ifdef WIN32
-	useDNEUPD( &rvec, huhmat, ONE, select, rootr, rooti, spanVecs, &ldv,
-	         &sigmar, &sigmai, workev, bmat, ONE, &maxn, which, TWO, &maxnev, &tol,
-	         resid, &maxncv, spanVecs, &ldv, iparam, ipntr, workd, workl,
-	         &lworkl, &info
-	);
-#else
-*/
-
-/*		printf ("calling dneupd, tol=%e\n", tol) ;*/
 
 	useDNEUPD( &rvec, huhmat, select, rootr, rooti, spanVecs, &ldv,
 	         &sigmar, &sigmai, workev, bmat, &maxn, which, &maxnev, &tol,
 	         resid, &maxncv, spanVecs, &ldv, iparam, ipntr, workd, workl,
 	         &lworkl, &info
 	);
-// #endif
 	time_arpack += (cputime() - time0) ;
 	if (info != 0) {
 		printf ("error return from dneupd, ierr=%d\n", info) ;
@@ -2144,17 +2111,6 @@ static unsigned int augmentQmatWithInvariantSpaceVectors (
 			time0 = cputime() ;
 			jobvs='V';sort='S';sense='B';
 			if (discreteTime!=0){
-/* Fortran calls from C in Win32 require extra args for string length */
-/* nb strings are single chars, so take address when calling */
-/*#ifdef WIN32
-			   	useDGEESX(
-			        &jobvs,ONE,&sort,ONE,discreteSelect,&sense,ONE,&nroot,damat,&nroot,
-			        &sdim,rootr,rooti,
-			        beyondQmat,&nroot,&rconde,&rcondv,
-			        work,&lwork,anotheriwork,&liwork,bwork,
-			        &info
-				);
-#else */
 			   	useDGEESX(
 			        &jobvs,&sort,discreteSelect,&sense,&nroot,damat,&nroot,
 			        &sdim,rootr,rooti,
@@ -2162,25 +2118,15 @@ static unsigned int augmentQmatWithInvariantSpaceVectors (
 			        work,&lwork,anotheriwork,&liwork,bwork,
 			        &info
 				);
-// #endif
+
 			} else {
-/* Fortran calls from C in Win32 require extra args for string length */
-/* nb strings are single chars, so take address when calling */
-/*#ifdef WIN32
-		   		useDGEESX(
-			        &jobvs,ONE,&sort,ONE,continuousSelect,&sense,ONE,&nroot,damat,&nroot,
-			        &sdim,rootr,rooti,
-			        beyondQmat,&nroot,&rconde,&rcondv,
-			        work,&lwork,anotheriwork,&liwork,bwork,
-			        &info);
-#else */
 		   		useDGEESX(
 			        &jobvs,&sort,continuousSelect,&sense,&nroot,damat,&nroot,
 			        &sdim,rootr,rooti,
 			        beyondQmat,&nroot,&rconde,&rcondv,
 			        work,&lwork,anotheriwork,&liwork,bwork,
 			        &info);
-// #endif
+
 			}
 			//			printf("done dgees: info = %d, sdim= %d, nroot = %d\n",info,sdim,nroot);
 			//			printf("done dgees: rconde = %e, rcondv= %e\n",rconde,rcondv);
@@ -3557,7 +3503,7 @@ return(0);
 #include <math.h>
 // #include "mex.h"
 
-#define WIN32 1
+
 #define USESETJMP 1
 #ifdef USESETJMP
 #define _POSIX_SOURCE 1
@@ -4045,7 +3991,6 @@ ma50id_((double *) CNTL,(int *)ICNTL)
 \item  3/26/03     rwt add ZERO\_TOL1 for counting large roots      
 \item  4/1/03	 rwt add Blanchard-Kahn test, windows compile options  
 \item  Dec 2004	lg	del fPrintMatrix and fPrintSparse so as to hook up to Matlab
-\item  6/30/2010	ar 	change various "ifdef win32" statements to account for gfortran compiler 
 \end{itemize}
 
 \subsection{Files}
