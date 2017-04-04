@@ -1,20 +1,14 @@
 
 #line 3490 "sparseAMA.w"
 
-/*
- * sparseAMA.h
- */
-/* ------------------------------------------------------------------------------------------------ */
-/* rwt version of sparseAMA.h.  Numerous changes, including insert code from top of old sparseAMA.c */
-/* ------------------------------------------------------------------------------------------------ */
 
 #include <stdio.h>
 
-/*#include <stdio.h>*/
+
 #include <stdlib.h>
 #include <float.h>
 #include <math.h>
-// #include "mex.h"
+
 
 
 #define USESETJMP 1
