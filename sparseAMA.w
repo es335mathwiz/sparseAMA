@@ -549,8 +549,6 @@ CUNITLIBS= -L /Users/garyanderson/myUsr/lib -l cunit
 MATIOLIBS= -L/usr/local/Cellar/libmatio/1.5.10/lib -lmatio 
 
 @}
-
-
 @o makefile -t
 @{
 #identify operating system
@@ -584,6 +582,9 @@ src/test/c/secondCUnitTest.c: sparseAMA.w
 
 src/main/c/sparseAMA.c : sparseAMA.w
 	nuweb -t sparseAMA.w
+@}
+@o makefile -t
+@{
 
 sparseAMA.o: ./src/main/c/sparseAMA.c sparskit2.o \
 ./src/main/include/useSparseAMA.h
@@ -604,6 +605,9 @@ simpleSparseAMAExample.o: ./src/test/c/simpleSparseAMAExample.c
 simpleSparseAMAExample:simpleSparseAMAExample.o libsparseAMA.a
 	$(FC) simpleSparseAMAExample.o  -o simpleSparseAMAExample -L ./ \
 	-lsparseAMA $(LAPACKLIBS)   $(CUNITLIBS) $(MATIOLIBS)
+@}
+@o makefile -t
+@{
 
 
 devSuite1.o: devSuite1.c
@@ -667,7 +671,6 @@ double time_extract, time_backsolve ;
 double time_autoregression, time_augmentQ;
 
 @}
-
 @o src/main/c/sparseAMA.c -d
 @{
 
@@ -692,6 +695,10 @@ case  sparseAMAPreRowsInQ: result=
   sparseAMA_PRECONDITIONS_VIOLATED; break;
 case  sparseAMAPreQmat: result=
   sparseAMA_PRECONDITIONS_VIOLATED; break;
+@}
+@o src/main/c/sparseAMA.c -d
+@{
+
 case  autoRegressionPostValidQ: result=
   autoRegression_POSTCONDITIONS_VIOLATED; break;
 case  autoRegressionPostValidH: result=
@@ -718,6 +725,10 @@ case  augmentQmatWithInvariantSpaceVectorsPostADim: result=
   augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED; break;
 case  augmentQmatWithInvariantSpaceVectorsPostValidJs: result=
   augmentQmatWithInvariantSpaceVectors_POSTCONDITIONS_VIOLATED; break;
+@}
+@o src/main/c/sparseAMA.c -d
+@{
+
 case  shiftRightAndRecordPreZeroRow: result=
   STACKED_SYSTEM_NOT_FULL_RANK; break;
 case  annihilateRowsPostValidH: result=
