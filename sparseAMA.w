@@ -3522,7 +3522,7 @@ return(0);
 #include <stdio.h>
 
 
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <float.h>
 #include <math.h>
 
@@ -3688,7 +3688,7 @@ maxHElementsEncountered=(unsigned int)(potentialMaxValue);\
 	printf("bumpSparseAMA stuff(%d,%d) at line %d\n",\
 	potentialMaxValue,maxHElementsEncountered,__LINE__);
 
-void free(void * ptr);
+//void free(void * ptr);
 
 int init_suite1(void);
 int clean_suites(void);
