@@ -951,7 +951,7 @@ for(ii = 0 ; ii < (numElems - 1 ) ; ii++ )
 }
 
 
-void fPrintMathDbl(FILE * file,unsigned int length,double * matrix,char *  matrixName)
+void fPrintMathDbl(FILE * file,unsigned int length,double * matrix,const char *  matrixName)
 {
 unsigned int i;
 fprintf(file,"%s={",matrixName);
@@ -3710,7 +3710,7 @@ void cPrintMatrixNonZero(unsigned int nrows,unsigned int ncols,double *matrix,do
 void cPrintSparse(unsigned int rows,double * a,unsigned int * aj,unsigned int * ai);
 
 void cPrintMatrix(unsigned int nrows,unsigned int ncols,double * matrix);
-void fPrintMathDbl(FILE * file,unsigned int length,double * matrix,char *  matrixName);
+void fPrintMathDbl(FILE * file,unsigned int length,double * matrix,const char *  matrixName);
 
 void fPrintMathInt(FILE * file,unsigned int length,unsigned int * matrix,char *  matrixName);
 
